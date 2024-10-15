@@ -6,7 +6,7 @@ using EmailService.DAL.DAL.DbModels.Models;
 
 namespace EmailService.DAL.DAL.Interfaces;
 
-public interface INotificationSubscribersDAL : IBaseDal<DefaultDbContext, NotificationSubscriberDbModel,
+internal interface INotificationSubscribersDAL : IBaseDal<DefaultDbContext, NotificationSubscriberDbModel,
     NotificationSubscriberEntity, int, NotificationSubscribersSearchParams, object>
 {
 }

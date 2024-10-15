@@ -3,13 +3,13 @@ using Microsoft.EntityFrameworkCore;
 
 namespace EmailService.DAL.DAL.DbModels;
 
-public partial class DefaultDbContext : DbContext
+internal partial class DefaultDbContext : DbContext
 {
     public DefaultDbContext() { }
 
     public DefaultDbContext(DbContextOptions<DefaultDbContext> options) : base(options) { }
 
-    public virtual DbSet<NotificationSubscriberDbModel> NotificationSubscribers { get; set; }
+    internal virtual DbSet<NotificationSubscriberDbModel> NotificationSubscribers { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

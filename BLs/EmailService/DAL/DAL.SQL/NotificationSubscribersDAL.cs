@@ -9,7 +9,7 @@ using System.Linq.Expressions;
 
 namespace EmailService.DAL.DAL.SQL;
 
-public class NotificationSubscribersDAL : BaseDAL<DefaultDbContext, NotificationSubscriberDbModel,
+internal class NotificationSubscribersDAL : BaseDAL<DefaultDbContext, NotificationSubscriberDbModel,
     NotificationSubscriberEntity, int, NotificationSubscribersSearchParams, object>, INotificationSubscribersDAL
 {
     protected override bool RequiresUpdatesAfterObjectSaving => false;

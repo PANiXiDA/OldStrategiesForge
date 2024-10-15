@@ -2,7 +2,7 @@
 
 namespace EmailService.DAL.DAL.DbModels.Models;
 
-public class NotificationSubscriberDbModel : BasePostgresDbModel
+internal class NotificationSubscriberDbModel : BasePostgresDbModel
 {
     public string Email { get; set; } = string.Empty;
 }

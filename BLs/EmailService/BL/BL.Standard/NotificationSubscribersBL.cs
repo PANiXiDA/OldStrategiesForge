@@ -6,7 +6,7 @@ using EmailService.DAL.DAL.Interfaces;
 
 namespace EmailService.BL.BL.Standard;
 
-public class NotificationSubscribersBL : INotificationSubscribersBL
+internal class NotificationSubscribersBL : INotificationSubscribersBL
 {
     private readonly INotificationSubscribersDAL _notificationSubscribersDAL;
 

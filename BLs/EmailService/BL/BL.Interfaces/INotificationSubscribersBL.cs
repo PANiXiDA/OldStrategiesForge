@@ -4,6 +4,6 @@ using EmailService.BL.BL.Models;
 
 namespace EmailService.BL.BL.Interfaces;
 
-public interface INotificationSubscribersBL : ICrudBL<NotificationSubscriberEntity, NotificationSubscribersSearchParams, object>
+internal interface INotificationSubscribersBL : ICrudBL<NotificationSubscriberEntity, NotificationSubscribersSearchParams, object>
 {
 }
