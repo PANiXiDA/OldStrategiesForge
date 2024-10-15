@@ -1,11 +1,13 @@
 using Tools.RabbitMQ.Extensions;
 using EmailService.BackgroundServices;
-using EmailService.BL.BL.Standard.Extensions;
+using EmailService.BL.Extensions;
+using EmailService.DAL.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddMessageBrokers(builder.Configuration);
 builder.Services.AddBusinessLogicLayer();
+builder.Services.AddDataAccessLayer(builder.Configuration);
 builder.Services.AddHostedService<EmailProcessingService>();
 
 builder.Services.AddEndpointsApiExplorer();
