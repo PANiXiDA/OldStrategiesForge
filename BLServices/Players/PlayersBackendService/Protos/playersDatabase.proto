@@ -2,7 +2,7 @@ syntax = "proto3";
 
 option csharp_namespace = "PlayersDatabaseService";
 
-package greet;
+package backend.players;
 
 // The greeting service definition.
 service Greeter {

@@ -13,7 +13,7 @@ namespace PlayersDatabaseService {
   /// </summary>
   public static partial class Greeter
   {
-    static readonly string __ServiceName = "greet.Greeter";
+    static readonly string __ServiceName = "backend.players.Greeter";
 
     [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
     static void __Helper_SerializeMessage(global::Google.Protobuf.IMessage message, grpc::SerializationContext context)
@@ -49,17 +49,17 @@ namespace PlayersDatabaseService {
     }
 
     [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
-    static readonly grpc::Marshaller<global::PlayersDatabaseService.HelloRequest> __Marshaller_greet_HelloRequest = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::PlayersDatabaseService.HelloRequest.Parser));
+    static readonly grpc::Marshaller<global::PlayersDatabaseService.HelloRequest> __Marshaller_backend_players_HelloRequest = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::PlayersDatabaseService.HelloRequest.Parser));
     [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
-    static readonly grpc::Marshaller<global::PlayersDatabaseService.HelloReply> __Marshaller_greet_HelloReply = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::PlayersDatabaseService.HelloReply.Parser));
+    static readonly grpc::Marshaller<global::PlayersDatabaseService.HelloReply> __Marshaller_backend_players_HelloReply = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::PlayersDatabaseService.HelloReply.Parser));
 
     [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
     static readonly grpc::Method<global::PlayersDatabaseService.HelloRequest, global::PlayersDatabaseService.HelloReply> __Method_SayHello = new grpc::Method<global::PlayersDatabaseService.HelloRequest, global::PlayersDatabaseService.HelloReply>(
         grpc::MethodType.Unary,
         __ServiceName,
         "SayHello",
-        __Marshaller_greet_HelloRequest,
-        __Marshaller_greet_HelloReply);
+        __Marshaller_backend_players_HelloRequest,
+        __Marshaller_backend_players_HelloReply);
 
     /// <summary>Service descriptor</summary>
     public static global::Google.Protobuf.Reflection.ServiceDescriptor Descriptor
