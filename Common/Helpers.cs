@@ -1,20 +1,18 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Security.Cryptography;
+﻿using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 
 namespace Common;
 public class Helpers
 {
     public static string GetPasswordHash(string s)
     {
-        if (s == null)
-            return null;
+        if (string.IsNullOrEmpty(s))
+            return string.Empty;
+
         using var hashAlgorithm = SHA512.Create();
         var hash = hashAlgorithm.ComputeHash(Encoding.Unicode.GetBytes(s));
+
         return string.Concat(hash.Select(item => item.ToString("x2")));
     }
 

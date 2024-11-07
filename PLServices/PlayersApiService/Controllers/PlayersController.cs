@@ -1,12 +1,11 @@
 ﻿using Common;
 using Grpc.Core;
-using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using PlayersApiService.Common;
 using PlayersApiService.Infrastructure;
 using PlayersApiService.Infrastructure.Requests.Players;
 using PlayersApiService.Infrastructure.Responses.Core;
-using PlayersApiService.Protos;
+using Players.Backend.Gen;
 
 namespace PlayersApiService.Controllers;
 
@@ -15,10 +14,10 @@ namespace PlayersApiService.Controllers;
 [ApiController]
 public class PlayersController : ControllerBase
 {
-    private readonly PlayersAPI.PlayersAPIClient _grpcClient;
+    private readonly PlayersBackend.PlayersBackendClient _grpcClient;
     private readonly ILogger<PlayersController> _logger;
 
-    public  PlayersController(PlayersAPI.PlayersAPIClient grpcClient, ILogger<PlayersController> logger)
+    public PlayersController(PlayersBackend.PlayersBackendClient grpcClient, ILogger<PlayersController> logger)
     {
         _grpcClient = grpcClient;
         _logger = logger;
@@ -26,7 +25,6 @@ public class PlayersController : ControllerBase
 
     [HttpPost]
     [ProducesResponseType(typeof(RestApiResponse<CreatePlayerProtoResponse>), 200)]
-    [Route("create")]
     public async Task<ActionResult<RestApiResponse<CreatePlayerProtoResponse>>> Create([FromBody] CreatePlayerRequest request)
     {
         if (request.Password != request.RepeatPassword)
@@ -37,11 +35,6 @@ public class PlayersController : ControllerBase
         if (!Helpers.IsPasswordValid(request.Password))
         {
             return BadRequest(RestApiResponseBuilder<CreatePlayerProtoResponse>.Fail(Constants.ErrorMessages.NotValidPassword, Constants.ErrorMessages.ErrorKey));
-        }
-
-        if (!Helpers.IsEmailValid(request.Email))
-        {
-            return BadRequest(RestApiResponseBuilder<CreatePlayerProtoResponse>.Fail(Constants.ErrorMessages.NotValidEmail, Constants.ErrorMessages.ErrorKey));
         }
 
         var grpcRequest = new CreatePlayerProtoRequest
@@ -63,12 +56,5 @@ public class PlayersController : ControllerBase
 
             return StatusCode(StatusCodes.Status500InternalServerError, RestApiResponseBuilder<CreatePlayerProtoResponse>.Fail(ex.Message, Constants.ErrorMessages.ErrorKey));
         }
-        catch (Exception ex)
-        {
-            _logger.LogError($"Во время создания пользователя {request.Nickname} произошла ошибка: {ex.Message}");
-
-            return StatusCode(StatusCodes.Status500InternalServerError, RestApiResponseBuilder<CreatePlayerProtoResponse>.Fail(ex.Message, Constants.ErrorMessages.ErrorKey));
-        }
     }
-
 }

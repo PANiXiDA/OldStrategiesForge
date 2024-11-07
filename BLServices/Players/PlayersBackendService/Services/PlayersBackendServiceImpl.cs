@@ -1,13 +1,12 @@
 ﻿using Grpc.Core;
-using PlayersApiService.Protos;
+using Players.Backend.Gen;
 
-namespace PlayersBackendService.Services;
+namespace ProfileBackendService.Services;
 
-public class PlayersApiServiceImpl : PlayersAPI.PlayersAPIBase
+public class PlayersBackendServiceImpl : PlayersBackend.PlayersBackendBase
 {
     public override Task<CreatePlayerProtoResponse> Create(CreatePlayerProtoRequest request, ServerCallContext context)
     {
-        // Логика создания пользователя на сервере
         var response = new CreatePlayerProtoResponse
         {
             Message = $"User {request.Nickname} created successfully!"
