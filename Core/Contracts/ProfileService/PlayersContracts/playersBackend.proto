@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+option csharp_namespace = "Players.Backend.Gen";
+
+service PlayersBackend {
+  rpc Create (CreatePlayerRequest) returns (CreatePlayerResponse);
+}
+
+message CreatePlayerRequest {
+  string nickname = 1;
+  string email = 2;
+  string password = 3;
+}
+
+message CreatePlayerResponse {
+  string message = 1;
+}

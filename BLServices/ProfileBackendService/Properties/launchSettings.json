@@ -1,0 +1,13 @@
+{
+  "profiles": {
+    "https": {
+      "commandName": "Project",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "PlayersDatabaseUrl": "https://localhost:7000"
+      },
+      "dotnetRunMessages": true,
+      "applicationUrl": "https://localhost:7157"
+    }
+  }
+}

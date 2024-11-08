@@ -7,7 +7,10 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Update="ProfileServices\PlayersContracts\playersBackend.proto">
+    <None Update="ProfileService\PlayersContracts\playersBackend.proto">
+      <GrpcServices>Server</GrpcServices>
+    </None>
+    <None Update="ProfileService\PlayersContracts\playersDatabase.proto">
       <GrpcServices>Server</GrpcServices>
     </None>
   </ItemGroup>
