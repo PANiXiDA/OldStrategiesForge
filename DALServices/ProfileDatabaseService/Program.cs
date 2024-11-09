@@ -1,15 +1,14 @@
 using ProfileDatabaseService.DAL.Implementations.Extensions;
-using ProfileDatabaseService.Services;
+using ProfileDatabaseService.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
-//builder.Services.AddDataAccessLayer(builder.Configuration);
-builder.Services.AddGrpc();
-builder.Services.AddGrpcReflection();
+builder.Services.AddDataAccessLayer(builder.Configuration);
+builder.Services.ConfigureGrpcServices();
 
 var app = builder.Build();
 
-app.MapGrpcService<PlayersDatabaseServiceImpl>();
+app.MapGrpcEndpoints();
 
 if (app.Environment.IsDevelopment())
 {

@@ -1,27 +1,16 @@
-using Players.Database.Gen;
-using ProfileBackendService.Services;
+using ProfileBackendService.Extensions;
+using ProfileBackendService.Extensions.Mapping;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddGrpc();
-builder.Services.AddGrpcReflection();
+builder.Services.ConfigureGrpcClients();
+builder.Services.ConfigureGrpcServices();
 
-builder.Services.AddGrpcClient<PlayersDatabase.PlayersDatabaseClient>(o =>
-{
-    var url = Environment.GetEnvironmentVariable("PlayersDatabaseUrl");
-    if (url != null)
-    {
-        o.Address = new Uri(url);
-    }
-    else
-    {
-        throw new InvalidOperationException("PlayersDatabaseUrl is not set.");
-    }
-});
+builder.Services.AddAutoMapper(typeof(MappingProfile));
 
 var app = builder.Build();
 
-app.MapGrpcService<PlayersBackendServiceImpl>();
+app.MapGrpcEndpoints();
 
 if (app.Environment.IsDevelopment())
 {

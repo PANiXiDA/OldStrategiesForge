@@ -10,6 +10,7 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+		<PackageReference Include="AutoMapper" Version="13.0.1" />
 		<PackageReference Include="Google.Protobuf" Version="3.28.3" />
 		<PackageReference Include="Grpc.AspNetCore" Version="2.66.0" />
 		<PackageReference Include="Grpc.AspNetCore.Server.Reflection" Version="2.66.0" />
@@ -21,12 +22,15 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <ProjectReference Include="..\..\Common\Common.csproj" />
 	  <ProjectReference Include="..\..\Core\Contracts\Contracts.csproj" />
 	</ItemGroup>
 
 	<ItemGroup>
 		<Protobuf Include="..\..\Core\Contracts\ProfileService\PlayersContracts\playersBackend.proto" GrpcServices="Server" />
 		<Protobuf Include="..\..\Core\Contracts\ProfileService\PlayersContracts\playersDatabase.proto" GrpcServices="Client" />
+		<Protobuf Include="..\..\Core\Contracts\ProfileService\AuthContracts\authBackend.proto" GrpcServices="Server" />
+		<Protobuf Include="..\..\Core\Contracts\ProfileService\AuthContracts\authDatabase.proto" GrpcServices="Client" />
 	</ItemGroup>
 
 </Project>

@@ -1,4 +1,6 @@
-using Players.Backend.Gen;
+using Asp.Versioning;
+using Auth.Backend.Gen;
+using ProfileApiService.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -6,17 +8,14 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-builder.Services.AddGrpcClient<PlayersBackend.PlayersBackendClient> (o =>
+builder.Services.ConfigureGrpcClients();
+
+builder.Services.AddApiVersioning(options =>
 {
-    var url = Environment.GetEnvironmentVariable("PlayersBackendUrl");
-    if (url != null)
-    {
-        o.Address = new Uri(url);
-    }
-    else
-    {
-        throw new InvalidOperationException("PlayersBackendUrl is not set.");
-    }
+    options.ReportApiVersions = true;
+    options.AssumeDefaultVersionWhenUnspecified = true;
+    options.DefaultApiVersion = new ApiVersion(1, 0);
+    options.ApiVersionReader = new UrlSegmentApiVersionReader();
 });
 
 var app = builder.Build();
