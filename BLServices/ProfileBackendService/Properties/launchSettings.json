@@ -1,13 +1,15 @@
 {
   "profiles": {
-    "https": {
+    "http": {
       "commandName": "Project",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development",
-        "ProfileDatabaseUrl": "https://localhost:7000"
+        "PROFILE_DATABASE_URL": "http://localhost:6001",
+        "HTTP_PORT": "5000",
+        "GRPC_PORT": "5001"
       },
       "dotnetRunMessages": true,
-      "applicationUrl": "https://localhost:7157"
+      "applicationUrl": "http://localhost:5000;http://localhost:5001"
     }
   }
 }

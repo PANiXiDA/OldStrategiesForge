@@ -1,8 +1,22 @@
 using Asp.Versioning;
-using Auth.Backend.Gen;
 using ProfileApiService.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
+
+PortsConfiguration.ConfigurePort();
+
+builder.WebHost.ConfigureKestrel(options =>
+{
+    options.ListenAnyIP(PortsConfiguration.HttpPort, listenOptions =>
+    {
+        listenOptions.Protocols = Microsoft.AspNetCore.Server.Kestrel.Core.HttpProtocols.Http1;
+    });
+
+    options.ListenAnyIP(PortsConfiguration.GrpcPort, listenOptions =>
+    {
+        listenOptions.Protocols = Microsoft.AspNetCore.Server.Kestrel.Core.HttpProtocols.Http2;
+    });
+});
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
@@ -20,13 +34,10 @@ builder.Services.AddApiVersioning(options =>
 
 var app = builder.Build();
 
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+app.UseSwagger();
+app.UseSwaggerUI();
 
-app.UseHttpsRedirection();
+//app.UseHttpsRedirection();
 
 app.UseAuthorization();
 

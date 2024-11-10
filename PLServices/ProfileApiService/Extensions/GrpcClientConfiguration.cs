@@ -7,8 +7,8 @@ public static class GrpcClientConfiguration
 {
     public static void ConfigureGrpcClients(this IServiceCollection services)
     {
-        ConfigureGrpcClient<PlayersBackend.PlayersBackendClient>(services, "ProfileBackendUrl");
-        ConfigureGrpcClient<AuthBackend.AuthBackendClient>(services, "ProfileBackendUrl");
+        ConfigureGrpcClient<PlayersBackend.PlayersBackendClient>(services, "PROFILE_BACKEND_URL");
+        ConfigureGrpcClient<AuthBackend.AuthBackendClient>(services, "PROFILE_BACKEND_URL");
     }
 
     private static void ConfigureGrpcClient<TClient>(IServiceCollection services, string environmentVariableName) where TClient : class

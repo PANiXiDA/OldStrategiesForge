@@ -7,8 +7,8 @@ public static class GrpcClientConfiguration
 {
     public static void ConfigureGrpcClients(this IServiceCollection services)
     {
-        ConfigureGrpcClient<PlayersDatabase.PlayersDatabaseClient>(services, "ProfileDatabaseUrl");
-        ConfigureGrpcClient<AuthDatabase.AuthDatabaseClient>(services, "ProfileDatabaseUrl");
+        ConfigureGrpcClient<PlayersDatabase.PlayersDatabaseClient>(services, "PROFILE_DATABASE_URL");
+        ConfigureGrpcClient<AuthDatabase.AuthDatabaseClient>(services, "PROFILE_DATABASE_URL");
     }
 
     private static void ConfigureGrpcClient<TClient>(IServiceCollection services, string environmentVariableName) where TClient : class

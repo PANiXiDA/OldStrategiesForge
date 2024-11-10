@@ -12,19 +12,21 @@ EXPOSE 8081
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
-COPY ["PLServices/PlayersApiService/PlayersApiService.csproj", "PLServices/PlayersApiService/"]
-RUN dotnet restore "./PLServices/PlayersApiService/PlayersApiService.csproj"
+COPY ["PLServices/ProfileApiService/ProfileApiService.csproj", "PLServices/ProfileApiService/"]
+COPY ["Common/Common.csproj", "Common/"]
+COPY ["Core/Contracts/Contracts.csproj", "Core/Contracts/"]
+RUN dotnet restore "./PLServices/ProfileApiService/ProfileApiService.csproj"
 COPY . .
-WORKDIR "/src/PLServices/PlayersApiService"
-RUN dotnet build "./PlayersApiService.csproj" -c $BUILD_CONFIGURATION -o /app/build
+WORKDIR "/src/PLServices/ProfileApiService"
+RUN dotnet build "./ProfileApiService.csproj" -c $BUILD_CONFIGURATION -o /app/build
 
 # Этот этап используется для публикации проекта службы, который будет скопирован на последний этап
 FROM build AS publish
 ARG BUILD_CONFIGURATION=Release
-RUN dotnet publish "./PlayersApiService.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
+RUN dotnet publish "./ProfileApiService.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
 
 # Этот этап используется в рабочей среде или при запуске из VS в обычном режиме (по умолчанию, когда конфигурация отладки не используется)
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
-ENTRYPOINT ["dotnet", "PlayersApiService.dll"]
+ENTRYPOINT ["dotnet", "ProfileApiService.dll"]
