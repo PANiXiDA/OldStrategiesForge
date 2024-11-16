@@ -157,6 +157,7 @@ services:
       - "9081:9081"
     environment:
       ASPNETCORE_ENVIRONMENT: Production
+      ASPNETCORE_HTTP_PORTS: 9080
       RabbitMQ: rabbitmq
     networks:
       - app-network
