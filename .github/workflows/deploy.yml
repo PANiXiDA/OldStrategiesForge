@@ -21,6 +21,6 @@ jobs:
           passphrase: ${{ secrets.SSH_PASSPHRASE }}
           script: |
             cd OldStrategiesForge
-            git pull origin develop
+            git pull https://${{ secrets.TOKEN }}@github.com/PANiXiDA/OldStrategiesForge.git develop
             docker-compose down
             docker-compose up --build -d
