@@ -154,7 +154,7 @@ services:
       dockerfile: FrontendService/Dockerfile
     restart: unless-stopped
     ports:
-      - "9081:9081"
+      - "9080:9080"
     environment:
       ASPNETCORE_ENVIRONMENT: Production
       ASPNETCORE_HTTP_PORTS: 9080
