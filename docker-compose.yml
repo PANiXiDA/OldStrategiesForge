@@ -80,8 +80,24 @@ services:
     depends_on:
       - profile_db     
     networks:
-      - app-network      
+      - app-network
 
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: pgadmin
+    restart: unless-stopped
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=mixaila17may2003@gmail.com
+      - PGADMIN_DEFAULT_PASSWORD=Test1234
+    ports:
+      - "5050:80"
+    networks:
+      - app-network
+      
+networks:
+  app-network:
+    external: true
+      
 networks:
   app-network:
     driver: bridge
