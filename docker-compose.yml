@@ -154,7 +154,7 @@ services:
       dockerfile: FrontendService/Dockerfile
     restart: unless-stopped
     ports:
-      - "80801:80801"
+      - "9081:9081"
     environment:
       ASPNETCORE_ENVIRONMENT: Production
       RabbitMQ: rabbitmq
