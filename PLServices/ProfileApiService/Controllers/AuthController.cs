@@ -10,7 +10,7 @@ using ProfileApiService.Infrastructure.Responses.Auth;
 namespace ProfileApiService.Controllers;
 
 [ApiVersion("1.0")]
-[Route("v{version:apiVersion}/auth")]
+[Route("api/v{version:apiVersion}/auth")]
 [Produces("application/json")]
 [ApiController]
 public class AuthController : ControllerBase

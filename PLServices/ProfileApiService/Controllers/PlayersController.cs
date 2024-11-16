@@ -5,7 +5,7 @@ using Asp.Versioning;
 namespace ProfileApiService.Controllers;
 
 [ApiVersion("1.0")]
-[Route("v{version:apiVersion}/players")]
+[Route("api/v{version:apiVersion}/players")]
 [Produces("application/json")]
 [ApiController]
 public class PlayersController : ControllerBase
