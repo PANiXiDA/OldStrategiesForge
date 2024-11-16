@@ -91,13 +91,13 @@ services:
       dockerfile: Services/EmailService/Dockerfile
     restart: unless-stopped
     environment:
-      - ASPNETCORE_ENVIRONMENT: Production
-      - DB_HOST: email_db
-      - DB_PORT: 5432
-      - POSTGRES_DB: EmailServiceDb
-      - DB_USER: postgres
-      - DB_PASSWORD: 123456789
-      - RabbitMQ: rabbitmq
+      ASPNETCORE_ENVIRONMENT: Production
+      DB_HOST: email_db
+      DB_PORT: 5432
+      POSTGRES_DB: EmailServiceDb
+      DB_USER: postgres
+      DB_PASSWORD: 123456789
+      RabbitMQ: rabbitmq
     depends_on:
       - email_db
       - email_db_migrator
@@ -124,12 +124,12 @@ services:
     container_name: email_db_migrator
     restart: on-failure
     environment:
-      - ASPNETCORE_ENVIRONMENT: Production
-      - DB_HOST: email_db
-      - DB_PORT: 5432
-      - POSTGRES_DB: EmailServiceDb
-      - DB_USER: postgres
-      - DB_PASSWORD: 123456789
+      ASPNETCORE_ENVIRONMENT: Production
+      DB_HOST: email_db
+      DB_PORT: 5432
+      POSTGRES_DB: EmailServiceDb
+      DB_USER: postgres
+      DB_PASSWORD: 123456789
     working_dir: /app
     volumes:
       - .:/app
@@ -156,8 +156,8 @@ services:
     ports:
       - "80801:80801"
     environment:
-      - ASPNETCORE_ENVIRONMENT: Production
-      - RabbitMQ: rabbitmq
+      ASPNETCORE_ENVIRONMENT: Production
+      RabbitMQ: rabbitmq
     networks:
       - app-network
 
