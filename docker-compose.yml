@@ -1,4 +1,5 @@
 services:
+#Профиль
   profile-api-service:
     container_name: profile-api-service
     build:
@@ -52,7 +53,7 @@ services:
     ports:
       - "5434:5432"
     volumes:
-      - database-data:/var/lib/postgresql/data
+      - profile-database-data:/var/lib/postgresql/data
     environment:
       POSTGRES_DB: ProfileServiceDb
       POSTGRES_USER: postgres
@@ -81,7 +82,86 @@ services:
       - profile_db     
     networks:
       - app-network
+      
+# Email
+  email-service:
+    container_name: email-service
+    build:
+      context: .
+      dockerfile: Services/EmailService/Dockerfile
+    restart: unless-stopped
+    environment:
+      - ASPNETCORE_ENVIRONMENT: Production
+      - DB_HOST: email_db
+      - DB_PORT: 5432
+      - POSTGRES_DB: EmailServiceDb
+      - DB_USER: postgres
+      - DB_PASSWORD: 123456789
+      - RabbitMQ: rabbitmq
+    depends_on:
+      - email_db
+      - email_db_migrator
+    networks:
+      - app-network
+      
+  email_db:
+    image: postgres:15
+    container_name: email_db
+    restart: always   
+    ports:
+      - "5435:5432"
+    volumes:
+      - email-database-data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: EmailServiceDb
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 123456789
+    networks:
+      - app-network
 
+  email_db_migrator:
+    image: mcr.microsoft.com/dotnet/sdk:8.0
+    container_name: email_db_migrator
+    restart: on-failure
+    environment:
+      - ASPNETCORE_ENVIRONMENT: Production
+      - DB_HOST: email_db
+      - DB_PORT: 5432
+      - POSTGRES_DB: EmailServiceDb
+      - DB_USER: postgres
+      - DB_PASSWORD: 123456789
+    working_dir: /app
+    volumes:
+      - .:/app
+    command:
+      - sh
+      - -c
+      - |
+        dotnet tool install --global dotnet-ef &&
+        export PATH="/usr/local/bin:/usr/bin:/bin:/root/.dotnet/tools" &&
+        dotnet ef database update --project Services/EmailService/EmailService.csproj \
+                                  --startup-project Services/EmailService/EmailService.csproj
+    depends_on:
+      - email_db     
+    networks:
+      - app-network
+
+# UI      
+  old-strategy-forge-ui-service:
+    container_name: old-strategy-forge-ui-service
+    build:
+      context: .
+      dockerfile: FrontendService/Dockerfile
+    restart: unless-stopped
+        ports:
+      - "80801:80801"
+    environment:
+      - ASPNETCORE_ENVIRONMENT: Production
+      - RabbitMQ: rabbitmq
+    networks:
+      - app-network
+
+# Утилиты
   pgadmin:
     image: dpage/pgadmin4:latest
     container_name: pgadmin
@@ -93,14 +173,23 @@ services:
       - "5050:80"
     networks:
       - app-network
-      
-networks:
-  app-network:
-    external: true
-      
+   
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    networks:
+      - app-network
+          
 networks:
   app-network:
     driver: bridge
  
 volumes:
-  database-data:
+  profile-database-data:
+  email-database-data:

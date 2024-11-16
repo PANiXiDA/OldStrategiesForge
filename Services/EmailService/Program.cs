@@ -5,9 +5,12 @@ using EmailService.DAL.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddMessageBrokers(builder.Configuration);
+
+var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
+
+builder.Services.AddMessageBrokers(builder.Configuration, environment);
 builder.Services.AddBusinessLogicLayer();
-builder.Services.AddDataAccessLayer(builder.Configuration);
+builder.Services.AddDataAccessLayer(builder.Configuration, environment);
 builder.Services.AddHostedService<EmailProcessingService>();
 
 var app = builder.Build();

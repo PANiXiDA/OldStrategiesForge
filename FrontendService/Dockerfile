@@ -13,6 +13,7 @@ FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
 COPY ["FrontendService/FrontendService.csproj", "FrontendService/"]
+COPY ["Tools/Tools.csproj", "Tools/"]
 RUN dotnet restore "./FrontendService/FrontendService.csproj"
 COPY . .
 WORKDIR "/src/FrontendService"

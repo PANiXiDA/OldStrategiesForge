@@ -2,7 +2,8 @@ using Tools.RabbitMQ.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddMessageBrokers(builder.Configuration);
+var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
+builder.Services.AddMessageBrokers(builder.Configuration, environment);
 
 builder.Services.AddControllersWithViews();
 
@@ -14,7 +15,6 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
-app.UseHttpsRedirection();
 app.UseStaticFiles();
 
 app.UseRouting();

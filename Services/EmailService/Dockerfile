@@ -11,10 +11,14 @@ EXPOSE 8080
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
-COPY ["BLs/EmailService/EmailService.csproj", "BLs/EmailService/"]
-RUN dotnet restore "./BLs/EmailService/EmailService.csproj"
+COPY ["Services/EmailService/EmailService.csproj", "Services/EmailService/"]
+COPY ["Core/BaseBL/BaseBL.csproj", "Core/BaseBL/"]
+COPY ["Common/Common.csproj", "Common/"]
+COPY ["Core/BaseDAL/BaseDAL.csproj", "Core/BaseDAL/"]
+COPY ["Tools/Tools.csproj", "Tools/"]
+RUN dotnet restore "./Services/EmailService/EmailService.csproj"
 COPY . .
-WORKDIR "/src/BLs/EmailService"
+WORKDIR "/src/Services/EmailService"
 RUN dotnet build "./EmailService.csproj" -c $BUILD_CONFIGURATION -o /app/build
 
 # Этот этап используется для публикации проекта службы, который будет скопирован на последний этап

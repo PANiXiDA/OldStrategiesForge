@@ -4,7 +4,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
-namespace EmailService.DAL.Migrations
+namespace EmailService.Services.EmailService.Migrations
 {
     /// <inheritdoc />
     public partial class Initial : Migration
@@ -16,22 +16,22 @@ namespace EmailService.DAL.Migrations
                 name: "NotificationSubscribers",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "integer", nullable: false)
+                    id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    Email = table.Column<string>(type: "text", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    DeletedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
+                    email = table.Column<string>(type: "text", nullable: false),
+                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    updated_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    deleted_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_NotificationSubscribers", x => x.Id);
+                    table.PrimaryKey("PK_NotificationSubscribers", x => x.id);
                 });
 
             migrationBuilder.CreateIndex(
-                name: "IX_NotificationSubscribers_Email",
+                name: "IX_NotificationSubscribers_email",
                 table: "NotificationSubscribers",
-                column: "Email",
+                column: "email",
                 unique: true);
         }
 
