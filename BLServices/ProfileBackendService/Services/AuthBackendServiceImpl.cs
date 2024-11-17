@@ -7,6 +7,9 @@ using Auth.Database.Gen;
 using RegistrationPlayerServerRequest = Auth.Backend.Gen.RegistrationPlayerRequest;
 using RegistrationPlayerServerResponse = Auth.Backend.Gen.RegistrationPlayerResponse;
 using RegistrationPlayerClientRequest = Auth.Database.Gen.RegistrationPlayerRequest;
+using LoignPlayerServerRequest = Auth.Backend.Gen.LoginPlayerRequest;
+using LoginPlayerServerResponse = Auth.Backend.Gen.LoginPlayerResponse;
+using LoginPlayerClientRequest = Auth.Database.Gen.LoginPlayerRequest;
 using AutoMapper;
 
 namespace ProfileBackendService.Services;
@@ -38,7 +41,7 @@ public class AuthBackendServiceImpl : AuthBackend.AuthBackendBase
             Email = request.Email,
             Password = Helpers.GetPasswordHash(request.Password),
             Nickname = request.Nickname,
-            Confirmed = false,
+            Confirmed = true, //как добавлю подтверждение аккаунта, нужно поменять
             Blocked = false,
             Role = (int)PlayerRole.Player,
             LastLogin = Timestamp.FromDateTime(DateTime.UtcNow),
@@ -61,6 +64,33 @@ public class AuthBackendServiceImpl : AuthBackend.AuthBackendBase
 
             var response = _mapper.Map<RegistrationPlayerServerResponse>(grpcRequest);
             response.Id = grpcResponse.Id;
+
+            return await Task.FromResult(response);
+        }
+        catch (RpcException)
+        {
+            throw;
+        }
+    }
+
+    public override async Task<LoginPlayerServerResponse> Login(LoignPlayerServerRequest request, ServerCallContext context)
+    {
+        var grpcRequest = new LoginPlayerClientRequest()
+        {
+            Email = request.Email,
+            Password = request.Password
+        };
+
+        try
+        {
+            var grpcResponse = await _authDatabaseClient.LoginAsync(grpcRequest);
+
+            if (Helpers.GetPasswordHash(request.Password) != grpcResponse.Password)
+            {
+                throw new RpcException(new Status(StatusCode.PermissionDenied, Constants.ErrorMessages.PlayerPasswordIncorrect));
+            }
+
+            var response = _mapper.Map<LoginPlayerServerResponse>(grpcResponse);
 
             return await Task.FromResult(response);
         }

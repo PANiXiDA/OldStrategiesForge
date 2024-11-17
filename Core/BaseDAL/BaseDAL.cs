@@ -29,7 +29,7 @@ public abstract class BaseDAL<TDbContext, TDbObject, TEntity, TObjectId, TSearch
         return AddOrUpdateAsync(entity, true);
     }
 
-    internal virtual async Task<TObjectId> AddOrUpdateAsync(TEntity entity, bool forceSave)
+    protected virtual async Task<TObjectId> AddOrUpdateAsync(TEntity entity, bool forceSave)
     {
         if (entity == null) throw new ArgumentNullException(nameof(entity));
 
@@ -77,7 +77,7 @@ public abstract class BaseDAL<TDbContext, TDbObject, TEntity, TObjectId, TSearch
         return AddOrUpdateAsync(entities, true);
     }
 
-    internal virtual async Task<IList<TObjectId>> AddOrUpdateAsync(IList<TEntity> entities, bool forceSave)
+    protected virtual async Task<IList<TObjectId>> AddOrUpdateAsync(IList<TEntity> entities, bool forceSave)
     {
         if (entities == null || !entities.Any()) throw new ArgumentNullException(nameof(entities));
 
@@ -176,7 +176,7 @@ public abstract class BaseDAL<TDbContext, TDbObject, TEntity, TObjectId, TSearch
         }
     }
 
-    internal virtual async Task<bool> ExistsAsync(Expression<Func<TDbObject, bool>> predicate)
+    protected virtual async Task<bool> ExistsAsync(Expression<Func<TDbObject, bool>> predicate)
     {
         if (predicate == null) throw new ArgumentNullException(nameof(predicate));
 
@@ -196,7 +196,7 @@ public abstract class BaseDAL<TDbContext, TDbObject, TEntity, TObjectId, TSearch
         return DeleteAsync(GetCheckDbObjectIdExpression(id));
     }
 
-    internal virtual async Task<bool> DeleteAsync(Expression<Func<TDbObject, bool>> predicate)
+    protected virtual async Task<bool> DeleteAsync(Expression<Func<TDbObject, bool>> predicate)
     {
         if (predicate == null) throw new ArgumentNullException(nameof(predicate));
 
@@ -254,7 +254,7 @@ public abstract class BaseDAL<TDbContext, TDbObject, TEntity, TObjectId, TSearch
         }
     }
 
-    internal virtual async Task<IList<TEntity>> GetAsync(Expression<Func<TDbObject, bool>> predicate, TConvertParams? convertParams = null)
+    protected virtual async Task<IList<TEntity>> GetAsync(Expression<Func<TDbObject, bool>> predicate, TConvertParams? convertParams = null)
     {
         if (predicate == null) throw new ArgumentNullException(nameof(predicate));
 

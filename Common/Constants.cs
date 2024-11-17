@@ -9,9 +9,13 @@ public class Constants
         public const string NotValidModel = "Invalid model.";
 
         public const string PlayerCreateError = "Error while creating player";
-        public const string PlayerNotFound = "Player not found.";
         public const string ExistsNicknane = "This nickname already exists.";
         public const string NotValidNickname = "Nickname must contain from 1 to 20 characters";
+
+        public const string PlayerNotFound = "Player with this email not found.";
+        public const string PlayerNotConfirm = "Account not confirm.";
+        public const string PlayerBlocked = "Accout was blocked.";
+        public const string PlayerPasswordIncorrect = "Password incorrect.";
 
         public const string NotValidPassword = "The password must contain at least 6 characters, 1 uppercase letter, 1 lowercase letter, and 1 digit.";
         public const string PasswordMustMatch = "Passwords must match.";

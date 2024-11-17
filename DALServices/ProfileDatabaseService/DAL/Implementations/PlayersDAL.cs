@@ -106,5 +106,15 @@ internal class PlayersDAL : BaseDAL<DefaultDbContext, Player,
             Experience = dbObject.Experience
         };
     }
+
+    public Task<bool> ExistsAsync(string email)
+    {
+        return ExistsAsync(item => item.Email == email);
+    }
+
+    public async Task<PlayersDto?> GetAsync(string email)
+    {
+        return (await GetAsync(item => item.Email == email)).FirstOrDefault();
+    }
 }
 

@@ -6,6 +6,7 @@ option csharp_namespace = "Auth.Backend.Gen";
 
 service AuthBackend {
   rpc Registration (RegistrationPlayerRequest) returns (RegistrationPlayerResponse);
+  rpc Login (LoginPlayerRequest) returns (LoginPlayerResponse);
 }
 
 message RegistrationPlayerRequest {
@@ -37,4 +38,28 @@ message RegistrationPlayerResponse {
   int32 gold = 20;
   int32 level = 21;
   int32 experience = 22;
+}
+
+message LoginPlayerRequest {
+  string email = 1;
+  string password = 2;
+}
+
+message LoginPlayerResponse {
+  int32 id = 1;
+  string email = 2;
+  string password = 3;
+  string nickname = 4;
+  google.protobuf.Timestamp last_login = 5;
+  int32 avatar_id = 6;
+  int32 frame_id = 7;
+  int32 games = 8;
+  int32 wins = 9;
+  int32 loses = 10;
+  int32 mmr = 11;
+  int32 rank = 12;
+  bool premium = 13;
+  int32 gold = 14;
+  int32 level = 15;
+  int32 experience = 16;
 }
