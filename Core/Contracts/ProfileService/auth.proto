@@ -1,0 +1,27 @@
+﻿syntax = "proto3";
+
+//import "google/protobuf/timestamp.proto";
+import "google/protobuf/empty.proto";
+
+option csharp_namespace = "Profile.Auth.Gen";
+
+service ProfileAuth {
+  rpc Registration (RegistrationPlayerRequest) returns (google.protobuf.Empty);
+  rpc Login (LoginPlayerRequest) returns (LoginPlayerResponse);
+}
+
+message RegistrationPlayerRequest {
+  string nickname = 1;
+  string email = 2;
+  string password = 3;
+}
+
+message LoginPlayerRequest {
+  string email = 1;
+  string password = 2;
+}
+
+message LoginPlayerResponse {
+  string access_token = 1;
+  string refresh_token = 2;
+}

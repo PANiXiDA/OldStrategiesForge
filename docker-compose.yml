@@ -1,45 +1,38 @@
 services:
-#Профиль
-  profile-api-service:
-    container_name: profile-api-service
+# API Gateway
+  api-gateway-service:
+    container_name: APIGateway
     build:
       context: .
-      dockerfile: PLServices/ProfileApiService/Dockerfile
+      dockerfile: APIGateway/Dockerfile
     restart: unless-stopped
     ports:
       - "8080:8080"
     environment:
-      PROFILE_BACKEND_URL: http://profile-backend-service:5001
+      PROFILE_BACKEND_URL: http://profile-service:8001
       HTTP_PORT: 8080
       GRPC_PORT: 8081
     depends_on:
-      - profile-backend-service  
-    networks:
-      - app-network
-      
-  profile-backend-service:
-    container_name: profile-backend-service  
-    build:
-      context: .
-      dockerfile: BLServices/ProfileBackendService/Dockerfile
-    restart: unless-stopped
-    environment:
-      PROFILE_DATABASE_URL: http://profile-database-service:6001
-      HTTP_PORT: 5000
-      GRPC_PORT: 5001
-    depends_on:
-      - profile-database-service
+      - profile-service  
     networks:
       - app-network
 
-  profile-database-service:
-    container_name: profile-database-service
+# Profile     
+  profile-service:
+    container_name: profile-service
     build:
       context: .
-      dockerfile: DALServices/ProfileDatabaseService/Dockerfile
+      dockerfile: Services/ProfileService/Dockerfile
     restart: unless-stopped
-    env_file:
-      - .env
+    environment:
+      DB_HOST: profile_db
+      DB_PORT: 5432
+      POSTGRES_DB: ProfileServiceDb
+      DB_USER: postgres
+      DB_PASSWORD: 123456789
+      ASPNETCORE_ENVIRONMENT: production
+      HTTP_PORT: 8000
+      GRPC_PORT: 8001
     depends_on:
       - profile_db
       - profile_db_migrator
@@ -65,8 +58,15 @@ services:
     image: mcr.microsoft.com/dotnet/sdk:8.0
     container_name: profile_db_migrator
     restart: on-failure
-    env_file:
-      - .env
+    environment:
+      DB_HOST: profile_db
+      DB_PORT: 5432
+      POSTGRES_DB: ProfileServiceDb
+      DB_USER: postgres
+      DB_PASSWORD: 123456789
+      ASPNETCORE_ENVIRONMENT: production
+      HTTP_PORT: 8000
+      GRPC_PORT: 8001
     working_dir: /app
     volumes:
       - .:/app
