@@ -11,12 +11,12 @@ EXPOSE 8080
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
-COPY ["OldStrategiesForge/APIGateway/APIGateway.csproj", "OldStrategiesForge/APIGateway/"]
-COPY ["OldStrategiesForge/Common/Common.csproj", "OldStrategiesForge/Common/"]
-COPY ["OldStrategiesForge/Core/Contracts/Contracts.csproj", "OldStrategiesForge/Core/Contracts/"]
-RUN dotnet restore "./OldStrategiesForge/APIGateway/APIGateway.csproj"
+COPY ["APIGateway/APIGateway.csproj", "APIGateway/"]
+COPY ["Common/Common.csproj", "Common/"]
+COPY ["Core/Contracts/Contracts.csproj", "Core/Contracts/"]
+RUN dotnet restore "./APIGateway/APIGateway.csproj"
 COPY . .
-WORKDIR "/src/OldStrategiesForge/APIGateway"
+WORKDIR "/src/APIGateway"
 RUN dotnet build "./APIGateway.csproj" -c $BUILD_CONFIGURATION -o /app/build
 
 # Этот этап используется для публикации проекта службы, который будет скопирован на последний этап
