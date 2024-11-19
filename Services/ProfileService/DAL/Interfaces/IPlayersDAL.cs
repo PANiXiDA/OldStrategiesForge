@@ -1,9 +1,9 @@
 ﻿using BaseDAL;
-using Common.ConvertParams.PlayersService;
-using Common.SearchParams.PlayersService;
+using Common.ConvertParams.ProfileService;
+using Common.SearchParams.ProfileService;
 using ProfileService.DAL.DbModels;
 using ProfileService.DAL.DbModels.Models;
-using ProfileService.Dto.Players;
+using ProfileService.Dto;
 
 namespace ProfileService.DAL.Interfaces;
 

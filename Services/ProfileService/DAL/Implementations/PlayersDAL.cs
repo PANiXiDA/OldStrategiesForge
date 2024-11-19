@@ -1,11 +1,11 @@
 ﻿using BaseDAL;
-using Common.ConvertParams.PlayersService;
-using Common.SearchParams.PlayersService;
+using Common.ConvertParams.ProfileService;
+using Common.SearchParams.ProfileService;
 using Microsoft.EntityFrameworkCore;
 using ProfileService.DAL.DbModels;
 using ProfileService.DAL.DbModels.Models;
 using ProfileService.DAL.Interfaces;
-using ProfileService.Dto.Players;
+using ProfileService.Dto;
 using System.Linq.Expressions;
 
 namespace ProfileService.DAL.Implementations;

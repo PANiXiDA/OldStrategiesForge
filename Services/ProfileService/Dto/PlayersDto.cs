@@ -1,10 +1,8 @@
-﻿
-using Common.Enums;
+﻿using Common.Enums;
 using Common;
-using Google.Protobuf.WellKnownTypes;
 using Profile.Auth.Gen;
 
-namespace ProfileService.Dto.Players;
+namespace ProfileService.Dto;
 
 public class PlayersDto
 {

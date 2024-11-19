@@ -10,6 +10,7 @@ public partial class DefaultDbContext : DbContext
     public DefaultDbContext(DbContextOptions<DefaultDbContext> options) : base(options) { }
 
     public virtual DbSet<Player> Players { get; set; }
+    public virtual DbSet<Token> Tokens { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -26,6 +27,10 @@ public partial class DefaultDbContext : DbContext
             entity.Property(entity => entity.Nickname)
                 .IsRequired();
         });
+
+        modelBuilder.Entity<Token>()
+            .HasIndex(t => t.RefreshToken)
+            .IsUnique();
     }
 
     partial void OnModelCreatingPartial(ModelBuilder modelBuilder);

@@ -1,3 +1,4 @@
+using Common.Configurations;
 using ProfileService.DAL.Implementations.Extensions;
 using ProfileService.Extensions;
 
@@ -22,6 +23,9 @@ var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
 
 builder.Services.AddDataAccessLayer(builder.Configuration, environment!);
 builder.Services.ConfigureGrpcServices();
+
+var jwtSettings = builder.Configuration.GetSection("JwtSettings").Get<JwtSettings>();
+builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("JwtSettings"));
 
 var app = builder.Build();
 

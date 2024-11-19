@@ -1,6 +1,6 @@
 ﻿using Common.SearchParams.Core;
 
-namespace Common.SearchParams.PlayersService;
+namespace Common.SearchParams.ProfileService;
 public class PlayersSearchParams : BaseSearchParams
 {
     public string? Email { get; set; }
