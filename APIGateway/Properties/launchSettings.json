@@ -6,7 +6,7 @@
       "launchUrl": "swagger",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development",
-        "PROFILE_BACKEND_URL": "http://localhost:8001",
+        "PROFILE_SERVICE_URL": "http://localhost:8001",
         "HTTP_PORT": "8080",
         "GRPC_PORT": "8081"
       },
