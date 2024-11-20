@@ -22,5 +22,11 @@ jobs:
           script: |
             cd OldStrategiesForge
             git pull https://${{ secrets.TOKEN }}@github.com/PANiXiDA/OldStrategiesForge.git develop
-            docker-compose down
+            # Остановка контейнеров без удаления данных из базы
+            docker-compose down --remove-orphans
+            # Очистка неиспользуемых Docker-ресурсов (контейнеров, образов, сетей и томов)
+            docker system prune -f --volumes
+            # Очистка неиспользуемых образов (удаляет старые, неиспользуемые образы)
+            docker image prune -a -f
+            # Перезапуск контейнеров с пересборкой
             docker-compose up --build -d
