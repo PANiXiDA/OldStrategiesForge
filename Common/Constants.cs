@@ -8,6 +8,8 @@ public class Constants
         public const string NotFound = "Not found.";
         public const string NotValidModel = "Invalid model.";
 
+        public const string Unauthorized = "Unauthorized";
+
         public const string PlayerCreateError = "Error while creating player";
         public const string ExistsNicknane = "This nickname already exists.";
         public const string NotValidNickname = "Nickname must contain from 1 to 20 characters";

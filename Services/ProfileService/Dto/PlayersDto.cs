@@ -1,6 +1,8 @@
 ﻿using Common.Enums;
 using Common;
 using Profile.Auth.Gen;
+using Profile.Players.Gen;
+using Google.Protobuf.WellKnownTypes;
 
 namespace ProfileService.Dto;
 
@@ -55,6 +57,30 @@ public class PlayersDto
             Gold = 0,
             Level = 1,
             Experience = 0,
+        };
+    }
+
+    public GetPlayerResponse GetPlayersResponseProtoFromDto()
+    {
+        return new GetPlayerResponse()
+        {
+            Id = Id,
+            Email = Email,
+            Password = Password,
+            Nickname = Nickname,
+            Role = Role,
+            LastLogin = LastLogin.ToTimestamp(),
+            AvatarId = AvatarId,
+            FrameId = FrameId,
+            Games = Games,
+            Wins = Wins,
+            Loses = Loses,
+            Mmr = Mmr,
+            Rank = Rank,
+            Premium = Premium,
+            Gold = Gold,
+            Level = Level,
+            Experience = Experience
         };
     }
 }

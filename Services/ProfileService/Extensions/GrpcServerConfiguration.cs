@@ -12,7 +12,7 @@ public static class GrpcServerConfiguration
 
     public static void MapGrpcEndpoints(this WebApplication app)
     {
-        app.MapGrpcService<PlayersDatabaseServiceImpl>();
+        app.MapGrpcService<PlayersServiceImpl>();
         app.MapGrpcService<AuthServiceImpl>();
 
         if (app.Environment.IsDevelopment())

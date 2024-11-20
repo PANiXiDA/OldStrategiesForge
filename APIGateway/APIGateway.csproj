@@ -29,7 +29,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<Protobuf Include="..\Core\Contracts\ProfileService\PlayersContracts\playersBackend.proto" GrpcServices="Client" />
+		<Protobuf Include="..\Core\Contracts\ProfileService\players.proto" GrpcServices="Client" />
 		<Protobuf Include="..\Core\Contracts\ProfileService\auth.proto" GrpcServices="Client" />
 	</ItemGroup>
 

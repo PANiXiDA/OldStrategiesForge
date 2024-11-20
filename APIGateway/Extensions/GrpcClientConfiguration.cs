@@ -1,5 +1,5 @@
 ﻿using Profile.Auth.Gen;
-using Players.Backend.Gen;
+using Profile.Players.Gen;
 
 namespace APIGateway.Extensions;
 
@@ -7,7 +7,7 @@ public static class GrpcClientConfiguration
 {
     public static void ConfigureGrpcClients(this IServiceCollection services)
     {
-        ConfigureGrpcClient<PlayersBackend.PlayersBackendClient>(services, "PROFILE_BACKEND_URL");
+        ConfigureGrpcClient<ProfilePlayers.ProfilePlayersClient>(services, "PROFILE_BACKEND_URL");
         ConfigureGrpcClient<ProfileAuth.ProfileAuthClient>(services, "PROFILE_BACKEND_URL");
     }
 

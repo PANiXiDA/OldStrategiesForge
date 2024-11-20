@@ -47,7 +47,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<Protobuf Include="..\..\Core\Contracts\ProfileService\PlayersContracts\playersDatabase.proto" GrpcServices="Server" />
+		<Protobuf Include="..\..\Core\Contracts\ProfileService\players.proto" GrpcServices="Server" />
 		<Protobuf Include="..\..\Core\Contracts\ProfileService\auth.proto" GrpcServices="Server" />
 	</ItemGroup>
 	
