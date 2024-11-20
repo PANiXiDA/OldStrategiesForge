@@ -8,6 +8,7 @@ option csharp_namespace = "Profile.Auth.Gen";
 service ProfileAuth {
   rpc Registration (RegistrationPlayerRequest) returns (google.protobuf.Empty);
   rpc Login (LoginPlayerRequest) returns (LoginPlayerResponse);
+  rpc Refresh (RefreshTokenRequest) returns (RefreshTokenResponse);
 }
 
 message RegistrationPlayerRequest {
@@ -22,6 +23,15 @@ message LoginPlayerRequest {
 }
 
 message LoginPlayerResponse {
+  string access_token = 1;
+  string refresh_token = 2;
+}
+
+message RefreshTokenRequest{
+	string refresh_token = 1;
+}
+
+message RefreshTokenResponse{
   string access_token = 1;
   string refresh_token = 2;
 }

@@ -82,10 +82,44 @@ public class AuthServiceImpl : ProfileAuth.ProfileAuthBase
         return await Task.FromResult(response);
     }
 
-    public async Task<(string AccessToken, string RefreshToken)> GenerateTokens(int playerId, PlayerRole playerRole)
+    public override async Task<RefreshTokenResponse> Refresh(RefreshTokenRequest request, ServerCallContext context)
+    {
+        var token = await _tokensDAL.GetAsync(request.RefreshToken);
+        if (token == null)
+        {
+            throw new RpcException(new Status(StatusCode.NotFound, Constants.ErrorMessages.BadRefreshToken));
+        }
+
+        var player = await _playersDAL.GetAsync(token.PlayerId);
+
+        if (player == null)
+        {
+            throw new RpcException(new Status(StatusCode.NotFound, Constants.ErrorMessages.PlayerNotFound));
+        }
+        if (!player.Confirmed)
+        {
+            throw new RpcException(new Status(StatusCode.FailedPrecondition, Constants.ErrorMessages.PlayerNotConfirm));
+        }
+        if (player.Blocked)
+        {
+            throw new RpcException(new Status(StatusCode.PermissionDenied, Constants.ErrorMessages.PlayerBlocked));
+        }
+
+        var (accessToken, refreshToken) = await GenerateTokens(player.Id, (PlayerRole)player.Role, token);
+
+        var response = new RefreshTokenResponse()
+        {
+            AccessToken = accessToken,
+            RefreshToken = refreshToken
+        };
+
+        return await Task.FromResult(response);
+    }
+
+    private async Task<(string AccessToken, string RefreshToken)> GenerateTokens(int playerId, PlayerRole playerRole, TokensDto? token = null)
     {
         var accessToken = GenerateAccessToken(playerId, playerRole);
-        var refreshToken = await GenerateRefreshToken(playerId);
+        var refreshToken = await GenerateRefreshToken(playerId, token);
 
         await _tokensDAL.AddOrUpdateAsync(refreshToken);
 
@@ -114,7 +148,7 @@ public class AuthServiceImpl : ProfileAuth.ProfileAuthBase
         return new JwtSecurityTokenHandler().WriteToken(accessToken);
     }
 
-    private async Task<TokensDto> GenerateRefreshToken(int playerId)
+    private async Task<TokensDto> GenerateRefreshToken(int playerId, TokensDto? token = null)
     {
         var refreshToken = GenerateRandomString();
         while (await _tokensDAL.ExistsAsync(new TokensSearchParams() { RefreshToken = refreshToken }))
@@ -122,13 +156,16 @@ public class AuthServiceImpl : ProfileAuth.ProfileAuthBase
             refreshToken = GenerateRandomString();
         }
 
-        return new TokensDto()
+        token ??= new TokensDto
         {
             Id = 0,
-            PlayerId = playerId,
-            RefreshToken = refreshToken,
-            RefreshTokenExp = DateTime.UtcNow.AddDays(_jwtSettings.RefreshTokenExp),
+            PlayerId = playerId
         };
+
+        token.RefreshToken = refreshToken;
+        token.RefreshTokenExp = DateTime.UtcNow.AddDays(_jwtSettings.RefreshTokenExp);
+
+        return token;
     }
 
     private string GenerateRandomString()

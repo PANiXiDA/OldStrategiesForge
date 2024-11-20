@@ -7,7 +7,6 @@ using APIGateway.Infrastructure.Extensions;
 using APIGateway.Infrastructure.Requests.Auth;
 using APIGateway.Infrastructure.Responses.Auth;
 
-
 namespace APIGateway.Controllers;
 
 [ApiVersion("1.0")]
@@ -79,6 +78,34 @@ public class AuthController : ControllerBase
                     return StatusCode(StatusCodes.Status412PreconditionFailed, RestApiResponseBuilder<LoginPlayerResponseDto>.Fail(ex.Message, Constants.ErrorMessages.ErrorKey));
                 default:
                     _logger.LogError($"Во время логина пользователя {request.Email} произошла ошибка: {ex.Message}");
+                    return StatusCode(StatusCodes.Status500InternalServerError, RestApiResponseBuilder<LoginPlayerResponseDto>.Fail(ex.Message, Constants.ErrorMessages.ErrorKey));
+            }
+        }
+    }
+
+    [HttpPost]
+    [Route("refresh")]
+    [ProducesResponseType(typeof(RestApiResponse<RefreshTokenResponseDto>), 200)]
+    public async Task<ActionResult<RestApiResponse<RefreshTokenResponseDto>>> Refresh([FromBody] RefreshTokenRequestDto request)
+    {
+        try
+        {
+            var grpcResponse = await _authClient.RefreshAsync(request.RefreshTokenRequestDtoToProto());
+
+            return StatusCode(StatusCodes.Status200OK, RestApiResponseBuilder<RefreshTokenResponseDto>.Success(new RefreshTokenResponseDto().RefreshTokenResponseDtoFromProto(grpcResponse)));
+        }
+        catch (RpcException ex)
+        {
+            switch (ex.Status.StatusCode)
+            {
+                case Grpc.Core.StatusCode.NotFound:
+                    return NotFound(RestApiResponseBuilder<LoginPlayerResponseDto>.Fail(ex.Message, Constants.ErrorMessages.ErrorKey));
+                case Grpc.Core.StatusCode.PermissionDenied:
+                    return StatusCode(StatusCodes.Status403Forbidden, RestApiResponseBuilder<LoginPlayerResponseDto>.Fail(ex.Message, Constants.ErrorMessages.ErrorKey));
+                case Grpc.Core.StatusCode.FailedPrecondition:
+                    return StatusCode(StatusCodes.Status412PreconditionFailed, RestApiResponseBuilder<LoginPlayerResponseDto>.Fail(ex.Message, Constants.ErrorMessages.ErrorKey));
+                default:
+                    _logger.LogError($"Во время обновления токена {request.RefreshToken} произошла ошибка: {ex.Message}");
                     return StatusCode(StatusCodes.Status500InternalServerError, RestApiResponseBuilder<LoginPlayerResponseDto>.Fail(ex.Message, Constants.ErrorMessages.ErrorKey));
             }
         }

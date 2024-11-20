@@ -70,4 +70,14 @@ public class TokensDAL : BaseDAL<DefaultDbContext, Token,
             RefreshTokenExp = dbObject.RefreshTokenExp
         };
     }
+
+    public Task<bool> ExistsAsync(string refreshToken)
+    {
+        return ExistsAsync(item => item.RefreshToken == refreshToken && item.RefreshTokenExp >= DateTime.UtcNow);
+    }
+
+    public async Task<TokensDto?> GetAsync(string refreshToken)
+    {
+        return (await GetAsync(item => item.RefreshToken == refreshToken && item.RefreshTokenExp >= DateTime.UtcNow)).FirstOrDefault();
+    }
 }

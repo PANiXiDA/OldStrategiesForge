@@ -3,16 +3,17 @@ public class Constants
 {
     public static class ErrorMessages
     {
-        public const string ErrorKey = "errorMessage";
+        public const string ErrorKey = "errorMessage.";
 
         public const string NotFound = "Not found.";
         public const string NotValidModel = "Invalid model.";
 
-        public const string Unauthorized = "Unauthorized";
+        public const string Unauthorized = "Unauthorized.";
+        public const string BadRefreshToken = "Refresh token not found.";
 
-        public const string PlayerCreateError = "Error while creating player";
+        public const string PlayerCreateError = "Error while creating player.";
         public const string ExistsNicknane = "This nickname already exists.";
-        public const string NotValidNickname = "Nickname must contain from 1 to 20 characters";
+        public const string NotValidNickname = "Nickname must contain from 1 to 20 characters.";
 
         public const string PlayerNotFound = "Player with this email not found.";
         public const string PlayerNotConfirm = "Account not confirm.";
