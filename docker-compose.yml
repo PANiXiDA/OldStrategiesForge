@@ -76,8 +76,8 @@ services:
       - |
         dotnet tool install --global dotnet-ef &&
         export PATH="/usr/local/bin:/usr/bin:/bin:/root/.dotnet/tools" &&
-        dotnet ef database update --project DALServices/ProfileDatabaseService/ProfileDatabaseService.csproj \
-                                  --startup-project DALServices/ProfileDatabaseService/ProfileDatabaseService.csproj
+        dotnet ef database update --project Services/ProfileService/ProfileService.csproj \
+                                  --startup-project Services/ProfileService/ProfileService.csproj
     depends_on:
       - profile_db     
     networks:
