@@ -11,7 +11,9 @@ internal static class DependencyInjection
         services.AddScoped<INotificationSubscribersBL, NotificationSubscribersBL>();
         services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(NotificationSubscriberCommandHandler).Assembly));
 
-        return services;
+        services.AddScoped<IEmailSenderBL, EmailSenderBL>();
+        services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(ProcessEmailSenderHandler).Assembly));
 
+        return services;
     }
 }

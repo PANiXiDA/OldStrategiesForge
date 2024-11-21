@@ -13,45 +13,98 @@ using System.Text;
 using Common.Configurations;
 using Microsoft.Extensions.Options;
 using System.Security.Cryptography;
+using Tools.RabbitMQ;
 
 namespace ProfileService.Services;
 
 public class AuthServiceImpl : ProfileAuth.ProfileAuthBase
 {
+    private const string _queue = "email_sender_requests";
+
     private readonly ILogger<AuthServiceImpl> _logger;
     private readonly JwtSettings _jwtSettings;
     private readonly IPlayersDAL _playersDAL;
     private readonly ITokensDAL _tokensDAL;
+    private readonly IRabbitMQClient _rabbitMQClient;
 
     public AuthServiceImpl(
         ILogger<AuthServiceImpl> logger,
         IOptions<JwtSettings> jwtSettings,
         IPlayersDAL playersDAL,
-        ITokensDAL tokensDAL)
+        ITokensDAL tokensDAL,
+        IRabbitMQClient rabbitMQClient)
     {
         _logger = logger;
         _jwtSettings = jwtSettings.Value;
         _playersDAL = playersDAL;
         _tokensDAL = tokensDAL;
+        _rabbitMQClient = rabbitMQClient;
     }
 
     public override async Task<Empty> Registration(RegistrationPlayerRequest request, ServerCallContext context)
     {
-        bool isEmailUnique = !(await _playersDAL.ExistsAsync(new PlayersSearchParams() { Email = request.Email }));
-        if (!isEmailUnique)
+        bool isEmailExist = await _playersDAL.ExistsAsync(new PlayersSearchParams() { Email = request.Email });
+        if (isEmailExist)
         {
             throw new RpcException(new Status(StatusCode.AlreadyExists, Constants.ErrorMessages.ExistsEmail));
         }
 
-        bool isNicknameUnique = !(await _playersDAL.ExistsAsync(new PlayersSearchParams() { Nickname = request.Nickname }));
-        if (!isNicknameUnique)
+        bool isNicknameExist = await _playersDAL.ExistsAsync(new PlayersSearchParams() { Nickname = request.Nickname });
+        if (isNicknameExist)
         {
             throw new RpcException(new Status(StatusCode.AlreadyExists, Constants.ErrorMessages.ExistsNicknane));
         }
 
-        await _playersDAL.AddOrUpdateAsync(new PlayersDto().PlayersDtoFromProtoAuth(request));
+        var playerId = await _playersDAL.AddOrUpdateAsync(new PlayersDto().PlayersDtoFromProtoAuth(request));
+
+        try
+        {
+            _logger.LogInformation($"Sending an email to the account confirmation: {request.Email}.");
+
+            var result = await _rabbitMQClient.CallAsync<(string, int), string>(
+                (request.Email, playerId),
+                _queue,
+                TimeSpan.FromSeconds(30)
+            );
+
+            if (string.IsNullOrEmpty(result))
+            {
+                throw new RpcException(new Status(StatusCode.Internal, "Failed to send confirmation email."));
+            }
+
+            _logger.LogInformation($"Message for {request.Email} successfully processed: {result}.");
+        }
+        catch (TimeoutException)
+        {
+            throw new RpcException(new Status(StatusCode.DeadlineExceeded, "Timeout while waiting for email confirmation."));
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, $"Error sending an account confirmation message {request.Email}");
+            throw new RpcException(new Status(StatusCode.Internal, "Error while sending confirmation email."));
+        }
 
         return new Empty();
+    }
+
+    public override async Task<ConfirmEmailResponse> Confirm(ConfirmEmailRequest request, ServerCallContext context)
+    {
+        var player = await _playersDAL.GetAsync(request.PlayerId);
+
+        if (player.Blocked)
+        {
+            throw new RpcException(new Status(StatusCode.PermissionDenied, Constants.ErrorMessages.PlayerBlocked));
+        }
+        player.Confirmed = true;
+
+        await _playersDAL.AddOrUpdateAsync(player);
+
+        var response = new ConfirmEmailResponse()
+        {
+            Nickname = player.Nickname
+        };
+
+        return await Task.FromResult(response);
     }
 
     public override async Task<LoginPlayerResponse> Login(LoginPlayerRequest request, ServerCallContext context)

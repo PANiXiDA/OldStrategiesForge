@@ -1,6 +1,7 @@
 using Common.Configurations;
 using ProfileService.DAL.Implementations.Extensions;
 using ProfileService.Extensions;
+using Tools.RabbitMQ.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -23,6 +24,7 @@ var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
 
 builder.Services.AddDataAccessLayer(builder.Configuration, environment!);
 builder.Services.ConfigureGrpcServices();
+builder.Services.AddMessageBrokers(builder.Configuration, environment);
 
 var jwtSettings = builder.Configuration.GetSection("JwtSettings").Get<JwtSettings>();
 builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("JwtSettings"));

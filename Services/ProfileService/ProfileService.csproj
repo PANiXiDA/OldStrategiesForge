@@ -44,6 +44,7 @@
 	  <ProjectReference Include="..\..\Common\Common.csproj" />
 	  <ProjectReference Include="..\..\Core\BaseDAL\BaseDAL.csproj" />
 	  <ProjectReference Include="..\..\Core\Contracts\Contracts.csproj" />
+	  <ProjectReference Include="..\..\Tools\Tools.csproj" />
 	</ItemGroup>
 
 	<ItemGroup>

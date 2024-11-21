@@ -42,7 +42,7 @@ public class PlayersDto
             Email = registrationPlayer.Email,
             Password = Helpers.GetPasswordHash(registrationPlayer.Password),
             Nickname = registrationPlayer.Nickname,
-            Confirmed = true, //как добавлю подтверждение аккаунта, нужно поменять
+            Confirmed = false,
             Blocked = false,
             Role = (int)PlayerRole.Player,
             LastLogin = DateTime.UtcNow,
