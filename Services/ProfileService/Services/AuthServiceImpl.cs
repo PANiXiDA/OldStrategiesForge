@@ -16,6 +16,7 @@ using System.Security.Cryptography;
 using Tools.RabbitMQ;
 using ProfileService.Extensions.Helpers;
 using Tools.Redis;
+using ProfileService.Dto.RabbitMq;
 
 namespace ProfileService.Services;
 
@@ -65,7 +66,7 @@ public class AuthServiceImpl : ProfileAuth.ProfileAuthBase
         await _redisCache.SetAsync($"email:{request.Email}", true, TimeSpan.FromDays(_redisLifeTimeDays));
         await _redisCache.SetAsync($"nickname:{request.Nickname}", true, TimeSpan.FromDays(_redisLifeTimeDays));
 
-        var result = await RabbitMqHelper.CallSafely<(string, int), bool>(
+        var result = await RabbitMqHelper.CallSafely<(string, int), SendEmailResponse>(
             _rabbitMQClient,
             (request.Email, playerId),
             Constants.RabbitMqQueues.ConfirmEmail,
@@ -75,8 +76,9 @@ public class AuthServiceImpl : ProfileAuth.ProfileAuthBase
             Constants.ErrorMessages.Unavailable
         );
 
-        if (!result)
+        if (result == null || !result.Success)
         {
+            _logger.LogError($"Ошибка во время отправки сообщения в email service: {result?.Error}");
             throw RpcExceptionHelper.InternalError(Constants.ErrorMessages.EmailServiceUnavailable);
         }
 
@@ -111,7 +113,7 @@ public class AuthServiceImpl : ProfileAuth.ProfileAuthBase
             throw RpcExceptionHelper.AlreadyExists(Constants.ErrorMessages.PlayerAlreadyConfirmed);
         }
 
-        var result = await RabbitMqHelper.CallSafely<(string, int), bool>(
+        var result = await RabbitMqHelper.CallSafely<(string, int), SendEmailResponse>(
             _rabbitMQClient,
             (request.Email, player.Id),
             Constants.RabbitMqQueues.ConfirmEmail,
@@ -121,8 +123,9 @@ public class AuthServiceImpl : ProfileAuth.ProfileAuthBase
             Constants.ErrorMessages.Unavailable
         );
 
-        if (!result)
+        if (result == null || !result.Success)
         {
+            _logger.LogError($"Ошибка во время отправки сообщения в email service: {result?.Error}");
             throw RpcExceptionHelper.InternalError(Constants.ErrorMessages.EmailServiceUnavailable);
         }
 
@@ -154,7 +157,7 @@ public class AuthServiceImpl : ProfileAuth.ProfileAuthBase
         var player = await _playersDAL.GetAsync(request.Email);
         ValidatePlayerState(player);
 
-        var result = await RabbitMqHelper.CallSafely<(string, int), bool>(
+        var result = await RabbitMqHelper.CallSafely<(string, int), SendEmailResponse>(
             _rabbitMQClient,
             (request.Email, player!.Id),
             Constants.RabbitMqQueues.RecoveryPassword,
@@ -164,8 +167,9 @@ public class AuthServiceImpl : ProfileAuth.ProfileAuthBase
             Constants.ErrorMessages.Unavailable
         );
 
-        if (!result)
+        if (result == null || !result.Success)
         {
+            _logger.LogError($"Ошибка во время отправки сообщения в email service: {result?.Error}");
             throw RpcExceptionHelper.InternalError(Constants.ErrorMessages.EmailServiceUnavailable);
         }
 
@@ -182,7 +186,7 @@ public class AuthServiceImpl : ProfileAuth.ProfileAuthBase
 
         await _playersDAL.AddOrUpdateAsync(player);
 
-        var result = await RabbitMqHelper.CallSafely<(string, string), bool>(
+        var result = await RabbitMqHelper.CallSafely<(string, string), SendEmailResponse>(
             _rabbitMQClient,
             (player.Email, newPassword),
             Constants.RabbitMqQueues.ChangePassword,
@@ -192,8 +196,9 @@ public class AuthServiceImpl : ProfileAuth.ProfileAuthBase
             Constants.ErrorMessages.Unavailable
         );
 
-        if (!result)
+        if (result == null || !result.Success)
         {
+            _logger.LogError($"Ошибка во время отправки сообщения в email service: {result?.Error}");
             throw RpcExceptionHelper.InternalError(Constants.ErrorMessages.EmailServiceUnavailable);
         }
 
