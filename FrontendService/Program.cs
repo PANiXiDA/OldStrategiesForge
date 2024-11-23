@@ -27,23 +27,12 @@ app.UseRouting();
 app.UseAuthorization();
 
 app.MapControllerRoute(
-    name: "AdminDefaultRoute",
-    pattern: "Admin/{controller=Home}/{action=Index}/{id?}",
-    defaults: new { area = "Admin" });
-
-app.MapControllerRoute(
-    name: "AdminErrorRoute",
-    pattern: "Admin/{controller=Error}/{code:int}",
-    defaults: new { area = "Admin", action = "Index" });
-
-app.MapControllerRoute(
     name: "PublicDefaultRoute",
-    pattern: "{controller=Home}/{action=Index}/{id?}",
-    defaults: new { area = "Public" });
+    pattern: "{controller=Home}/{action=Index}/{id?}");
 
 app.MapControllerRoute(
     name: "PublicErrorRoute",
     pattern: "{controller=Error}/{code:int}",
-    defaults: new { area = "Public", action = "Index" });
+    defaults: new { action = "Index" });
 
 app.Run();

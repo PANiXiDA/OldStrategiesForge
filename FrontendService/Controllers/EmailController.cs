@@ -1,16 +1,15 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Common;
+using Microsoft.AspNetCore.Mvc;
 using Tools.RabbitMQ;
 
-namespace FrontendService.Areas.Public.Controllers;
+namespace FrontendService.Controllers;
 
-[Area("Public")]
 public class EmailController : Controller
 {
-    private const string _queue = "subscribe_to_notifications";
-    private readonly ILogger<HomeController> _logger;
+    private readonly ILogger<EmailController> _logger;
     private readonly IRabbitMQClient _rabbitMQClient;
 
-    public EmailController(ILogger<HomeController> logger, IRabbitMQClient rabbitMQClient)
+    public EmailController(ILogger<EmailController> logger, IRabbitMQClient rabbitMQClient)
     {
         _logger = logger;
         _rabbitMQClient = rabbitMQClient;
@@ -28,7 +27,7 @@ public class EmailController : Controller
             }
 
             _logger.LogInformation($"Отправка запроса на подписку для {email}.");
-            _rabbitMQClient.SendMessage(email, _queue);
+            _rabbitMQClient.SendMessage(email, Constants.RabbitMqQueues.SubscribeToNotifications);
             _logger.LogInformation($"Запрос на подписку для {email} успешно отправлен.");
 
             return Json(new { ok = true });

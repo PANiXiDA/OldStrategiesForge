@@ -9,17 +9,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="Areas\Admin\**" />
-    <Compile Remove="Areas\Public\Infrastructure\**" />
-    <Content Remove="Areas\Admin\**" />
-    <Content Remove="Areas\Public\Infrastructure\**" />
-    <EmbeddedResource Remove="Areas\Admin\**" />
-    <EmbeddedResource Remove="Areas\Public\Infrastructure\**" />
-    <None Remove="Areas\Admin\**" />
-    <None Remove="Areas\Public\Infrastructure\**" />
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.21.0" />
   </ItemGroup>
 

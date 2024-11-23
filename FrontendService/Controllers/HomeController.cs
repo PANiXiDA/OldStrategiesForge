@@ -1,8 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 
-namespace FrontendService.Areas.Public.Controllers;
+namespace FrontendService.Controllers;
 
-[Area("Public")]
 public class HomeController : Controller
 {
     private readonly ILogger<HomeController> _logger;
@@ -14,7 +13,6 @@ public class HomeController : Controller
 
     public IActionResult Index()
     {
-
         return View();
     }
 }
