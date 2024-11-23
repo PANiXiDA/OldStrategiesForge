@@ -15,31 +15,36 @@ using Microsoft.Extensions.Options;
 using System.Security.Cryptography;
 using Tools.RabbitMQ;
 using ProfileService.Extensions.Helpers;
+using Tools.Redis;
 
 namespace ProfileService.Services;
 
 public class AuthServiceImpl : ProfileAuth.ProfileAuthBase
 {
-    private const int _timeout = 30;
+    private const int _timeoutSec = 30;
+    private const int _redisLifeTimeDays = 30;
 
     private readonly ILogger<AuthServiceImpl> _logger;
     private readonly JwtSettings _jwtSettings;
     private readonly IPlayersDAL _playersDAL;
     private readonly ITokensDAL _tokensDAL;
     private readonly IRabbitMQClient _rabbitMQClient;
+    private readonly IRedisCache _redisCache;
 
     public AuthServiceImpl(
         ILogger<AuthServiceImpl> logger,
         IOptions<JwtSettings> jwtSettings,
         IPlayersDAL playersDAL,
         ITokensDAL tokensDAL,
-        IRabbitMQClient rabbitMQClient)
+        IRabbitMQClient rabbitMQClient,
+        IRedisCache redisCache)
     {
         _logger = logger;
         _jwtSettings = jwtSettings.Value;
         _playersDAL = playersDAL;
         _tokensDAL = tokensDAL;
         _rabbitMQClient = rabbitMQClient;
+        _redisCache = redisCache;
     }
 
     public override async Task<Empty> Registration(RegistrationPlayerRequest request, ServerCallContext context)
@@ -47,20 +52,24 @@ public class AuthServiceImpl : ProfileAuth.ProfileAuthBase
         var players = (await _playersDAL.GetAsync(new PlayersSearchParams() { IsRegistrationCheck = true })).Objects;
         if (players.Any(item => item.Email == request.Email))
         {
+            await _redisCache.SetAsync($"email:{request.Email}", true, TimeSpan.FromDays(_redisLifeTimeDays));
             throw RpcExceptionHelper.AlreadyExists(Constants.ErrorMessages.ExistsEmail);
         }
         if (players.Any(item => item.Nickname == request.Nickname))
         {
+            await _redisCache.SetAsync($"nickname:{request.Nickname}", true, TimeSpan.FromDays(_redisLifeTimeDays));
             throw RpcExceptionHelper.AlreadyExists(Constants.ErrorMessages.ExistsNicknane);
         }
 
         var playerId = await _playersDAL.AddOrUpdateAsync(new PlayersDto().PlayersDtoFromProtoAuth(request));
+        await _redisCache.SetAsync($"email:{request.Email}", true, TimeSpan.FromDays(_redisLifeTimeDays));
+        await _redisCache.SetAsync($"nickname:{request.Nickname}", true, TimeSpan.FromDays(_redisLifeTimeDays));
 
         var result = await RabbitMqHelper.CallSafely<(string, int), bool>(
             _rabbitMQClient,
             (request.Email, playerId),
             Constants.RabbitMqQueues.ConfirmEmail,
-            TimeSpan.FromSeconds(_timeout),
+            TimeSpan.FromSeconds(_timeoutSec),
             _logger,
             Constants.ErrorMessages.EmailTimeoutError,
             Constants.ErrorMessages.Unavailable
@@ -106,7 +115,7 @@ public class AuthServiceImpl : ProfileAuth.ProfileAuthBase
             _rabbitMQClient,
             (request.Email, player.Id),
             Constants.RabbitMqQueues.ConfirmEmail,
-            TimeSpan.FromSeconds(_timeout),
+            TimeSpan.FromSeconds(_timeoutSec),
             _logger,
             Constants.ErrorMessages.EmailTimeoutError,
             Constants.ErrorMessages.Unavailable
@@ -149,7 +158,7 @@ public class AuthServiceImpl : ProfileAuth.ProfileAuthBase
             _rabbitMQClient,
             (request.Email, player!.Id),
             Constants.RabbitMqQueues.RecoveryPassword,
-            TimeSpan.FromSeconds(_timeout),
+            TimeSpan.FromSeconds(_timeoutSec),
             _logger,
             Constants.ErrorMessages.EmailTimeoutError,
             Constants.ErrorMessages.Unavailable
@@ -177,7 +186,7 @@ public class AuthServiceImpl : ProfileAuth.ProfileAuthBase
             _rabbitMQClient,
             (player.Email, newPassword),
             Constants.RabbitMqQueues.ChangePassword,
-            TimeSpan.FromSeconds(_timeout),
+            TimeSpan.FromSeconds(_timeoutSec),
             _logger,
             Constants.ErrorMessages.EmailTimeoutError,
             Constants.ErrorMessages.Unavailable

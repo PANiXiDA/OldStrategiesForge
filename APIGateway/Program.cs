@@ -6,6 +6,9 @@ using System.Text;
 using Microsoft.OpenApi.Models;
 using Tools.Encryption;
 using APIGateway.Middlewares;
+using Tools.Redis;
+using FluentValidation;
+using APIGateway.Infrastructure.Requests.Auth;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -26,9 +29,19 @@ builder.WebHost.ConfigureKestrel(options =>
 
 builder.Services.Configure<AesEncryptionConfiguration>(builder.Configuration.GetSection("AesEncryptionSettings"));
 
+var redisConfiguration = builder.Configuration.GetConnectionString("Redis")
+                        ?? throw new InvalidOperationException("Redis connection string is missing.");
+RedisConnectionFactory.Initialize(redisConfiguration);
+builder.Services.AddSingleton<IRedisCache>(provider =>
+{
+    var redisConnection = RedisConnectionFactory.GetConnection();
+    return new RedisCache(redisConnection);
+});
+
 var jwtSettings = builder.Configuration.GetSection("JwtSettings").Get<JwtSettings>();
 builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("JwtSettings"));
 builder.Services.AddScoped<AesEncryption>();
+builder.Services.AddScoped<IValidator<RegistrationPlayerRequestDto>, CreatePlayerDtoValidator>();
 
 if (jwtSettings != null)
 {

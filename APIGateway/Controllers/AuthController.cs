@@ -9,6 +9,8 @@ using Tools.Encryption;
 using Microsoft.AspNetCore.Authorization;
 using APIGateway.Infrastructure.Responses.Players;
 using System.Security.Claims;
+using Tools.Redis;
+using FluentValidation;
 
 namespace APIGateway.Controllers;
 
@@ -21,6 +23,8 @@ public class AuthController : ControllerBase
     private readonly ILogger<AuthController> _logger;
     private readonly AesEncryption _encryption;
     private readonly ProfileAuth.ProfileAuthClient _authClient;
+    private readonly IRedisCache _redisCache;
+    private readonly IValidator<RegistrationPlayerRequestDto> _validator;
 
     private readonly string? _domen;
 
@@ -28,11 +32,15 @@ public class AuthController : ControllerBase
         IConfiguration configuration,
         ILogger<AuthController> logger,
         AesEncryption encryption,
-        ProfileAuth.ProfileAuthClient authClient)
+        ProfileAuth.ProfileAuthClient authClient,
+        IRedisCache redisCache,
+        IValidator<RegistrationPlayerRequestDto> validator)
     {
         _logger = logger;
         _encryption = encryption;
         _authClient = authClient;
+        _redisCache = redisCache;
+        _validator = validator;
 
         _domen = configuration["Domen"];
     }
@@ -42,8 +50,7 @@ public class AuthController : ControllerBase
     [ProducesResponseType(typeof(RestApiResponse<NoContent>), 201)]
     public async Task<ActionResult<RestApiResponse<NoContent>>> Registration([FromBody] RegistrationPlayerRequestDto request)
     {
-        var validator = new CreatePlayerDtoValidator();
-        var results = validator.Validate(request);
+        var results = await _validator.ValidateAsync(request);
         if (!results.IsValid)
         {
             return BadRequest(RestApiResponseBuilder<NoContent>.Fail(results.Errors.First().ErrorMessage, results.Errors.First().ErrorCode));

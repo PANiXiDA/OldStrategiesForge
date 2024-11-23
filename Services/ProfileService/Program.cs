@@ -2,6 +2,7 @@ using Common.Configurations;
 using ProfileService.DAL.Implementations.Extensions;
 using ProfileService.Extensions;
 using Tools.RabbitMQ.Extensions;
+using Tools.Redis;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -28,6 +29,16 @@ builder.Services.AddMessageBrokers(builder.Configuration, environment);
 
 var jwtSettings = builder.Configuration.GetSection("JwtSettings").Get<JwtSettings>();
 builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("JwtSettings"));
+
+var redisConfiguration = builder.Configuration.GetConnectionString("Redis")
+                        ?? throw new InvalidOperationException("Redis connection string is missing.");
+RedisConnectionFactory.Initialize(redisConfiguration);
+builder.Services.AddSingleton<IRedisCache>(provider =>
+{
+    var redisConnection = RedisConnectionFactory.GetConnection();
+    return new RedisCache(redisConnection);
+});
+
 
 var app = builder.Build();
 

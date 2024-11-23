@@ -164,7 +164,7 @@ services:
     networks:
       - app-network
 
-# Утилиты
+# Инфраструктура
   pgadmin:
     image: dpage/pgadmin4:latest
     container_name: pgadmin
@@ -188,6 +188,17 @@ services:
       RABBITMQ_DEFAULT_PASS: guest
     networks:
       - app-network
+      
+    redis:
+      image: redis:latest
+      container_name: redis
+      ports:
+        - "6379:6379"
+      networks:
+        - app-network
+      command: ["redis-server", "--appendonly", "yes"]
+      volumes:
+        - redis_data:/data
           
 networks:
   app-network:
@@ -196,3 +207,4 @@ networks:
 volumes:
   profile-database-data:
   email-database-data:
+  redis_data:

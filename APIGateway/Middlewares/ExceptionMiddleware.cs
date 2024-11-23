@@ -1,4 +1,5 @@
-﻿using APIGateway.Infrastructure.Extensions;
+﻿using APIGateway.Extensions.Exceptions;
+using APIGateway.Infrastructure.Extensions;
 using Common;
 using Grpc.Core;
 
@@ -21,6 +22,11 @@ public class ExceptionMiddleware
         {
             await _next(context);
         }
+        catch (ValidationConflictException conflictEx)
+        {
+            _logger.LogWarning(conflictEx, "Конфликт проверки для свойства {Property}", conflictEx.Property);
+            await HandleConflictExceptionAsync(context, conflictEx);
+        }
         catch (RpcException rpcEx)
         {
             _logger.LogError(rpcEx, "gRPC вызов завершился с ошибкой.");
@@ -33,6 +39,17 @@ public class ExceptionMiddleware
         }
     }
 
+    private Task HandleConflictExceptionAsync(HttpContext context, ValidationConflictException ex)
+    {
+        context.Response.StatusCode = StatusCodes.Status409Conflict;
+
+        var failure = Failure.Create(ex.Message, ex.Property);
+        var response = RestApiResponse<object>.Fail(failure);
+
+        context.Response.ContentType = "application/json";
+
+        return context.Response.WriteAsJsonAsync(response);
+    }
     private Task HandleGrpcExceptionAsync(HttpContext context, RpcException ex)
     {
         context.Response.StatusCode = ex.StatusCode switch
