@@ -7,6 +7,9 @@ using APIGateway.Infrastructure.Extensions;
 using APIGateway.Infrastructure.Requests.Auth;
 using APIGateway.Infrastructure.Responses.Auth;
 using Tools.Encryption;
+using Microsoft.AspNetCore.Authorization;
+using APIGateway.Infrastructure.Responses.Players;
+using System.Security.Claims;
 
 namespace APIGateway.Controllers;
 
@@ -230,6 +233,66 @@ public class AuthController : ControllerBase
                     _logger.LogError($"Во время подтверждения почты пользователя с  id {playerId} произошла ошибка: {ex.Message}");
                     return StatusCode(StatusCodes.Status500InternalServerError, RestApiResponseBuilder<NoContent>.Fail(ex.Message, Constants.ErrorMessages.ErrorKey));
             }
+        }
+    }
+
+
+    [HttpPost]
+    [Authorize]
+    [Route("logout")]
+    [ProducesResponseType(typeof(RestApiResponse<NoContent>), 200)]
+    public async Task<ActionResult<RestApiResponse<NoContent>>> Logout(LogoutRequestDto request)
+    {
+        try
+        {
+            var grpcResponse = await _authClient.LogoutAsync(request.LogoutRequestDtoToProto());
+
+            return StatusCode(StatusCodes.Status200OK, RestApiResponseBuilder<NoContent>.Success(new NoContent()));
+        }
+        catch (RpcException ex)
+        {
+            if (ex.StatusCode == Grpc.Core.StatusCode.NotFound)
+            {
+                return StatusCode(StatusCodes.Status404NotFound, RestApiResponseBuilder<NoContent>.Fail(ex.Message, Constants.ErrorMessages.ErrorKey));
+            }
+
+            _logger.LogError($"Во время удаления рефреш токена: {request.RefreshToken} произошла ошибка: {ex.Message}");
+
+            return StatusCode(StatusCodes.Status500InternalServerError, RestApiResponseBuilder<NoContent>.Fail(ex.Message, Constants.ErrorMessages.ErrorKey));
+        }
+    }
+
+    [HttpPost]
+    [Authorize]
+    [Route("logout-from-all-devices")]
+    [ProducesResponseType(typeof(RestApiResponse<NoContent>), 200)]
+    public async Task<ActionResult<RestApiResponse<NoContent>>> LogoutFromAllDevices()
+    {
+        try
+        {
+            var playerIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+
+            if (playerIdClaim == null)
+            {
+                return StatusCode(StatusCodes.Status401Unauthorized, RestApiResponseBuilder<GetPlayerResponseDto>.Fail(Constants.ErrorMessages.Unauthorized, Constants.ErrorMessages.ErrorKey));
+            }
+
+            int playerId = int.Parse(playerIdClaim.Value);
+
+            var grpcResponse = await _authClient.LogoutFromAllDevicesAsync(new LogoutFromAllDevicesRequest() { PlayerId = playerId });
+
+            return StatusCode(StatusCodes.Status200OK, RestApiResponseBuilder<NoContent>.Success(new NoContent()));
+        }
+        catch (RpcException ex)
+        {
+            if (ex.StatusCode == Grpc.Core.StatusCode.NotFound)
+            {
+                return StatusCode(StatusCodes.Status404NotFound, RestApiResponseBuilder<NoContent>.Fail(ex.Message, Constants.ErrorMessages.ErrorKey));
+            }
+
+            _logger.LogError($"Во время выхода со всех устройств произошла ошибка: {ex.Message}");
+
+            return StatusCode(StatusCodes.Status500InternalServerError, RestApiResponseBuilder<NoContent>.Fail(ex.Message, Constants.ErrorMessages.ErrorKey));
         }
     }
 

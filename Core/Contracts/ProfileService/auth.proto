@@ -13,6 +13,8 @@ service ProfileAuth {
   rpc RecoveryPassword (RecoveryPasswordRequest) returns (google.protobuf.Empty);
   rpc ChangePassword (ChangePasswordRequest) returns (google.protobuf.Empty);
   rpc Refresh (RefreshTokenRequest) returns (RefreshTokenResponse);
+  rpc Logout (LogoutRequest) returns (google.protobuf.Empty);
+  rpc LogoutFromAllDevices (LogoutFromAllDevicesRequest) returns (google.protobuf.Empty);
 }
 
 message RegistrationPlayerRequest {
@@ -58,4 +60,12 @@ message RefreshTokenRequest {
 message RefreshTokenResponse {
   string access_token = 1;
   string refresh_token = 2;
+}
+
+message LogoutRequest {
+  string refresh_token = 1;
+}
+
+message LogoutFromAllDevicesRequest{
+  int32 player_id = 1;
 }

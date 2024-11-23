@@ -80,4 +80,16 @@ public class TokensDAL : BaseDAL<DefaultDbContext, Token,
     {
         return (await GetAsync(item => item.RefreshToken == refreshToken && item.RefreshTokenExp >= DateTime.UtcNow)).FirstOrDefault();
     }
+
+    public async Task<bool> DeleteByRefreshTokenAsync(string refreshToken)
+    {
+        if (string.IsNullOrEmpty(refreshToken)) throw new ArgumentNullException(nameof(refreshToken));
+
+        return await DeleteAsync(item => item.RefreshToken == refreshToken);
+    }
+
+    public async Task<bool> DeleteByPlayerIdAsync(int playerId)
+    {
+        return await DeleteAsync(item => item.PlayerId == playerId);
+    }
 }

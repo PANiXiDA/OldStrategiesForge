@@ -48,6 +48,12 @@ internal class PlayersDAL : BaseDAL<DefaultDbContext, Player,
     protected override IQueryable<Player> BuildDbQuery(DefaultDbContext context,
         IQueryable<Player> dbObjects, PlayersSearchParams searchParams)
     {
+        if (searchParams.IsRegistrationCheck.HasValue && !string.IsNullOrEmpty(searchParams.Email) && !string.IsNullOrEmpty(searchParams.Nickname))
+        {
+            dbObjects = dbObjects.Where(item => item.Email.ToLower() == searchParams.Email.ToLower() || item.Nickname.ToLower() == searchParams.Nickname.ToLower());
+
+            return dbObjects;
+        }
         if (!string.IsNullOrEmpty(searchParams.Email))
         {
             dbObjects = dbObjects.Where(item => item.Email.ToLower() == searchParams.Email.ToLower());

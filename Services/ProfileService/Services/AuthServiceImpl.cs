@@ -47,14 +47,12 @@ public class AuthServiceImpl : ProfileAuth.ProfileAuthBase
 
     public override async Task<Empty> Registration(RegistrationPlayerRequest request, ServerCallContext context)
     {
-        bool isEmailExist = await _playersDAL.ExistsAsync(new PlayersSearchParams() { Email = request.Email });
-        if (isEmailExist)
+        var players = (await _playersDAL.GetAsync(new PlayersSearchParams() { IsRegistrationCheck = true })).Objects;
+        if (players.Any(item => item.Email == request.Email))
         {
             throw new RpcException(new Status(StatusCode.AlreadyExists, Constants.ErrorMessages.ExistsEmail));
         }
-
-        bool isNicknameExist = await _playersDAL.ExistsAsync(new PlayersSearchParams() { Nickname = request.Nickname });
-        if (isNicknameExist)
+        if (players.Any(item => item.Nickname == request.Nickname))
         {
             throw new RpcException(new Status(StatusCode.AlreadyExists, Constants.ErrorMessages.ExistsNicknane));
         }
@@ -271,6 +269,28 @@ public class AuthServiceImpl : ProfileAuth.ProfileAuthBase
         catch (Exception)
         {
             throw new RpcException(new Status(StatusCode.Internal, Constants.ErrorMessages.Unavailable));
+        }
+
+        return new Empty();
+    }
+
+    public override async Task<Empty> Logout(LogoutRequest request, ServerCallContext context)
+    {
+        var isTokenDeleted = await _tokensDAL.DeleteByRefreshTokenAsync(request.RefreshToken);
+        if (!isTokenDeleted)
+        {
+            throw new RpcException(new Status(StatusCode.NotFound, Constants.ErrorMessages.BadRefreshToken));
+        }
+
+        return new Empty();
+    }
+
+    public override async Task<Empty> LogoutFromAllDevices(LogoutFromAllDevicesRequest request, ServerCallContext context)
+    {
+        var isTokenDeleted = await _tokensDAL.DeleteByPlayerIdAsync(request.PlayerId);
+        if (!isTokenDeleted)
+        {
+            throw new RpcException(new Status(StatusCode.NotFound, Constants.ErrorMessages.NoActiveSessions));
         }
 
         return new Empty();

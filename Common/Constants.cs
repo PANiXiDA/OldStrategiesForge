@@ -8,6 +8,7 @@ public class Constants
 
         public const string NotFound = "Not found.";
         public const string NotValidModel = "Invalid model.";
+        public const string NoActiveSessions = "No active sessions.";
 
         public const string Unauthorized = "Unauthorized.";
         public const string BadRefreshToken = "Refresh token not found.";

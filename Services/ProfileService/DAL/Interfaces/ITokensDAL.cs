@@ -11,4 +11,6 @@ public interface ITokensDAL : IBaseDal<DefaultDbContext, Token, TokensDto, int, 
 {
     Task<bool> ExistsAsync(string refreshToken);
     Task<TokensDto?> GetAsync(string refreshToken);
+    Task<bool> DeleteByRefreshTokenAsync(string refreshToken);
+    Task<bool> DeleteByPlayerIdAsync(int playerId);
 }
