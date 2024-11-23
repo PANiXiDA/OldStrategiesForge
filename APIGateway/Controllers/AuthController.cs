@@ -64,33 +64,13 @@ public class AuthController : ControllerBase
 
             return StatusCode(StatusCodes.Status500InternalServerError, RestApiResponseBuilder<NoContent>.Fail(ex.Message, Constants.ErrorMessages.ErrorKey));
         }
-    }
-
-    [HttpGet]
-    [Route("confirm")]
-    public async Task<ActionResult<RestApiResponse<RefreshTokenResponseDto>>> Сonfirm([FromQuery] string token)
-    {
-        var playerId = _encryption.Decrypt<int>(token);
-
-        try
+        catch (TimeoutException ex)
         {
-            var grpcResponse = await _authClient.ConfirmAsync(new ConfirmEmailRequest() { PlayerId = playerId });
-            var nickname = grpcResponse.Nickname;
-
-            return Redirect($"{_domen}/Profile/Confirm?nickname={nickname}");
+            return StatusCode(StatusCodes.Status408RequestTimeout, RestApiResponseBuilder<NoContent>.Fail(ex.Message, Constants.ErrorMessages.ErrorKey));
         }
-        catch (RpcException ex)
+        catch (Exception ex)
         {
-            switch (ex.Status.StatusCode)
-            {
-                case Grpc.Core.StatusCode.NotFound:
-                    return NotFound(RestApiResponseBuilder<LoginPlayerResponseDto>.Fail(ex.Message, Constants.ErrorMessages.ErrorKey));
-                case Grpc.Core.StatusCode.PermissionDenied:
-                    return StatusCode(StatusCodes.Status403Forbidden, RestApiResponseBuilder<LoginPlayerResponseDto>.Fail(ex.Message, Constants.ErrorMessages.ErrorKey));
-                default:
-                    _logger.LogError($"Во время подтверждения почты пользователя с  id {playerId} произошла ошибка: {ex.Message}");
-                    return StatusCode(StatusCodes.Status500InternalServerError, RestApiResponseBuilder<LoginPlayerResponseDto>.Fail(ex.Message, Constants.ErrorMessages.ErrorKey));
-            }
+            return StatusCode(StatusCodes.Status500InternalServerError, RestApiResponseBuilder<NoContent>.Fail(ex.Message, Constants.ErrorMessages.ErrorKey));
         }
     }
 
@@ -118,6 +98,137 @@ public class AuthController : ControllerBase
                 default:
                     _logger.LogError($"Во время логина пользователя {request.Email} произошла ошибка: {ex.Message}");
                     return StatusCode(StatusCodes.Status500InternalServerError, RestApiResponseBuilder<LoginPlayerResponseDto>.Fail(ex.Message, Constants.ErrorMessages.ErrorKey));
+            }
+        }
+    }
+
+    [HttpPost]
+    [Route("confirm-email")]
+    [ProducesResponseType(typeof(RestApiResponse<NoContent>), 200)]
+    public async Task<ActionResult<RestApiResponse<NoContent>>> ConfirmEmail([FromBody] ConfirmEmailRequestDto request)
+    {
+        try
+        {
+            var grpcResponse = await _authClient.ConfirmEmailAsync(request.ConfirmEmailRequestDtoToProto());
+
+            return StatusCode(StatusCodes.Status200OK, RestApiResponseBuilder<NoContent>.Success(new NoContent()));
+        }
+        catch (RpcException ex)
+        {
+            if (ex.StatusCode == Grpc.Core.StatusCode.NotFound)
+            {
+                return StatusCode(StatusCodes.Status404NotFound, RestApiResponseBuilder<NoContent>.Fail(ex.Message, Constants.ErrorMessages.ErrorKey));
+            }
+            if (ex.StatusCode == Grpc.Core.StatusCode.AlreadyExists)
+            {
+                return StatusCode(StatusCodes.Status409Conflict, RestApiResponseBuilder<NoContent>.Fail(ex.Message, Constants.ErrorMessages.ErrorKey));
+            }
+
+            _logger.LogError($"Во время подтверждения почты: {request.Email} произошла ошибка: {ex.Message}");
+
+            return StatusCode(StatusCodes.Status500InternalServerError, RestApiResponseBuilder<NoContent>.Fail(ex.Message, Constants.ErrorMessages.ErrorKey));
+        }
+        catch (TimeoutException ex)
+        {
+            return StatusCode(StatusCodes.Status408RequestTimeout, RestApiResponseBuilder<NoContent>.Fail(ex.Message, Constants.ErrorMessages.ErrorKey));
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(StatusCodes.Status500InternalServerError, RestApiResponseBuilder<NoContent>.Fail(ex.Message, Constants.ErrorMessages.ErrorKey));
+        }
+    }
+
+    [HttpGet]
+    [Route("confirm")]
+    public async Task<IActionResult> СonfirmAccount([FromQuery] string token)
+    {
+        var playerId = _encryption.Decrypt<int>(token);
+
+        try
+        {
+            var grpcResponse = await _authClient.ConfirmAccountAsync(new ConfirmAccountRequest() { PlayerId = playerId });
+            var nickname = grpcResponse.Nickname;
+
+            return Redirect($"{_domen}/Profile/Confirm?nickname={nickname}");
+        }
+        catch (RpcException ex)
+        {
+            switch (ex.Status.StatusCode)
+            {
+                case Grpc.Core.StatusCode.NotFound:
+                    return NotFound(RestApiResponseBuilder<LoginPlayerResponseDto>.Fail(ex.Message, Constants.ErrorMessages.ErrorKey));
+                case Grpc.Core.StatusCode.PermissionDenied:
+                    return StatusCode(StatusCodes.Status403Forbidden, RestApiResponseBuilder<LoginPlayerResponseDto>.Fail(ex.Message, Constants.ErrorMessages.ErrorKey));
+                default:
+                    _logger.LogError($"Во время подтверждения почты пользователя с  id {playerId} произошла ошибка: {ex.Message}");
+                    return StatusCode(StatusCodes.Status500InternalServerError, RestApiResponseBuilder<LoginPlayerResponseDto>.Fail(ex.Message, Constants.ErrorMessages.ErrorKey));
+            }
+        }
+    }
+
+    [HttpPost]
+    [Route("recovery-password")]
+    [ProducesResponseType(typeof(RestApiResponse<NoContent>), 200)]
+    public async Task<ActionResult<RestApiResponse<NoContent>>> RecoveryPassword([FromBody] RecoveryPasswordRequestDto request)
+    {
+        try
+        {
+            var grpcResponse = await _authClient.RecoveryPasswordAsync(request.RecoveryPasswordRequestDtoToProto());
+
+            return StatusCode(StatusCodes.Status200OK, RestApiResponseBuilder<NoContent>.Success(new NoContent()));
+        }
+        catch (RpcException ex)
+        {
+            switch (ex.Status.StatusCode)
+            {
+                case Grpc.Core.StatusCode.NotFound:
+                    return NotFound(RestApiResponseBuilder<NoContent>.Fail(ex.Message, Constants.ErrorMessages.ErrorKey));
+                case Grpc.Core.StatusCode.PermissionDenied:
+                    return StatusCode(StatusCodes.Status403Forbidden, RestApiResponseBuilder<NoContent>.Fail(ex.Message, Constants.ErrorMessages.ErrorKey));
+                case Grpc.Core.StatusCode.FailedPrecondition:
+                    return StatusCode(StatusCodes.Status412PreconditionFailed, RestApiResponseBuilder<NoContent>.Fail(ex.Message, Constants.ErrorMessages.ErrorKey));
+                default:
+                    _logger.LogError($"Во время восстановления пароля игрока с почтой: {request.Email} произошла ошибка: {ex.Message}");
+                    return StatusCode(StatusCodes.Status500InternalServerError, RestApiResponseBuilder<NoContent>.Fail(ex.Message, Constants.ErrorMessages.ErrorKey));
+            }
+        }
+        catch (TimeoutException ex)
+        {
+            _logger.LogError($"Во время восстановления пароля игрока с почтой: {request.Email} произошла ошибка: {ex.Message}");
+            return StatusCode(StatusCodes.Status408RequestTimeout, RestApiResponseBuilder<NoContent>.Fail(ex.Message, Constants.ErrorMessages.ErrorKey));
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError($"Во время восстановления пароля игрока с почтой: {request.Email} произошла ошибка: {ex.Message}");
+            return StatusCode(StatusCodes.Status500InternalServerError, RestApiResponseBuilder<NoContent>.Fail(ex.Message, Constants.ErrorMessages.ErrorKey));
+        }
+    }
+
+    [HttpGet]
+    [Route("recovery")]
+    public async Task<IActionResult> RecoveryPassword([FromQuery] string token)
+    {
+        var playerId = _encryption.Decrypt<int>(token);
+
+        try
+        {
+            var grpcResponse = await _authClient.ChangePasswordAsync(new ChangePasswordRequest() { PlayerId = playerId });
+
+            return Redirect($"{_domen}/Profile/Recovery");
+        }
+        catch (RpcException ex)
+        {
+            switch (ex.Status.StatusCode)
+            {
+                case Grpc.Core.StatusCode.NotFound:
+                    return NotFound(RestApiResponseBuilder<NoContent>.Fail(ex.Message, Constants.ErrorMessages.ErrorKey));
+                case Grpc.Core.StatusCode.PermissionDenied:
+                    return StatusCode(StatusCodes.Status403Forbidden, RestApiResponseBuilder<NoContent>.Fail(ex.Message, Constants.ErrorMessages.ErrorKey));
+                case Grpc.Core.StatusCode.FailedPrecondition:
+                    return StatusCode(StatusCodes.Status412PreconditionFailed, RestApiResponseBuilder<NoContent>.Fail(ex.Message, Constants.ErrorMessages.ErrorKey));
+                default:
+                    _logger.LogError($"Во время подтверждения почты пользователя с  id {playerId} произошла ошибка: {ex.Message}");
+                    return StatusCode(StatusCodes.Status500InternalServerError, RestApiResponseBuilder<NoContent>.Fail(ex.Message, Constants.ErrorMessages.ErrorKey));
             }
         }
     }

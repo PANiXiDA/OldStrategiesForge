@@ -9,15 +9,18 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.21.0" />
+    <Compile Remove="Areas\Admin\**" />
+    <Compile Remove="Areas\Public\Infrastructure\**" />
+    <Content Remove="Areas\Admin\**" />
+    <Content Remove="Areas\Public\Infrastructure\**" />
+    <EmbeddedResource Remove="Areas\Admin\**" />
+    <EmbeddedResource Remove="Areas\Public\Infrastructure\**" />
+    <None Remove="Areas\Admin\**" />
+    <None Remove="Areas\Public\Infrastructure\**" />
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Areas\Admin\" />
-    <Folder Include="Areas\Public\Infrastructure\Requests\" />
-    <Folder Include="Areas\Public\Infrastructure\Responses\" />
-    <Folder Include="Areas\Public\Infrastructure\Models\" />
-    <Folder Include="Areas\Public\Infrastructure\ViewModels\" />
+    <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.21.0" />
   </ItemGroup>
 
   <ItemGroup>

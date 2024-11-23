@@ -6,7 +6,7 @@ namespace FrontendService.Areas.Public.Controllers;
 [Area("Public")]
 public class EmailController : Controller
 {
-    private const string _queue = "subscribe_to_notifications_requests";
+    private const string _queue = "subscribe_to_notifications";
     private readonly ILogger<HomeController> _logger;
     private readonly IRabbitMQClient _rabbitMQClient;
 

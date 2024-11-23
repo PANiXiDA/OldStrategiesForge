@@ -8,8 +8,11 @@ option csharp_namespace = "Profile.Auth.Gen";
 service ProfileAuth {
   rpc Registration (RegistrationPlayerRequest) returns (google.protobuf.Empty);
   rpc Login (LoginPlayerRequest) returns (LoginPlayerResponse);
+  rpc ConfirmEmail (ConfirmEmailRequest) returns (google.protobuf.Empty);
+  rpc ConfirmAccount (ConfirmAccountRequest) returns (ConfirmAccountResponse);
+  rpc RecoveryPassword (RecoveryPasswordRequest) returns (google.protobuf.Empty);
+  rpc ChangePassword (ChangePasswordRequest) returns (google.protobuf.Empty);
   rpc Refresh (RefreshTokenRequest) returns (RefreshTokenResponse);
-  rpc Confirm (ConfirmEmailRequest) returns (ConfirmEmailResponse);
 }
 
 message RegistrationPlayerRequest {
@@ -28,19 +31,31 @@ message LoginPlayerResponse {
   string refresh_token = 2;
 }
 
-message RefreshTokenRequest{
-  string refresh_token = 1;
+message ConfirmEmailRequest {
+  string email = 1;
 }
 
-message RefreshTokenResponse{
-  string access_token = 1;
-  string refresh_token = 2;
-}
-
-message ConfirmEmailRequest{
+message ConfirmAccountRequest {
   int32 player_id = 1;
 }
 
-message ConfirmEmailResponse{
+message ConfirmAccountResponse {
   string nickname = 1;
+}
+
+message RecoveryPasswordRequest {
+  string email = 1;
+}
+
+message ChangePasswordRequest{
+  int32 player_id = 1;
+}
+
+message RefreshTokenRequest {
+  string refresh_token = 1;
+}
+
+message RefreshTokenResponse {
+  string access_token = 1;
+  string refresh_token = 2;
 }

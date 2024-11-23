@@ -5,6 +5,8 @@ using System.Text.RegularExpressions;
 namespace Common;
 public class Helpers
 {
+    private static readonly Random Random = new Random();
+
     public static string GetPasswordHash(string s)
     {
         if (string.IsNullOrEmpty(s))
@@ -43,4 +45,27 @@ public class Helpers
         return true;
     }
 
+    public static string GeneratePassword(int length = 8)
+    {
+        const string upperChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+        const string lowerChars = "abcdefghijklmnopqrstuvwxyz";
+        const string digits = "0123456789";
+        const string allChars = upperChars + lowerChars + digits;
+
+        char upper = upperChars[Random.Next(upperChars.Length)];
+        char lower = lowerChars[Random.Next(lowerChars.Length)];
+        char digit = digits[Random.Next(digits.Length)];
+
+        char[] password = new char[length];
+        password[0] = upper;
+        password[1] = lower;
+        password[2] = digit;
+
+        for (int i = 3; i < length; i++)
+        {
+            password[i] = allChars[Random.Next(allChars.Length)];
+        }
+
+        return new string(password.OrderBy(_ => Random.Next()).ToArray());
+    }
 }

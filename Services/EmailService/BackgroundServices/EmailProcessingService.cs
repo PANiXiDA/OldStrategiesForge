@@ -1,12 +1,13 @@
 ﻿using EmailService.BL.Dto.Commands;
 using MediatR;
+using RabbitMQ.Client;
 using Tools.RabbitMQ;
 
 namespace EmailService.BackgroundServices;
 
 internal class EmailProcessingService : BackgroundService
 {
-    private const string _queue = "subscribe_to_notifications_requests";
+    private const string _queue = "subscribe_to_notifications";
     private readonly ILogger<EmailProcessingService> _logger;
     private readonly IRabbitMQClient _rabbitMQClient;
     private readonly IServiceProvider _serviceProvider;
@@ -30,23 +31,29 @@ internal class EmailProcessingService : BackgroundService
 
         try
         {
-            _rabbitMQClient.StartReceiving<string>(async message =>
+            _rabbitMQClient.StartReceivingMultiple(new Dictionary<string, (Type, Func<object, IBasicProperties?, IModel?, Task>)>
             {
-                try
+                [_queue] = (typeof(string), async (message, _, _) =>
                 {
-                    _logger.LogInformation($"Received email message: {message}");
-                     
-                    using (var scope = _serviceProvider.CreateScope())
+                    var typedMessage = (string)message;
+
+                    try
                     {
-                        var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
-                        await mediator.Send(new NotificationSubscriberCommand(message));
+                        _logger.LogInformation($"Received email message: {typedMessage}");
+
+                        using (var scope = _serviceProvider.CreateScope())
+                        {
+                            var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
+                            await mediator.Send(new NotificationSubscriberCommand(typedMessage));
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Error occurred while processing the email message.");
                     }
                 }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "Error occurred while processing the email message.");
-                }
-            }, _queue);
+                )
+            });
         }
         catch (Exception ex)
         {

@@ -9,4 +9,9 @@ public class ProfileController : Controller
     {
         return View((object)nickname);
     }
+
+    public IActionResult Recovery()
+    {
+        return View();
+    }
 }

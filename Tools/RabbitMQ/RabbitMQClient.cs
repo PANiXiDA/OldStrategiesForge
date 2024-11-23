@@ -53,15 +53,13 @@ internal class RabbitMQClient : IRabbitMQClient, IDisposable
         }
     }
 
-    public void StartReceiving<T>(Func<T, Task> handleMessage, string queue)
+    public void StartReceivingMultiple(Dictionary<string, (Type messageType, Func<object, IBasicProperties?, IModel?, Task> handler)> queueHandlers)
     {
-        StartReceiving<T>((message, _, _) => handleMessage(message), queue);
-    }
-
-    public void StartReceiving<T>(Func<T, IBasicProperties, IModel, Task> handleMessage, string queue)
-    {
-        try
+        foreach (var queueHandler in queueHandlers)
         {
+            string queue = queueHandler.Key;
+            var (messageType, handler) = queueHandler.Value;
+
             _channel.QueueDeclare(queue: queue,
                                   durable: false,
                                   exclusive: false,
@@ -77,28 +75,32 @@ internal class RabbitMQClient : IRabbitMQClient, IDisposable
 
                 try
                 {
-                    var messageObject = JsonConvert.DeserializeObject<T>(message);
+                    var messageObject = JsonConvert.DeserializeObject(message, messageType);
                     if (messageObject != null)
                     {
-                        await handleMessage(messageObject, ea.BasicProperties, _channel);
+                        await handler(messageObject, ea.BasicProperties, _channel);
                         _channel.BasicAck(ea.DeliveryTag, false);
+                    }
+                    else
+                    {
+                        _logger.LogWarning($"Received message could not be deserialized to type {messageType.Name}");
                     }
                 }
                 catch (JsonException jsonEx)
                 {
-                    _logger.LogError(jsonEx, "Error deserializing JSON message");
+                    _logger.LogError(jsonEx, $"Error deserializing JSON message from queue '{queue}'");
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, $"Error processing message from queue '{queue}'");
                 }
             };
 
             _channel.BasicConsume(queue: queue, autoAck: false, consumer: consumer);
-
             _logger.LogInformation($"Waiting for messages in queue '{queue}'...");
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, $"Error receiving JSON messages from queue '{queue}'");
-        }
     }
+
 
     public async Task<TResponse?> CallAsync<TRequest, TResponse>(TRequest request, string queue, TimeSpan timeout)
     {

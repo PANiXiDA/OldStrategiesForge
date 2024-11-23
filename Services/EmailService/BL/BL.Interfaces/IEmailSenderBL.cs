@@ -2,5 +2,7 @@
 
 internal interface IEmailSenderBL
 {
-    Task SendConfirmationEmailAsync(string toEmail, int playerId);
+    Task<bool> SendConfirmationEmailAsync(string toEmail, int playerId);
+    Task<bool> SendRecoveryPasswordAsync(string toEmail, int playerId);
+    Task<bool> SendChangedPasswordAsync(string toEmail, string newPassword);
 }
