@@ -14,15 +14,12 @@ using Common.Configurations;
 using Microsoft.Extensions.Options;
 using System.Security.Cryptography;
 using Tools.RabbitMQ;
+using ProfileService.Extensions.Helpers;
 
 namespace ProfileService.Services;
 
 public class AuthServiceImpl : ProfileAuth.ProfileAuthBase
 {
-    private const string _email_confirm_queue = "email_confirm";
-    private const string _recovery_password_queue = "recovery_password";
-    private const string _change_password_queue = "change_password";
-
     private const int _timeout = 30;
 
     private readonly ILogger<AuthServiceImpl> _logger;
@@ -50,39 +47,28 @@ public class AuthServiceImpl : ProfileAuth.ProfileAuthBase
         var players = (await _playersDAL.GetAsync(new PlayersSearchParams() { IsRegistrationCheck = true })).Objects;
         if (players.Any(item => item.Email == request.Email))
         {
-            throw new RpcException(new Status(StatusCode.AlreadyExists, Constants.ErrorMessages.ExistsEmail));
+            throw RpcExceptionHelper.AlreadyExists(Constants.ErrorMessages.ExistsEmail);
         }
         if (players.Any(item => item.Nickname == request.Nickname))
         {
-            throw new RpcException(new Status(StatusCode.AlreadyExists, Constants.ErrorMessages.ExistsNicknane));
+            throw RpcExceptionHelper.AlreadyExists(Constants.ErrorMessages.ExistsNicknane);
         }
 
         var playerId = await _playersDAL.AddOrUpdateAsync(new PlayersDto().PlayersDtoFromProtoAuth(request));
 
-        try
-        {
-            _logger.LogInformation($"Отправка электронного письма с подтверждением учетной записи: {request.Email}.");
+        var result = await RabbitMqHelper.CallSafely<(string, int), bool>(
+            _rabbitMQClient,
+            (request.Email, playerId),
+            Constants.RabbitMqQueues.ConfirmEmail,
+            TimeSpan.FromSeconds(_timeout),
+            _logger,
+            Constants.ErrorMessages.EmailTimeoutError,
+            Constants.ErrorMessages.Unavailable
+        );
 
-            var result = await _rabbitMQClient.CallAsync<(string, int), bool>(
-                (request.Email, playerId),
-                _email_confirm_queue,
-                TimeSpan.FromSeconds(_timeout)
-            );
-
-            if (!result)
-            {
-                throw new RpcException(new Status(StatusCode.Internal, Constants.ErrorMessages.EmailServiceUnavailable));
-            }
-
-            _logger.LogInformation($"Сообщение на почту: {request.Email} успешно доставлено: {result}.");
-        }
-        catch (TimeoutException)
+        if (!result)
         {
-            throw new RpcException(new Status(StatusCode.DeadlineExceeded, Constants.ErrorMessages.EmailTimeoutError));
-        }
-        catch (Exception)
-        {
-            throw new RpcException(new Status(StatusCode.Internal, Constants.ErrorMessages.Unavailable));
+            throw RpcExceptionHelper.InternalError(Constants.ErrorMessages.EmailServiceUnavailable);
         }
 
         return new Empty();
@@ -91,21 +77,9 @@ public class AuthServiceImpl : ProfileAuth.ProfileAuthBase
     public override async Task<LoginPlayerResponse> Login(LoginPlayerRequest request, ServerCallContext context)
     {
         var player = await _playersDAL.GetAsync(request.Email);
+        ValidatePlayerState(player);
 
-        if (player == null)
-        {
-            throw new RpcException(new Status(StatusCode.NotFound, Constants.ErrorMessages.PlayerNotFound));
-        }
-        if (!player.Confirmed)
-        {
-            throw new RpcException(new Status(StatusCode.FailedPrecondition, Constants.ErrorMessages.PlayerNotConfirm));
-        }
-        if (player.Blocked)
-        {
-            throw new RpcException(new Status(StatusCode.PermissionDenied, Constants.ErrorMessages.PlayerBlocked));
-        }
-
-        var (accessToken, refreshToken) = await GenerateTokens(player.Id, (PlayerRole)player.Role);
+        var (accessToken, refreshToken) = await GenerateTokens(player!.Id, (PlayerRole)player.Role);
 
         var response = new LoginPlayerResponse()
         {
@@ -121,37 +95,26 @@ public class AuthServiceImpl : ProfileAuth.ProfileAuthBase
         var player = await _playersDAL.GetAsync(request.Email);
         if (player == null)
         {
-            throw new RpcException(new Status(StatusCode.NotFound, Constants.ErrorMessages.PlayerNotFound));
+            throw RpcExceptionHelper.NotFound(Constants.ErrorMessages.PlayerNotFound);
         }
         if (player.Confirmed)
         {
-            throw new RpcException(new Status(StatusCode.AlreadyExists, Constants.ErrorMessages.PlayerAlreadyConfirmed));
+            throw RpcExceptionHelper.AlreadyExists(Constants.ErrorMessages.PlayerAlreadyConfirmed);
         }
 
-        try
-        {
-            _logger.LogInformation($"Отправка электронного письма с подтверждением учетной записи: {request.Email}.");
+        var result = await RabbitMqHelper.CallSafely<(string, int), bool>(
+            _rabbitMQClient,
+            (request.Email, player.Id),
+            Constants.RabbitMqQueues.ConfirmEmail,
+            TimeSpan.FromSeconds(_timeout),
+            _logger,
+            Constants.ErrorMessages.EmailTimeoutError,
+            Constants.ErrorMessages.Unavailable
+        );
 
-            var result = await _rabbitMQClient.CallAsync<(string, int), bool>(
-                (request.Email, player.Id),
-                _email_confirm_queue,
-                TimeSpan.FromSeconds(_timeout)
-            );
-
-            if (!result)
-            {
-                throw new RpcException(new Status(StatusCode.Internal, Constants.ErrorMessages.EmailServiceUnavailable));
-            }
-
-            _logger.LogInformation($"Сообщение на почту: {request.Email} успешно доставлено: {result}.");
-        }
-        catch (TimeoutException)
+        if (!result)
         {
-            throw new RpcException(new Status(StatusCode.DeadlineExceeded, Constants.ErrorMessages.EmailTimeoutError));
-        }
-        catch (Exception)
-        {
-            throw new RpcException(new Status(StatusCode.Internal, Constants.ErrorMessages.Unavailable));
+            throw RpcExceptionHelper.InternalError(Constants.ErrorMessages.EmailServiceUnavailable);
         }
 
         return new Empty();
@@ -163,7 +126,7 @@ public class AuthServiceImpl : ProfileAuth.ProfileAuthBase
 
         if (player.Blocked)
         {
-            throw new RpcException(new Status(StatusCode.PermissionDenied, Constants.ErrorMessages.PlayerBlocked));
+            throw RpcExceptionHelper.PermissionDenied(Constants.ErrorMessages.PlayerBlocked);
         }
         player.Confirmed = true;
 
@@ -180,45 +143,21 @@ public class AuthServiceImpl : ProfileAuth.ProfileAuthBase
     public override async Task<Empty> RecoveryPassword(RecoveryPasswordRequest request, ServerCallContext context)
     {
         var player = await _playersDAL.GetAsync(request.Email);
-        if (player == null)
-        {
-            throw new RpcException(new Status(StatusCode.NotFound, Constants.ErrorMessages.PlayerNotFound));
-        }
-        if (player.Blocked)
-        {
-            throw new RpcException(new Status(StatusCode.PermissionDenied, Constants.ErrorMessages.PlayerBlocked));
-        }
-        if (!player.Confirmed)
-        {
-            throw new RpcException(new Status(StatusCode.FailedPrecondition, Constants.ErrorMessages.PlayerNotConfirm));
-        }
+        ValidatePlayerState(player);
 
-        try
-        {
-            _logger.LogInformation($"Sending an email to the account confirmation: {request.Email}.");
+        var result = await RabbitMqHelper.CallSafely<(string, int), bool>(
+            _rabbitMQClient,
+            (request.Email, player!.Id),
+            Constants.RabbitMqQueues.RecoveryPassword,
+            TimeSpan.FromSeconds(_timeout),
+            _logger,
+            Constants.ErrorMessages.EmailTimeoutError,
+            Constants.ErrorMessages.Unavailable
+        );
 
-            var result = await _rabbitMQClient.CallAsync<(string, int), bool>(
-                (request.Email, player.Id),
-                _recovery_password_queue,
-                TimeSpan.FromSeconds(_timeout)
-            );
-
-            if (!result)
-            {
-                throw new RpcException(new Status(StatusCode.Internal, Constants.ErrorMessages.EmailServiceUnavailable));
-            }
-
-            _logger.LogInformation($"Message for {request.Email} successfully processed: {result}.");
-        }
-        catch (TimeoutException ex)
+        if (!result)
         {
-            _logger.LogError(ex, $"Timeout sending an account recovery password message {request.Email}");
-            throw new RpcException(new Status(StatusCode.DeadlineExceeded, Constants.ErrorMessages.EmailTimeoutError));
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, $"Error sending an account recovery password message {request.Email}");
-            throw new RpcException(new Status(StatusCode.Internal, Constants.ErrorMessages.Unavailable));
+            throw RpcExceptionHelper.InternalError(Constants.ErrorMessages.EmailServiceUnavailable);
         }
 
         return new Empty();
@@ -227,48 +166,26 @@ public class AuthServiceImpl : ProfileAuth.ProfileAuthBase
     public override async Task<Empty> ChangePassword(ChangePasswordRequest request, ServerCallContext context)
     {
         var player = await _playersDAL.GetAsync(request.PlayerId);
-        if (player == null)
-        {
-            throw new RpcException(new Status(StatusCode.NotFound, Constants.ErrorMessages.PlayerNotFound));
-        }
-        if (player.Blocked)
-        {
-            throw new RpcException(new Status(StatusCode.PermissionDenied, Constants.ErrorMessages.PlayerBlocked));
-        }
-        if (!player.Confirmed)
-        {
-            throw new RpcException(new Status(StatusCode.FailedPrecondition, Constants.ErrorMessages.PlayerNotConfirm));
-        }
+        ValidatePlayerState(player);
 
         var newPassword = Helpers.GeneratePassword();
         player.Password = Helpers.GetPasswordHash(newPassword);
 
         await _playersDAL.AddOrUpdateAsync(player);
 
-        try
-        {
-            _logger.LogInformation($"Отправка электронного письма с подтверждением учетной записи: {player.Email}.");
+        var result = await RabbitMqHelper.CallSafely<(string, string), bool>(
+            _rabbitMQClient,
+            (player.Email, newPassword),
+            Constants.RabbitMqQueues.ChangePassword,
+            TimeSpan.FromSeconds(_timeout),
+            _logger,
+            Constants.ErrorMessages.EmailTimeoutError,
+            Constants.ErrorMessages.Unavailable
+        );
 
-            var result = await _rabbitMQClient.CallAsync<(string, string), bool>(
-                (player.Email, newPassword),
-                _change_password_queue,
-                TimeSpan.FromSeconds(_timeout)
-            );
-
-            if (!result)
-            {
-                throw new RpcException(new Status(StatusCode.Internal, Constants.ErrorMessages.EmailServiceUnavailable));
-            }
-
-            _logger.LogInformation($"Сообщение на почту: {player.Email} успешно доставлено: {result}.");
-        }
-        catch (TimeoutException)
+        if (!result)
         {
-            throw new RpcException(new Status(StatusCode.DeadlineExceeded, Constants.ErrorMessages.EmailTimeoutError));
-        }
-        catch (Exception)
-        {
-            throw new RpcException(new Status(StatusCode.Internal, Constants.ErrorMessages.Unavailable));
+            throw RpcExceptionHelper.InternalError(Constants.ErrorMessages.EmailServiceUnavailable);
         }
 
         return new Empty();
@@ -279,7 +196,7 @@ public class AuthServiceImpl : ProfileAuth.ProfileAuthBase
         var isTokenDeleted = await _tokensDAL.DeleteByRefreshTokenAsync(request.RefreshToken);
         if (!isTokenDeleted)
         {
-            throw new RpcException(new Status(StatusCode.NotFound, Constants.ErrorMessages.BadRefreshToken));
+            throw RpcExceptionHelper.NotFound(Constants.ErrorMessages.BadRefreshToken);
         }
 
         return new Empty();
@@ -290,7 +207,7 @@ public class AuthServiceImpl : ProfileAuth.ProfileAuthBase
         var isTokenDeleted = await _tokensDAL.DeleteByPlayerIdAsync(request.PlayerId);
         if (!isTokenDeleted)
         {
-            throw new RpcException(new Status(StatusCode.NotFound, Constants.ErrorMessages.NoActiveSessions));
+            throw RpcExceptionHelper.NotFound(Constants.ErrorMessages.NoActiveSessions);
         }
 
         return new Empty();
@@ -301,22 +218,22 @@ public class AuthServiceImpl : ProfileAuth.ProfileAuthBase
         var token = await _tokensDAL.GetAsync(request.RefreshToken);
         if (token == null)
         {
-            throw new RpcException(new Status(StatusCode.NotFound, Constants.ErrorMessages.BadRefreshToken));
+            throw RpcExceptionHelper.NotFound(Constants.ErrorMessages.BadRefreshToken);
         }
 
         var player = await _playersDAL.GetAsync(token.PlayerId);
 
         if (player == null)
         {
-            throw new RpcException(new Status(StatusCode.NotFound, Constants.ErrorMessages.PlayerNotFound));
+            throw RpcExceptionHelper.NotFound(Constants.ErrorMessages.PlayerNotFound);
         }
         if (!player.Confirmed)
         {
-            throw new RpcException(new Status(StatusCode.FailedPrecondition, Constants.ErrorMessages.PlayerNotConfirm));
+            throw RpcExceptionHelper.FailedPrecondition(Constants.ErrorMessages.PlayerNotConfirm);
         }
         if (player.Blocked)
         {
-            throw new RpcException(new Status(StatusCode.PermissionDenied, Constants.ErrorMessages.PlayerBlocked));
+            throw RpcExceptionHelper.PermissionDenied(Constants.ErrorMessages.PlayerBlocked);
         }
 
         var (accessToken, refreshToken) = await GenerateTokens(player.Id, (PlayerRole)player.Role, token);
@@ -389,6 +306,22 @@ public class AuthServiceImpl : ProfileAuth.ProfileAuthBase
         {
             rng.GetBytes(randomNumber);
             return Convert.ToBase64String(randomNumber);
+        }
+    }
+
+    private void ValidatePlayerState(PlayersDto? player)
+    {
+        if (player == null)
+        {
+            throw RpcExceptionHelper.NotFound(Constants.ErrorMessages.PlayerNotFound);
+        }
+        if (!player.Confirmed)
+        {
+            throw RpcExceptionHelper.FailedPrecondition(Constants.ErrorMessages.PlayerNotConfirm);
+        }
+        if (player.Blocked)
+        {
+            throw RpcExceptionHelper.PermissionDenied(Constants.ErrorMessages.PlayerBlocked);
         }
     }
 }

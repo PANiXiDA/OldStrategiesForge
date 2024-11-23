@@ -7,7 +7,6 @@ namespace EmailService.BackgroundServices;
 
 internal class EmailProcessingService : BackgroundService
 {
-    private const string _queue = "subscribe_to_notifications";
     private readonly ILogger<EmailProcessingService> _logger;
     private readonly IRabbitMQClient _rabbitMQClient;
     private readonly IServiceProvider _serviceProvider;
@@ -33,7 +32,7 @@ internal class EmailProcessingService : BackgroundService
         {
             _rabbitMQClient.StartReceivingMultiple(new Dictionary<string, (Type, Func<object, IBasicProperties?, IModel?, Task>)>
             {
-                [_queue] = (typeof(string), async (message, _, _) =>
+                [Common.Constants.RabbitMqQueues.SubscribeToNotifications] = (typeof(string), async (message, _, _) =>
                 {
                     var typedMessage = (string)message;
 

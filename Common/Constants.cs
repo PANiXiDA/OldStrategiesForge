@@ -34,4 +34,13 @@ public class Constants
         public const string EmailServiceUnavailable = "Failed to send confirmation email.";
         public const string EmailTimeoutError = "Timeout while waiting for email confirmation.";
     }
+
+    public static class RabbitMqQueues
+    {
+        public const string SubscribeToNotifications = "subscribe_to_notifications";
+
+        public const string ConfirmEmail = "confirm_email";
+        public const string RecoveryPassword = "recovery_password";
+        public const string ChangePassword = "change_password";
+    }
 }

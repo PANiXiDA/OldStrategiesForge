@@ -6,7 +6,11 @@ public static class GrpcServerConfiguration
 {
     public static void ConfigureGrpcServices(this IServiceCollection services)
     {
-        services.AddGrpc();
+        services.AddSingleton<ExceptionInterceptor>();
+        services.AddGrpc(options =>
+        {
+            options.Interceptors.Add<ExceptionInterceptor>();
+        });
         services.AddGrpcReflection();
     }
 

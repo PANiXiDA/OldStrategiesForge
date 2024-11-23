@@ -10,10 +10,6 @@ namespace EmailService.BackgroundServices;
 
 internal class SendEmailProcessingService : BackgroundService
 {
-    private const string _email_confirm_queue = "email_confirm";
-    private const string _recovery_password_queue = "recovery_password";
-    private const string _change_password_queue = "change_password";
-
     private readonly ILogger<SendEmailProcessingService> _logger;
     private readonly IRabbitMQClient _rabbitMQClient;
     private readonly IServiceProvider _serviceProvider;
@@ -39,7 +35,7 @@ internal class SendEmailProcessingService : BackgroundService
         {
             _rabbitMQClient.StartReceivingMultiple(new Dictionary<string, (Type, Func<object, IBasicProperties?, IModel?, Task>)>
             {
-                [_email_confirm_queue] = (typeof((string, int)), async (message, props, channel) =>
+                [Common.Constants.RabbitMqQueues.ConfirmEmail] = (typeof((string, int)), async (message, props, channel) =>
                 {
                     var typedMessage = ((string, int))message;
                     await ProcessMessageAsync(typedMessage, props, channel!, async (msg, provider) =>
@@ -54,7 +50,7 @@ internal class SendEmailProcessingService : BackgroundService
                     });
                 }
                 ),
-                [_recovery_password_queue] = (typeof((string, int)), async (message, props, channel) =>
+                [Common.Constants.RabbitMqQueues.RecoveryPassword] = (typeof((string, int)), async (message, props, channel) =>
                 {
                     var typedMessage = ((string, int))message;
                     await ProcessMessageAsync(typedMessage, props, channel!, async (msg, provider) =>
@@ -69,7 +65,7 @@ internal class SendEmailProcessingService : BackgroundService
                     });
                 }
                 ),
-                [_change_password_queue] = (typeof((string, string)), async(message, props, channel) =>
+                [Common.Constants.RabbitMqQueues.ChangePassword] = (typeof((string, string)), async(message, props, channel) =>
                 {
                     var typedMessage = ((string, string))message;
                     await ProcessMessageAsync(typedMessage, props, channel!, async (msg, provider) =>
@@ -112,25 +108,35 @@ internal class SendEmailProcessingService : BackgroundService
 
                 if (!string.IsNullOrWhiteSpace(props?.ReplyTo))
                 {
-                    var responseProps = channel.CreateBasicProperties();
-                    responseProps.CorrelationId = props.CorrelationId;
-
-                    var responseMessage = JsonConvert.SerializeObject(result.IsSuccess);
-                    var responseBody = Encoding.UTF8.GetBytes(responseMessage);
-
-                    channel.BasicPublish(
-                        exchange: "",
-                        routingKey: props.ReplyTo,
-                        basicProperties: responseProps,
-                        body: responseBody);
-
-                    _logger.LogInformation("Response sent back to ReplyTo queue.");
+                    SendReply(channel, props, result.IsSuccess, result.ErrorMessage);
                 }
             }
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error occurred while processing the message.");
+
+            if (!string.IsNullOrWhiteSpace(props?.ReplyTo))
+            {
+                SendReply(channel, props, false, ex.Message);
+            }
         }
+    }
+
+    private void SendReply(IModel channel, IBasicProperties props, bool isSuccess, string? errorMessage)
+    {
+        var responseProps = channel.CreateBasicProperties();
+        responseProps.CorrelationId = props.CorrelationId;
+
+        var responseMessage = JsonConvert.SerializeObject(new { Success = isSuccess, Error = errorMessage });
+        var responseBody = Encoding.UTF8.GetBytes(responseMessage);
+
+        channel.BasicPublish(
+            exchange: "",
+            routingKey: props.ReplyTo,
+            basicProperties: responseProps,
+            body: responseBody);
+
+        _logger.LogInformation($"Response sent back to ReplyTo queue: {responseMessage}");
     }
 }

@@ -1,0 +1,68 @@
+﻿using APIGateway.Infrastructure.Extensions;
+using Common;
+using Grpc.Core;
+
+namespace APIGateway.Middlewares;
+
+public class ExceptionMiddleware
+{
+    private readonly RequestDelegate _next;
+    private readonly ILogger<ExceptionMiddleware> _logger;
+
+    public ExceptionMiddleware(RequestDelegate next, ILogger<ExceptionMiddleware> logger)
+    {
+        _next = next;
+        _logger = logger;
+    }
+
+    public async Task Invoke(HttpContext context)
+    {
+        try
+        {
+            await _next(context);
+        }
+        catch (RpcException rpcEx)
+        {
+            _logger.LogError(rpcEx, "gRPC вызов завершился с ошибкой.");
+            await HandleGrpcExceptionAsync(context, rpcEx);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Необработанное исключение.");
+            await HandleGeneralExceptionAsync(context, ex);
+        }
+    }
+
+    private Task HandleGrpcExceptionAsync(HttpContext context, RpcException ex)
+    {
+        context.Response.StatusCode = ex.StatusCode switch
+        {
+            Grpc.Core.StatusCode.NotFound => StatusCodes.Status404NotFound,
+            Grpc.Core.StatusCode.PermissionDenied => StatusCodes.Status403Forbidden,
+            Grpc.Core.StatusCode.AlreadyExists => StatusCodes.Status409Conflict,
+            Grpc.Core.StatusCode.FailedPrecondition => StatusCodes.Status412PreconditionFailed,
+            _ => StatusCodes.Status500InternalServerError
+        };
+
+        var failure = Failure.Create(ex.Message, ex.Status.StatusCode.ToString());
+        var response = RestApiResponse<object>.Fail(failure);
+
+        context.Response.ContentType = "application/json";
+
+        return context.Response.WriteAsJsonAsync(response);
+    }
+
+    private Task HandleGeneralExceptionAsync(HttpContext context, Exception ex)
+    {
+        context.Response.StatusCode = StatusCodes.Status500InternalServerError;
+
+        var failure = Failure.Create(Constants.ErrorMessages.Unavailable, StatusCodes.Status500InternalServerError.ToString());
+
+        var response = RestApiResponse<object>.Fail(failure);
+
+        context.Response.ContentType = "application/json";
+
+        return context.Response.WriteAsJsonAsync(response);
+    }
+}
+

@@ -30,30 +30,16 @@ public class PlayersController : ControllerBase
     [ProducesResponseType(typeof(RestApiResponse<GetPlayerResponseDto>), 200)]
     public async Task<ActionResult<RestApiResponse<GetPlayerResponseDto>>> Get()
     {
-        try
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+        if (userIdClaim == null)
         {
-            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
-            if (userIdClaim == null)
-            {
-                return StatusCode(StatusCodes.Status401Unauthorized, RestApiResponseBuilder<GetPlayerResponseDto>.Fail(Constants.ErrorMessages.Unauthorized, Constants.ErrorMessages.ErrorKey));
-            }
-
-            int userId = int.Parse(userIdClaim.Value);
-
-            var grpcResponse = await _playersClient.GetAsync(new GetPlayerRequest() { Id = userId });
-
-            return StatusCode(StatusCodes.Status200OK, RestApiResponseBuilder<GetPlayerResponseDto>.Success(new GetPlayerResponseDto().GetPlayerResponseDtoFromProto(grpcResponse)));
+            return StatusCode(StatusCodes.Status401Unauthorized, RestApiResponseBuilder<GetPlayerResponseDto>.Fail(Constants.ErrorMessages.Unauthorized, Constants.ErrorMessages.ErrorKey));
         }
-        catch (RpcException ex)
-        {
-            if (ex.StatusCode == Grpc.Core.StatusCode.NotFound)
-            {
-                return NotFound(RestApiResponseBuilder<GetPlayerResponseDto>.Fail(ex.Message, Constants.ErrorMessages.ErrorKey));
-            }
 
-            _logger.LogError($"При получении пользователя произошла ошибка: {ex.Message}");
+        int userId = int.Parse(userIdClaim.Value);
 
-            return StatusCode(StatusCodes.Status500InternalServerError, RestApiResponseBuilder<GetPlayerResponseDto>.Fail(ex.Message, Constants.ErrorMessages.ErrorKey));
-        }
+        var grpcResponse = await _playersClient.GetAsync(new GetPlayerRequest() { Id = userId });
+
+        return StatusCode(StatusCodes.Status200OK, RestApiResponseBuilder<GetPlayerResponseDto>.Success(new GetPlayerResponseDto().GetPlayerResponseDtoFromProto(grpcResponse)));
     }
 }
