@@ -1,10 +1,11 @@
 ﻿using EmailService.BL.Dto.Commands;
 using MediatR;
-using Newtonsoft.Json;
 using System.Text;
 using RabbitMQ.Client;
 using Tools.RabbitMQ;
 using static EmailService.BL.Dto.Commands.ProcessEmailSenderCommand;
+using System.Text.Json;
+using Common.Dto.RabbitMq;
 
 namespace EmailService.BackgroundServices;
 
@@ -35,47 +36,47 @@ internal class SendEmailProcessingService : BackgroundService
         {
             _rabbitMQClient.StartReceivingMultiple(new Dictionary<string, (Type, Func<object, IBasicProperties?, IModel?, Task>)>
             {
-                [Common.Constants.RabbitMqQueues.ConfirmEmail] = (typeof((string, int)), async (message, props, channel) =>
+                [Common.Constants.RabbitMqQueues.ConfirmEmail] = (typeof(SendEmailRequest), async (message, props, channel) =>
                 {
-                    var typedMessage = ((string, int))message;
+                    var typedMessage = (SendEmailRequest)message;
                     await ProcessMessageAsync(typedMessage, props, channel!, async (msg, provider) =>
                     {
                         var mediator = provider.GetRequiredService<IMediator>();
                         var result = await mediator.Send(new ProcessEmailSenderCommand(
-                            email: msg.Item1,
+                            email: msg.Email,
                             type: EmailType.Confirmation,
-                            playerId: msg.Item2));
+                            playerId: msg.Id));
 
                         return (result.IsSuccess, null);
                     });
                 }
                 ),
-                [Common.Constants.RabbitMqQueues.RecoveryPassword] = (typeof((string, int)), async (message, props, channel) =>
+                [Common.Constants.RabbitMqQueues.RecoveryPassword] = (typeof(SendEmailRequest), async (message, props, channel) =>
                 {
-                    var typedMessage = ((string, int))message;
+                    var typedMessage = (SendEmailRequest)message;
                     await ProcessMessageAsync(typedMessage, props, channel!, async (msg, provider) =>
                     {
                         var mediator = provider.GetRequiredService<IMediator>();
                         var result = await mediator.Send(new ProcessEmailSenderCommand(
-                            email: msg.Item1,
+                            email: msg.Email,
                             type: EmailType.RecoveryPassword,
-                            playerId: msg.Item2));
+                            playerId: msg.Id));
 
                         return (result.IsSuccess, null);
                     });
                 }
                 ),
-                [Common.Constants.RabbitMqQueues.ChangePassword] = (typeof((string, string)), async(message, props, channel) =>
+                [Common.Constants.RabbitMqQueues.ChangePassword] = (typeof(SendEmailRequest), async(message, props, channel) =>
                 {
-                    var typedMessage = ((string, string))message;
+                    var typedMessage = (SendEmailRequest)message;
                     await ProcessMessageAsync(typedMessage, props, channel!, async (msg, provider) =>
                     {
                         var mediator = provider.GetRequiredService<IMediator>();
                         var result = await mediator.Send(new ProcessEmailSenderCommand(
-                            email: msg.Item1,
+                            email: msg.Email,
                             type: EmailType.ChangedPassword,
                             playerId: null,
-                            newPassword: msg.Item2));
+                            newPassword: msg.Password));
 
                         return (result.IsSuccess, null);
                     });
@@ -128,7 +129,7 @@ internal class SendEmailProcessingService : BackgroundService
         var responseProps = channel.CreateBasicProperties();
         responseProps.CorrelationId = props.CorrelationId;
 
-        var responseMessage = JsonConvert.SerializeObject(new { Success = isSuccess, Error = errorMessage });
+        var responseMessage = JsonSerializer.Serialize(new { Success = isSuccess, Error = errorMessage });
         var responseBody = Encoding.UTF8.GetBytes(responseMessage);
 
         channel.BasicPublish(

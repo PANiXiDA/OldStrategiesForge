@@ -16,7 +16,7 @@ using System.Security.Cryptography;
 using Tools.RabbitMQ;
 using ProfileService.Extensions.Helpers;
 using Tools.Redis;
-using ProfileService.Dto.RabbitMq;
+using Common.Dto.RabbitMq;
 
 namespace ProfileService.Services;
 
@@ -113,9 +113,11 @@ public class AuthServiceImpl : ProfileAuth.ProfileAuthBase
             throw RpcExceptionHelper.AlreadyExists(Constants.ErrorMessages.PlayerAlreadyConfirmed);
         }
 
-        var result = await RabbitMqHelper.CallSafely<(string, int), SendEmailResponse>(
+        var rabbitRequest = new SendEmailRequest() { Email = request.Email, Id = player.Id };
+
+        var result = await RabbitMqHelper.CallSafely<SendEmailRequest, SendEmailResponse>(
             _rabbitMQClient,
-            (request.Email, player.Id),
+            rabbitRequest,
             Constants.RabbitMqQueues.ConfirmEmail,
             TimeSpan.FromSeconds(_timeoutSec),
             _logger,
@@ -157,9 +159,11 @@ public class AuthServiceImpl : ProfileAuth.ProfileAuthBase
         var player = await _playersDAL.GetAsync(request.Email);
         ValidatePlayerState(player);
 
-        var result = await RabbitMqHelper.CallSafely<(string, int), SendEmailResponse>(
+        var rabbitRequest = new SendEmailRequest() { Email = request.Email, Id = player?.Id };
+
+        var result = await RabbitMqHelper.CallSafely<SendEmailRequest, SendEmailResponse>(
             _rabbitMQClient,
-            (request.Email, player!.Id),
+            rabbitRequest,
             Constants.RabbitMqQueues.RecoveryPassword,
             TimeSpan.FromSeconds(_timeoutSec),
             _logger,
@@ -186,9 +190,11 @@ public class AuthServiceImpl : ProfileAuth.ProfileAuthBase
 
         await _playersDAL.AddOrUpdateAsync(player);
 
-        var result = await RabbitMqHelper.CallSafely<(string, string), SendEmailResponse>(
+        var rabbitRequest = new SendEmailRequest() { Email = player.Email, Password = newPassword };
+
+        var result = await RabbitMqHelper.CallSafely<SendEmailRequest, SendEmailResponse>(
             _rabbitMQClient,
-            (player.Email, newPassword),
+            rabbitRequest,
             Constants.RabbitMqQueues.ChangePassword,
             TimeSpan.FromSeconds(_timeoutSec),
             _logger,

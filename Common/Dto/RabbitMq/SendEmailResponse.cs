@@ -1,4 +1,4 @@
-﻿namespace ProfileService.Dto.RabbitMq;
+﻿namespace Common.Dto.RabbitMq;
 
 public class SendEmailResponse
 {

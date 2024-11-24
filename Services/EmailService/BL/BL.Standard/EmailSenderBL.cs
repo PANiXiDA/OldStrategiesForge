@@ -5,24 +5,32 @@ using MailKit.Net.Smtp;
 using System.Web;
 using Tools.Encryption;
 using EmailService.BL.BL.Interfaces;
-using System.Reflection;
+using Tools.Redis;
+using System.Text;
 
 internal class EmailSenderBL : IEmailSenderBL
 {
     private readonly ILogger<EmailSenderBL> _logger;
     private readonly SmtpConfiguration _smtpConfiguration;
     private readonly AesEncryption _encryption;
+    private readonly IRedisCache _redisCache;
+
     private readonly string? _domen;
+
+    private const int expiredAt = 15;
 
     public EmailSenderBL(
         ILogger<EmailSenderBL> logger,
         IOptions<SmtpConfiguration> smtpConfiguration,
         AesEncryption encryption,
-        IConfiguration configuration)
+        IConfiguration configuration,
+        IRedisCache redisCache)
     {
         _logger = logger;
         _smtpConfiguration = smtpConfiguration.Value;
         _encryption = encryption;
+        _redisCache = redisCache;
+
         _domen = configuration["Domen"];
     }
 
@@ -69,8 +77,10 @@ internal class EmailSenderBL : IEmailSenderBL
 
     public async Task<bool> SendConfirmationEmailAsync(string toEmail, int playerId)
     {
-        var token = HttpUtility.UrlEncode(_encryption.Encrypt(playerId));
+        var token = Convert.ToBase64String(Encoding.UTF8.GetBytes(_encryption.Encrypt(playerId)));
         var url = $"{_domen}/api/v1/auth/confirm?token={token}";
+
+        await _redisCache.SetAsync($"confirmation:{token}", true, TimeSpan.FromMinutes(expiredAt));
 
         string subject = "Confirmation";
         string content = $"To confirm your account, follow the link provided: <a href=\"{url}\" target=\"_blank\">Confirm</a>";
@@ -83,8 +93,11 @@ internal class EmailSenderBL : IEmailSenderBL
 
     public async Task<bool> SendRecoveryPasswordAsync(string toEmail, int playerId)
     {
-        var token = HttpUtility.UrlEncode(_encryption.Encrypt(playerId));
+        var token = Convert.ToBase64String(Encoding.UTF8.GetBytes(_encryption.Encrypt(playerId)));
+
         var url = $"{_domen}/api/v1/auth/recovery?token={token}";
+
+        await _redisCache.SetAsync($"recovery:{token}", true, TimeSpan.FromMinutes(expiredAt));
 
         string subject = "Recovery Password";
         string content = $"If you did not request password recovery, please ignore this message.<br>To restore your password, follow the link: <a href=\"{url}\" target=\"_blank\">Recovery Password</a>";

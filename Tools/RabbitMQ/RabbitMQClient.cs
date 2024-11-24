@@ -2,7 +2,7 @@
 using RabbitMQ.Client.Events;
 using System.Text;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
+using System.Text.Json;
 
 namespace Tools.RabbitMQ;
 
@@ -37,7 +37,7 @@ internal class RabbitMQClient : IRabbitMQClient, IDisposable
                                  autoDelete: false,
                                  arguments: null);
 
-            var jsonMessage = JsonConvert.SerializeObject(messageObject);
+            var jsonMessage = JsonSerializer.Serialize(messageObject);
             var body = Encoding.UTF8.GetBytes(jsonMessage);
 
             _channel.BasicPublish(exchange: "",
@@ -75,7 +75,7 @@ internal class RabbitMQClient : IRabbitMQClient, IDisposable
 
                 try
                 {
-                    var messageObject = JsonConvert.DeserializeObject(message, messageType);
+                    var messageObject = JsonSerializer.Deserialize(message, messageType);
                     if (messageObject != null)
                     {
                         await handler(messageObject, ea.BasicProperties, _channel);
@@ -111,7 +111,7 @@ internal class RabbitMQClient : IRabbitMQClient, IDisposable
         props.ReplyTo = replyQueue;
         props.CorrelationId = correlationId;
 
-        var message = JsonConvert.SerializeObject(request);
+        var message = JsonSerializer.Serialize(request);
         var body = Encoding.UTF8.GetBytes(message);
 
         var tcs = new TaskCompletionSource<TResponse?>();
@@ -124,7 +124,7 @@ internal class RabbitMQClient : IRabbitMQClient, IDisposable
                 try
                 {
                     var responseJson = Encoding.UTF8.GetString(ea.Body.ToArray());
-                    var response = JsonConvert.DeserializeObject<TResponse>(responseJson);
+                    var response = JsonSerializer.Deserialize<TResponse>(responseJson);
 
                     if (response == null)
                     {

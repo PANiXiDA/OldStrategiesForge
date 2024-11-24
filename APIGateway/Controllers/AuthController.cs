@@ -11,6 +11,9 @@ using APIGateway.Infrastructure.Responses.Players;
 using System.Security.Claims;
 using Tools.Redis;
 using FluentValidation;
+using APIGateway.Extensions.Cooldowns;
+using Microsoft.AspNetCore.DataProtection.KeyManagement;
+using System.Text;
 
 namespace APIGateway.Controllers;
 
@@ -76,6 +79,11 @@ public class AuthController : ControllerBase
     [ProducesResponseType(typeof(RestApiResponse<NoContent>), 200)]
     public async Task<ActionResult<RestApiResponse<NoContent>>> ConfirmEmail([FromBody] ConfirmEmailRequestDto request)
     {
+        if (!await Cooldowns.CanSendConfirmAccountAsync(request.Email, _redisCache))
+        {
+            return StatusCode(StatusCodes.Status429TooManyRequests, RestApiResponseBuilder<NoContent>.Fail(Constants.ErrorMessages.TooManyRequests, Constants.ErrorMessages.ErrorKey));
+        }
+
         var grpcResponse = await _authClient.ConfirmEmailAsync(request.ConfirmEmailRequestDtoToProto());
 
         return StatusCode(StatusCodes.Status200OK, RestApiResponseBuilder<NoContent>.Success(new NoContent()));
@@ -85,7 +93,14 @@ public class AuthController : ControllerBase
     [Route("confirm")]
     public async Task<IActionResult> СonfirmAccount([FromQuery] string token)
     {
-        var playerId = _encryption.Decrypt<int>(token);
+        var (found, value) = await _redisCache.TryGetAsync<bool>($"confirm:{token}");
+        if (!found || value == false)
+        {
+            return Redirect($"{_domen}/Profile/Confirm?nickname=&isExpired=true");
+        }
+        await _redisCache.SetAsync($"confirm:{token}", false);
+
+        var playerId = _encryption.Decrypt<int>(Encoding.UTF8.GetString(Convert.FromBase64String(token)));
 
         var grpcResponse = await _authClient.ConfirmAccountAsync(new ConfirmAccountRequest() { PlayerId = playerId });
         var nickname = grpcResponse.Nickname;
@@ -98,6 +113,11 @@ public class AuthController : ControllerBase
     [ProducesResponseType(typeof(RestApiResponse<NoContent>), 200)]
     public async Task<ActionResult<RestApiResponse<NoContent>>> RecoveryPassword([FromBody] RecoveryPasswordRequestDto request)
     {
+        if (!await Cooldowns.CanSendRecoveryEmailAsync(request.Email, _redisCache))
+        {
+            return StatusCode(StatusCodes.Status429TooManyRequests, RestApiResponseBuilder<NoContent>.Fail(Constants.ErrorMessages.TooManyRequests, Constants.ErrorMessages.ErrorKey));
+        }
+
         var grpcResponse = await _authClient.RecoveryPasswordAsync(request.RecoveryPasswordRequestDtoToProto());
 
         return StatusCode(StatusCodes.Status200OK, RestApiResponseBuilder<NoContent>.Success(new NoContent()));
@@ -107,12 +127,18 @@ public class AuthController : ControllerBase
     [Route("recovery")]
     public async Task<IActionResult> RecoveryPassword([FromQuery] string token)
     {
-        var playerId = _encryption.Decrypt<int>(token);
+        var (found, value) = await _redisCache.TryGetAsync<bool>($"recovery:{token}");
+        if (!found || value == false)
+        {
+            return Redirect($"{_domen}/Profile/Recovery?isExpired=true");
+        }
+        await _redisCache.SetAsync($"recovery:{token}", false);
+
+        var playerId = _encryption.Decrypt<int>(Encoding.UTF8.GetString(Convert.FromBase64String(token)));
         var grpcResponse = await _authClient.ChangePasswordAsync(new ChangePasswordRequest() { PlayerId = playerId });
 
         return Redirect($"{_domen}/Profile/Recovery");
     }
-
 
     [HttpPost]
     [Authorize]

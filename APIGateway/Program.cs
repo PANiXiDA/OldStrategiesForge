@@ -9,6 +9,8 @@ using APIGateway.Middlewares;
 using Tools.Redis;
 using FluentValidation;
 using APIGateway.Infrastructure.Requests.Auth;
+using System.Net;
+using System.Threading.RateLimiting;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -25,6 +27,25 @@ builder.WebHost.ConfigureKestrel(options =>
     {
         listenOptions.Protocols = Microsoft.AspNetCore.Server.Kestrel.Core.HttpProtocols.Http2;
     });
+});
+
+builder.Services.AddRateLimiter(options =>
+{
+    options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, IPAddress>(
+        context =>
+        {
+            var ipAddress = context.Connection.RemoteIpAddress
+                            ?? throw new InvalidOperationException("Remote IP address is null.");
+            return RateLimitPartition.GetFixedWindowLimiter(
+                partitionKey: ipAddress,
+                factory: _ => new FixedWindowRateLimiterOptions
+                {
+                    PermitLimit = 10,
+                    Window = TimeSpan.FromSeconds(1),
+                    QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+                    QueueLimit = 2
+                });
+        });
 });
 
 builder.Services.Configure<AesEncryptionConfiguration>(builder.Configuration.GetSection("AesEncryptionSettings"));

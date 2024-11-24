@@ -1,4 +1,6 @@
-﻿@{
+﻿@model RecoveryViewModel
+
+@{
     Layout = null;
 }
 
@@ -9,6 +11,15 @@
     <meta charset="utf-8" />
 </head>
 <body>
-    <h1>New password was sent to your email.</h1>
+    @if (Model.IsExpired)
+    {
+        <h1>Sorry, your recovery link has expired.</h1>
+        <p>Please request a new password recovery link.</p>
+    }
+    else
+    {
+        <h1>New password was sent to your email.</h1>
+        <p>Check your inbox for further instructions.</p>
+    }
 </body>
 </html>

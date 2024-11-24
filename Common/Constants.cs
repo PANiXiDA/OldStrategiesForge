@@ -4,7 +4,9 @@ public class Constants
     public static class ErrorMessages
     {
         public const string ErrorKey = "errorMessage.";
-        public const string Unavailable = "The service is unavailable";
+        public const string Unavailable = "The service is unavailable.";
+
+        public const string TooManyRequests = "Too many requests. Wait 15 min.";
 
         public const string NotFound = "Not found.";
         public const string NotValidModel = "Invalid model.";

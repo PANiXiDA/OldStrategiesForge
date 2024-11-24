@@ -1,4 +1,6 @@
-﻿@{
+﻿@model ConfirmViewModel
+
+@{
     Layout = null;
 }
 
@@ -9,6 +11,13 @@
     <meta charset="utf-8" />
 </head>
 <body>
-    <h1>@Model your account has been successfully verified.</h1>
+    @if (Model.IsExpired)
+    {
+        <h1>Sorry, your confirmation link has expired.</h1>
+    }
+    else
+    {
+        <h1>Congratulations, @Model.Nickname! Your account has been successfully verified.</h1>
+    }
 </body>
 </html>

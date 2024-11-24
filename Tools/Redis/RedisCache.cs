@@ -34,6 +34,17 @@ public class RedisCache : IRedisCache
         return JsonSerializer.Deserialize<T>(value.ToString()!)!;
     }
 
+    public async Task<(bool Found, T? Value)> TryGetAsync<T>(string key)
+    {
+        var value = await _database.StringGetAsync(key);
+        if (value.IsNullOrEmpty || value == RedisValue.Null)
+        {
+            return (false, default);
+        }
+
+        return (true, JsonSerializer.Deserialize<T>(value.ToString()!)!);
+    }
+
     public async Task RemoveAsync(string key)
     {
         await _database.KeyDeleteAsync(key);
