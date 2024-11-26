@@ -17,6 +17,7 @@ using Tools.RabbitMQ;
 using ProfileService.Extensions.Helpers;
 using Tools.Redis;
 using Common.Dto.RabbitMq;
+using ProfileService.DAL.DbModels.Models;
 
 namespace ProfileService.Services;
 
@@ -66,9 +67,11 @@ public class AuthServiceImpl : ProfileAuth.ProfileAuthBase
         await _redisCache.SetAsync($"email:{request.Email}", true, TimeSpan.FromDays(_redisLifeTimeDays));
         await _redisCache.SetAsync($"nickname:{request.Nickname}", true, TimeSpan.FromDays(_redisLifeTimeDays));
 
-        var result = await RabbitMqHelper.CallSafely<(string, int), SendEmailResponse>(
+        var rabbitRequest = new SendEmailRequest() { Email = request.Email, Id = playerId };
+
+        var result = await RabbitMqHelper.CallSafely<SendEmailRequest, SendEmailResponse>(
             _rabbitMQClient,
-            (request.Email, playerId),
+            rabbitRequest,
             Constants.RabbitMqQueues.ConfirmEmail,
             TimeSpan.FromSeconds(_timeoutSec),
             _logger,
