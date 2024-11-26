@@ -18,6 +18,7 @@ public static class GrpcServerConfiguration
     {
         app.MapGrpcService<PlayersServiceImpl>();
         app.MapGrpcService<AuthServiceImpl>();
+        app.MapGrpcService<AvatarServiceImpl>();
 
         if (app.Environment.IsDevelopment())
         {

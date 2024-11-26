@@ -2,7 +2,6 @@
 using Profile.Players.Gen;
 using Asp.Versioning;
 using APIGateway.Infrastructure.Extensions;
-using Grpc.Core;
 using Microsoft.AspNetCore.Authorization;
 using Common;
 using System.Security.Claims;
@@ -40,6 +39,6 @@ public class PlayersController : ControllerBase
 
         var grpcResponse = await _playersClient.GetAsync(new GetPlayerRequest() { Id = userId });
 
-        return StatusCode(StatusCodes.Status200OK, RestApiResponseBuilder<GetPlayerResponseDto>.Success(new GetPlayerResponseDto().GetPlayerResponseDtoFromProto(grpcResponse)));
+        return StatusCode(StatusCodes.Status200OK, RestApiResponseBuilder<GetPlayerResponseDto>.Success(GetPlayerResponseDto.GetPlayerResponseDtoFromProto(grpcResponse)));
     }
 }

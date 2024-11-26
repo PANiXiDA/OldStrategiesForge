@@ -23,8 +23,10 @@ public static class DependencyInjection
 
             services.AddDbContext<DefaultDbContext>(options => options.UseNpgsql(connectionString));
         }
+
         services.AddScoped<IPlayersDAL, PlayersDAL>();
         services.AddScoped<ITokensDAL, TokensDAL>();
+        services.AddScoped<IAvatarsDAL, AvatarsDAL>();
 
         return services;
     }

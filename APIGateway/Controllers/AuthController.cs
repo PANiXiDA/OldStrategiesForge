@@ -12,7 +12,6 @@ using System.Security.Claims;
 using Tools.Redis;
 using FluentValidation;
 using APIGateway.Extensions.Cooldowns;
-using Microsoft.AspNetCore.DataProtection.KeyManagement;
 using System.Text;
 
 namespace APIGateway.Controllers;
@@ -71,7 +70,7 @@ public class AuthController : ControllerBase
     {
         var grpcResponse = await _authClient.LoginAsync(request.LoginPlayerRequestDtoToProto());
 
-        return StatusCode(StatusCodes.Status200OK, RestApiResponseBuilder<LoginPlayerResponseDto>.Success(new LoginPlayerResponseDto().LoginPlayerResponseDtoFromProto(grpcResponse)));
+        return StatusCode(StatusCodes.Status200OK, RestApiResponseBuilder<LoginPlayerResponseDto>.Success(LoginPlayerResponseDto.LoginPlayerResponseDtoFromProto(grpcResponse)));
     }
 
     [HttpPost]
@@ -179,6 +178,6 @@ public class AuthController : ControllerBase
     {
         var grpcResponse = await _authClient.RefreshAsync(request.RefreshTokenRequestDtoToProto());
 
-        return StatusCode(StatusCodes.Status200OK, RestApiResponseBuilder<RefreshTokenResponseDto>.Success(new RefreshTokenResponseDto().RefreshTokenResponseDtoFromProto(grpcResponse)));
+        return StatusCode(StatusCodes.Status200OK, RestApiResponseBuilder<RefreshTokenResponseDto>.Success(RefreshTokenResponseDto.RefreshTokenResponseDtoFromProto(grpcResponse)));
     }
 }

@@ -31,7 +31,7 @@ public class PlayersDto
     public int Level { get; set; }
     public int Experience { get; set; }
 
-    public PlayersDto PlayersDtoFromProtoAuth(RegistrationPlayerRequest registrationPlayer)
+    public static PlayersDto PlayersDtoFromProtoAuth(RegistrationPlayerRequest registrationPlayer)
     {
         return new PlayersDto()
         {

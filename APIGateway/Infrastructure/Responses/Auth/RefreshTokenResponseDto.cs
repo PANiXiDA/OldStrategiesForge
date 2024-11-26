@@ -7,7 +7,7 @@ public class RefreshTokenResponseDto
     public string AccessToken { get; set; } = string.Empty;
     public string RefreshToken { get; set; } = string.Empty;
 
-    public RefreshTokenResponseDto RefreshTokenResponseDtoFromProto(RefreshTokenResponse loginPlayerResponse)
+    public static RefreshTokenResponseDto RefreshTokenResponseDtoFromProto(RefreshTokenResponse loginPlayerResponse)
     {
         return new RefreshTokenResponseDto()
         {

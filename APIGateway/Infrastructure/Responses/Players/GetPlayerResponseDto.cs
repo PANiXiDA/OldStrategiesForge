@@ -22,7 +22,7 @@ public class GetPlayerResponseDto
     public int Level { get; set; }
     public int Experience { get; set; }
 
-    public GetPlayerResponseDto GetPlayerResponseDtoFromProto(GetPlayerResponse getPlayerResponse)
+    public static GetPlayerResponseDto GetPlayerResponseDtoFromProto(GetPlayerResponse getPlayerResponse)
     {
         return new GetPlayerResponseDto()
         {

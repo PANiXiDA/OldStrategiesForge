@@ -7,7 +7,7 @@ public class LoginPlayerResponseDto
     public string AccessToken { get; set; } = string.Empty;
     public string RefreshToken { get; set; } = string.Empty;
 
-    public LoginPlayerResponseDto LoginPlayerResponseDtoFromProto(LoginPlayerResponse loginPlayerResponse)
+    public static LoginPlayerResponseDto LoginPlayerResponseDtoFromProto(LoginPlayerResponse loginPlayerResponse)
     {
         return new LoginPlayerResponseDto()
         {

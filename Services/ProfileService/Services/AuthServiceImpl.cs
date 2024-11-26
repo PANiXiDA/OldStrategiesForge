@@ -17,7 +17,6 @@ using Tools.RabbitMQ;
 using ProfileService.Extensions.Helpers;
 using Tools.Redis;
 using Common.Dto.RabbitMq;
-using ProfileService.DAL.DbModels.Models;
 
 namespace ProfileService.Services;
 
@@ -63,7 +62,7 @@ public class AuthServiceImpl : ProfileAuth.ProfileAuthBase
             throw RpcExceptionHelper.AlreadyExists(Constants.ErrorMessages.ExistsNicknane);
         }
 
-        var playerId = await _playersDAL.AddOrUpdateAsync(new PlayersDto().PlayersDtoFromProtoAuth(request));
+        var playerId = await _playersDAL.AddOrUpdateAsync(PlayersDto.PlayersDtoFromProtoAuth(request));
         await _redisCache.SetAsync($"email:{request.Email}", true, TimeSpan.FromDays(_redisLifeTimeDays));
         await _redisCache.SetAsync($"nickname:{request.Nickname}", true, TimeSpan.FromDays(_redisLifeTimeDays));
 

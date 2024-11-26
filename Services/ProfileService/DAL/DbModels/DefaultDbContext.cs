@@ -11,6 +11,7 @@ public partial class DefaultDbContext : DbContext
 
     public virtual DbSet<Player> Players { get; set; }
     public virtual DbSet<Token> Tokens { get; set; }
+    public virtual DbSet<Avatar> Avatars { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
