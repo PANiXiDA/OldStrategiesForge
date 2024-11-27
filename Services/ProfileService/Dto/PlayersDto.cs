@@ -30,6 +30,7 @@ public class PlayersDto
     public int Gold { get; set; }
     public int Level { get; set; }
     public int Experience { get; set; }
+    public AvatarsDto? Avatar { get; set; }
 
     public static PlayersDto PlayersDtoFromProtoAuth(RegistrationPlayerRequest registrationPlayer)
     {
@@ -80,7 +81,13 @@ public class PlayersDto
             Premium = Premium,
             Gold = Gold,
             Level = Level,
-            Experience = Experience
+            Experience = Experience,
+            Avatar = new Avatar
+            {
+                S3Path = Avatar?.S3Path,
+                Name = Avatar?.Name,
+                Description = Avatar?.Description
+            } 
         };
     }
 }

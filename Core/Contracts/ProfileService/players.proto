@@ -5,29 +5,36 @@ import "google/protobuf/timestamp.proto";
 option csharp_namespace = "Profile.Players.Gen";
 
 service ProfilePlayers {
-  rpc Get (GetPlayerRequest) returns (GetPlayerResponse);
+	rpc Get (GetPlayerRequest) returns (GetPlayerResponse);
 }
 
 message GetPlayerRequest {
-  int32 id = 1;
+	int32 id = 1;
 }
 
 message GetPlayerResponse {
-  int32 id = 1;
-  string email = 2;
-  string password = 3;
-  string nickname = 4;
-  int32 role = 5;
-  google.protobuf.Timestamp last_login = 6;
-  int32 avatar_id = 7;
-  int32 frame_id = 8;
-  int32 games = 9;
-  int32 wins = 10;
-  int32 loses = 11;
-  int32 mmr = 12;
-  int32 rank = 13;
-  bool premium = 14;
-  int32 gold = 15;
-  int32 level = 16;
-  int32 experience = 17;
+	int32 id = 1;
+	string email = 2;
+	string password = 3;
+	string nickname = 4;
+	int32 role = 5;
+	google.protobuf.Timestamp last_login = 6;
+	int32 avatar_id = 7;
+	int32 frame_id = 8;
+	int32 games = 9;
+	int32 wins = 10;
+	int32 loses = 11;
+	int32 mmr = 12;
+	int32 rank = 13;
+	bool premium = 14;
+	int32 gold = 15;
+	int32 level = 16;
+	int32 experience = 17;
+	Avatar avatar = 18;
+}
+
+message Avatar {
+	string s3_path = 1;
+	string name = 2;
+	string description = 3;
 }

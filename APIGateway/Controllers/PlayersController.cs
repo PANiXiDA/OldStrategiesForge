@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Authorization;
 using Common;
 using System.Security.Claims;
 using APIGateway.Infrastructure.Responses.Players;
+using Profile.Avatar.Gen;
 
 namespace APIGateway.Controllers;
 
@@ -17,11 +18,16 @@ public class PlayersController : ControllerBase
 {
     private readonly ILogger<PlayersController> _logger;
     private readonly ProfilePlayers.ProfilePlayersClient _playersClient;
+    private readonly ProfileAvatars.ProfileAvatarsClient _avatarsClient;
 
-    public PlayersController(ILogger<PlayersController> logger, ProfilePlayers.ProfilePlayersClient playersClient)
+    public PlayersController(
+        ILogger<PlayersController> logger,
+        ProfilePlayers.ProfilePlayersClient playersClient,
+        ProfileAvatars.ProfileAvatarsClient avatarsClient)
     {
         _logger = logger;
         _playersClient = playersClient;
+        _avatarsClient = avatarsClient;
     }
 
     [HttpGet]
@@ -37,8 +43,10 @@ public class PlayersController : ControllerBase
 
         int userId = int.Parse(userIdClaim.Value);
 
-        var grpcResponse = await _playersClient.GetAsync(new GetPlayerRequest() { Id = userId });
+        var getPlayerResponse = await _playersClient.GetAsync(new GetPlayerRequest() { Id = userId });
+        var presignedUrlResponse = await _avatarsClient.GetPresignedUrlAsync(new GetPresignedUrlRequest() { S3Path = getPlayerResponse.Avatar.S3Path });
+        getPlayerResponse.Avatar.S3Path = presignedUrlResponse.FileUrl;
 
-        return StatusCode(StatusCodes.Status200OK, RestApiResponseBuilder<GetPlayerResponseDto>.Success(GetPlayerResponseDto.GetPlayerResponseDtoFromProto(grpcResponse)));
+        return StatusCode(StatusCodes.Status200OK, RestApiResponseBuilder<GetPlayerResponseDto>.Success(GetPlayerResponseDto.GetPlayerResponseDtoFromProto(getPlayerResponse)));
     }
 }

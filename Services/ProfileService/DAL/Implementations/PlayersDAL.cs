@@ -69,6 +69,11 @@ internal class PlayersDAL : BaseDAL<DefaultDbContext, Player,
     protected override async Task<IList<PlayersDto>> BuildEntitiesListAsync(DefaultDbContext context,
         IQueryable<Player> dbObjects, PlayersConvertParams? convertParams, bool isFull)
     {
+        if (convertParams != null && convertParams.IsIncludeChildCategories)
+        {
+            dbObjects = dbObjects.Include(item => item.Avatar);
+        }
+
         return (await dbObjects.ToListAsync()).Select(ConvertDbObjectToEntity).ToList();
     }
 
@@ -109,7 +114,8 @@ internal class PlayersDAL : BaseDAL<DefaultDbContext, Player,
             Premium = dbObject.Premium,
             Gold = dbObject.Gold,
             Level = dbObject.Level,
-            Experience = dbObject.Experience
+            Experience = dbObject.Experience,
+            Avatar = dbObject.Avatar != null ? AvatarsDAL.ConvertDbObjectToEntity(dbObject.Avatar) : null
         };
     }
 

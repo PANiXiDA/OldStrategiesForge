@@ -2,6 +2,7 @@
 using Grpc.Core;
 using Profile.Players.Gen;
 using ProfileService.DAL.Interfaces;
+using Common.ConvertParams.ProfileService;
 
 namespace ProfileService.Services;
 
@@ -18,7 +19,12 @@ public class PlayersServiceImpl : ProfilePlayers.ProfilePlayersBase
 
     public override async Task<GetPlayerResponse> Get(GetPlayerRequest request, ServerCallContext context)
     {
-        var player = await _playersDAL.GetAsync(request.Id);
+        var player = await _playersDAL.GetAsync(
+            request.Id,
+            new PlayersConvertParams()
+            {
+                IsIncludeChildCategories = true
+            });
 
         if (player == null)
         {

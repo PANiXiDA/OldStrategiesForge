@@ -3,6 +3,7 @@ using Grpc.Core;
 using Profile.Avatar.Gen;
 using ProfileService.DAL.Interfaces;
 using ProfileService.Dto;
+using Tools.AWS3.Interfaces;
 
 namespace ProfileService.Services;
 
@@ -10,13 +11,16 @@ public class AvatarServiceImpl : ProfileAvatars.ProfileAvatarsBase
 {
     private readonly ILogger<AuthServiceImpl> _logger;
     private readonly IAvatarsDAL _avatarsDAL;
+    private readonly IS3Client _client;
 
     public AvatarServiceImpl(
         ILogger<AuthServiceImpl> logger,
-        IAvatarsDAL avatarsDAL)
+        IAvatarsDAL avatarsDAL,
+        IS3Client client)
     {
         _logger = logger;
         _avatarsDAL = avatarsDAL;
+        _client = client;
     }
 
     public override async Task<Empty> Create(CreateAvatarRequest request, ServerCallContext context)
@@ -61,5 +65,12 @@ public class AvatarServiceImpl : ProfileAvatars.ProfileAvatarsBase
         await _avatarsDAL.DeleteAsync(request.Id);
 
         return new Empty();
+    }
+
+    public override async Task<GetPresignedUrlResponse> GetPresignedUrl(GetPresignedUrlRequest request, ServerCallContext context)
+    {
+        var url = await _client.GeneratePresignedUrl(request.S3Path, TimeSpan.FromHours(1));
+
+        return new GetPresignedUrlResponse() { FileUrl = url };
     }
 }
