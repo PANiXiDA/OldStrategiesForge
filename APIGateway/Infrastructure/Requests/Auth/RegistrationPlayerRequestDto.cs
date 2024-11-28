@@ -9,17 +9,17 @@ namespace APIGateway.Infrastructure.Requests.Auth;
 
 public class RegistrationPlayerRequestDto
 {
-    [Required]
+    [Required(ErrorMessage = "Nickname is required.")]
     public string Nickname { get; set; } = string.Empty;
 
-    [Required]
-    [EmailAddress]
+    [Required(ErrorMessage = "Email is required.")]
+    [EmailAddress(ErrorMessage = "Invalid email format.")]
     public string Email { get; set; } = string.Empty;
 
-    [Required]
+    [Required(ErrorMessage = "Password is required.")]
     public string Password { get; set; } = string.Empty;
 
-    [Required]
+    [Required(ErrorMessage = "Repeat password is required.")]
     public string RepeatPassword { get; set; } = string.Empty;
 
     public RegistrationPlayerRequest RegistrationPlayerRequestDtoToProto()

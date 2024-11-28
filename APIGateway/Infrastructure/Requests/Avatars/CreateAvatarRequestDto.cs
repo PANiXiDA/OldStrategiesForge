@@ -5,25 +5,25 @@ namespace APIGateway.Infrastructure.Requests.Avatars;
 
 public class CreateAvatarRequestDto
 {
-    [Required]
+    [Required(ErrorMessage = "S3Path is required.")]
     public string S3Path { get; set; } = string.Empty;
 
-    [Required]
+    [Required(ErrorMessage = "Name is required.")]
     public string Name { get; set; } = string.Empty;
 
-    [Required]
+    [Required(ErrorMessage = "Description is required.")]
     public string Description { get; set; } = string.Empty;
 
-    [Required]
+    [Required(ErrorMessage = "NecessaryMmr is required.")]
     public int NecessaryMmr { get; set; }
 
-    [Required]
+    [Required(ErrorMessage = "NecessaryGames is required.")]
     public int NecessaryGames { get; set; }
 
-    [Required]
+    [Required(ErrorMessage = "NecessaryWins is required.")]
     public int NecessaryWins { get; set; }
 
-    [Required]
+    [Required(ErrorMessage = "Available is required.")]
     public bool Available { get; set; }
 
     public CreateAvatarRequest CreateAvatarRequestDtoToProto()

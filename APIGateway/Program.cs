@@ -11,6 +11,7 @@ using FluentValidation;
 using APIGateway.Infrastructure.Requests.Auth;
 using System.Net;
 using System.Threading.RateLimiting;
+using APIGateway.Filters;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -87,7 +88,10 @@ if (jwtSettings != null)
 }
 builder.Services.AddAuthorization();
 
-builder.Services.AddControllers();
+builder.Services.AddControllers(options =>
+{
+    options.Filters.Add<ValidationFilter>();
+});
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 

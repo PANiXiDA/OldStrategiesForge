@@ -5,8 +5,8 @@ namespace APIGateway.Infrastructure.Requests.Auth;
 
 public class ConfirmEmailRequestDto
 {
-    [Required]
-    [EmailAddress]
+    [Required(ErrorMessage = "Email is required.")]
+    [EmailAddress(ErrorMessage = "Invalid email format.")]
     public string Email { get; set; } = string.Empty;
 
     public ConfirmEmailRequest ConfirmEmailRequestDtoToProto()

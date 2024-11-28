@@ -5,7 +5,7 @@ namespace APIGateway.Infrastructure.Requests.Auth;
 
 public class LogoutRequestDto
 {
-    [Required]
+    [Required(ErrorMessage = "Refresh token is required.")]
     public string RefreshToken { get; set; } = string.Empty;
 
     public LogoutRequest LogoutRequestDtoToProto()
