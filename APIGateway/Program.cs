@@ -12,6 +12,7 @@ using APIGateway.Infrastructure.Requests.Auth;
 using System.Net;
 using System.Threading.RateLimiting;
 using APIGateway.Filters;
+using Microsoft.AspNetCore.Mvc;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -87,6 +88,12 @@ if (jwtSettings != null)
     });
 }
 builder.Services.AddAuthorization();
+
+builder.Services.Configure<ApiBehaviorOptions>(options =>
+{
+    options.SuppressModelStateInvalidFilter = true;
+});
+
 
 builder.Services.AddControllers(options =>
 {

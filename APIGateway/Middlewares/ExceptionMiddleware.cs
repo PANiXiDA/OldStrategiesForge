@@ -2,6 +2,7 @@
 using APIGateway.Infrastructure.Extensions;
 using Common;
 using Grpc.Core;
+using System.Text.Json;
 
 namespace APIGateway.Middlewares;
 
@@ -21,6 +22,10 @@ public class ExceptionMiddleware
         try
         {
             await _next(context);
+        }
+        catch (JsonException jsonEx)
+        {
+            await HandleJsonExceptionAsync(context, jsonEx);
         }
         catch (ValidationConflictException conflictEx)
         {
@@ -75,6 +80,18 @@ public class ExceptionMiddleware
 
         var failure = Failure.Create(Constants.ErrorMessages.Unavailable, StatusCodes.Status500InternalServerError.ToString());
 
+        var response = RestApiResponse<object>.Fail(failure);
+
+        context.Response.ContentType = "application/json";
+
+        return context.Response.WriteAsJsonAsync(response);
+    }
+
+    private Task HandleJsonExceptionAsync(HttpContext context, System.Text.Json.JsonException ex)
+    {
+        context.Response.StatusCode = StatusCodes.Status400BadRequest;
+
+        var failure = new Failure().AddError("Invalid JSON format.", "request");
         var response = RestApiResponse<object>.Fail(failure);
 
         context.Response.ContentType = "application/json";
