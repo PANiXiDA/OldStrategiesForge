@@ -16,11 +16,15 @@ public class ValidationFilter : IActionFilter
             {
                 foreach (var error in keyValuePair.Value.Errors)
                 {
-                    failure.AddError(error.ErrorMessage, keyValuePair.Key);
+                    failure.AddError(
+                        $"Status(StatusCode=\"PermissionDenied\", Detail=\"{error.ErrorMessage}\")",
+                        keyValuePair.Key
+                    );
                 }
             }
 
             var response = RestApiResponse<object>.Fail(failure);
+
             context.Result = new JsonResult(response)
             {
                 StatusCode = StatusCodes.Status400BadRequest
