@@ -92,6 +92,11 @@ public class AuthServiceImpl : ProfileAuth.ProfileAuthBase
         var player = await _playersDAL.GetAsync(request.Email);
         ValidatePlayerState(player);
 
+        if (player!.Password != Helpers.GetPasswordHash(request.Password))
+        {
+            throw RpcExceptionHelper.PermissionDenied(Constants.ErrorMessages.PlayerPasswordIncorrect);
+        }
+
         var (accessToken, refreshToken) = await GenerateTokens(player!.Id, (PlayerRole)player.Role);
 
         var response = new LoginPlayerResponse()
