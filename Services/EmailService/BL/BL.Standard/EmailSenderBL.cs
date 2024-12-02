@@ -2,7 +2,6 @@
 using Microsoft.Extensions.Options;
 using MimeKit;
 using MailKit.Net.Smtp;
-using System.Web;
 using Tools.Encryption;
 using EmailService.BL.BL.Interfaces;
 using Tools.Redis;
@@ -80,7 +79,7 @@ internal class EmailSenderBL : IEmailSenderBL
         var token = Convert.ToBase64String(Encoding.UTF8.GetBytes(_encryption.Encrypt(playerId)));
         var url = $"{_domen}/api/v1/auth/confirm?token={token}";
 
-        await _redisCache.SetAsync($"confirmation:{token}", true, TimeSpan.FromMinutes(expiredAt));
+        await _redisCache.SetAsync($"confirm:{token}", true, TimeSpan.FromMinutes(expiredAt));
 
         string subject = "Confirmation";
         string content = $"To confirm your account, follow the link provided: <a href=\"{url}\" target=\"_blank\">Confirm</a>";

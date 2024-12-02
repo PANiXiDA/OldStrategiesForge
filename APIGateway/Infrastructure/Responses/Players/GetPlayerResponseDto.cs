@@ -21,7 +21,7 @@ public class GetPlayerResponseDto
     public int Gold { get; set; }
     public int Level { get; set; }
     public int Experience { get; set; }
-    public AvatarsDto Avatar { get; set; } = new AvatarsDto();
+    public AvatarDto Avatar { get; set; } = new AvatarDto();
 
 
     public static GetPlayerResponseDto GetPlayerResponseDtoFromProto(GetPlayerResponse getPlayerResponse)
@@ -45,7 +45,7 @@ public class GetPlayerResponseDto
             Gold = getPlayerResponse.Gold,
             Level = getPlayerResponse.Level,
             Experience = getPlayerResponse.Experience,
-            Avatar = new AvatarsDto()
+            Avatar = new AvatarDto()
             {
                 S3Path = getPlayerResponse.Avatar.S3Path,
                 Name = getPlayerResponse.Avatar.Name,
@@ -55,7 +55,7 @@ public class GetPlayerResponseDto
     }
 }
 
-public class AvatarsDto
+public class AvatarDto
 {
     public string S3Path { get; set; } = string.Empty;
     public string Name { get; set; } = string.Empty;
