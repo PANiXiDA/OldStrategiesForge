@@ -39,8 +39,8 @@ public class PlayersServiceImpl : ProfilePlayers.ProfilePlayersBase
 
         if (player.Avatar != null)
         {
-            var presignedUrlResponse = await _s3ImagesClient.GetPresignedUrlAsync(new GetPresignedUrlRequest() { S3Path = player.Avatar.S3Path });
-            player.Avatar.S3Path = presignedUrlResponse.FileUrl;
+            var presignedUrlResponse = await _s3ImagesClient.GetPresignedUrlAsync(new GetPresignedUrlRequest() { S3Paths = { player.Avatar.S3Path } });
+            player.Avatar.S3Path = presignedUrlResponse.FileUrls.First();
         }
 
         return await Task.FromResult(player.GetPlayersResponseProtoFromDto());

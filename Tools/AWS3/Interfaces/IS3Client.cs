@@ -34,5 +34,4 @@ public interface IS3Client
     /// <param name="verb">HTTP метод (GET/PUT и т.д.)</param>
     /// <returns>Временная ссылка</returns>
     Task<string> GeneratePresignedUrl(string key, TimeSpan expirationTime, HttpVerb verb = HttpVerb.GET);
-
 }

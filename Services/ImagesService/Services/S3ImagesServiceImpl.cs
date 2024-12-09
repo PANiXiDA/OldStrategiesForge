@@ -18,8 +18,13 @@ public class S3ImagesServiceImpl : S3Images.S3ImagesBase
 
     public override async Task<GetPresignedUrlResponse> GetPresignedUrl(GetPresignedUrlRequest request, ServerCallContext context)
     {
-        var url = await _client.GeneratePresignedUrl(request.S3Path, TimeSpan.FromHours(1));
+        List<string> urls = new List<string>();
+        foreach (var s3Path in request.S3Paths)
+        {
+            var url = await _client.GeneratePresignedUrl(s3Path, TimeSpan.FromHours(1));
+            urls.Add(url);
+        }
 
-        return new GetPresignedUrlResponse() { FileUrl = url };
+        return new GetPresignedUrlResponse() { FileUrls = { urls } };
     }
 }

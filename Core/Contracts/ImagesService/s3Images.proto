@@ -7,9 +7,9 @@ service S3Images {
 }
 
 message GetPresignedUrlRequest{
-	string s3_path = 1;
+	repeated string s3_paths = 1;
 }
 
 message GetPresignedUrlResponse{
-	string file_url = 1;
+	repeated string file_urls = 1;
 }
