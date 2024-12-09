@@ -86,7 +86,8 @@ public class PlayersDto
             {
                 S3Path = Avatar?.S3Path,
                 Name = Avatar?.Name,
-                Description = Avatar?.Description
+                Description = Avatar?.Description,
+                FileName = Avatar?.FileName
             } 
         };
     }

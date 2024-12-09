@@ -4,12 +4,11 @@
       "commandName": "Project",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development",
-        "IMAGES_SERVICE_URL": "http://localhost:8003",
-        "HTTP_PORT": "8000",
-        "GRPC_PORT": "8001"
+        "HTTP_PORT": "8002",
+        "GRPC_PORT": "8003"
       },
       "dotnetRunMessages": true,
-      "applicationUrl": "http://localhost:8000;http://localhost:8001"
+      "applicationUrl": "http://localhost:8002;http://localhost:8003"
     }
   }
 }

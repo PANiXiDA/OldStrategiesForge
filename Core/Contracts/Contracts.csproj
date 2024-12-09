@@ -7,6 +7,9 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Update="ImagesService\s3Images.proto">
+      <GrpcServices>Server</GrpcServices>
+    </None>
     <None Update="ProfileService\players.proto">
       <GrpcServices>Server</GrpcServices>
     </None>

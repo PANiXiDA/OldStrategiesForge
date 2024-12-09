@@ -9,7 +9,6 @@ service ProfileAvatars{
 	rpc Get(GetAvatarRequest) returns (GetAvatarResponse);
 	rpc Update(UpdateAvatarRequest) returns (google.protobuf.Empty);
 	rpc Delete(DeleteAvatarRequest) returns (google.protobuf.Empty);
-	rpc GetPresignedUrl(GetPresignedUrlRequest) returns (GetPresignedUrlResponse);
 }
 
 message CreateAvatarRequest {
@@ -49,12 +48,4 @@ message UpdateAvatarRequest {
 
 message DeleteAvatarRequest{
 	int32 id = 1;
-}
-
-message GetPresignedUrlRequest{
-	string s3_path = 1;
-}
-
-message GetPresignedUrlResponse{
-	string file_url = 1;
 }

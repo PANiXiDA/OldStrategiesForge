@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+option csharp_namespace = "ImageService.S3Images.Gen";
+
+service S3Images {
+	rpc GetPresignedUrl(GetPresignedUrlRequest) returns (GetPresignedUrlResponse);
+}
+
+message GetPresignedUrlRequest{
+	string s3_path = 1;
+}
+
+message GetPresignedUrlResponse{
+	string file_url = 1;
+}

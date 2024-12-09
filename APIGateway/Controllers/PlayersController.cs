@@ -44,8 +44,6 @@ public class PlayersController : ControllerBase
         int userId = int.Parse(userIdClaim.Value);
 
         var getPlayerResponse = await _playersClient.GetAsync(new GetPlayerRequest() { Id = userId });
-        var presignedUrlResponse = await _avatarsClient.GetPresignedUrlAsync(new GetPresignedUrlRequest() { S3Path = getPlayerResponse.Avatar.S3Path });
-        getPlayerResponse.Avatar.S3Path = presignedUrlResponse.FileUrl;
 
         return StatusCode(StatusCodes.Status200OK, RestApiResponseBuilder<GetPlayerResponseDto>.Success(GetPlayerResponseDto.GetPlayerResponseDtoFromProto(getPlayerResponse)));
     }

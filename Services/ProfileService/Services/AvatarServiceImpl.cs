@@ -66,11 +66,4 @@ public class AvatarServiceImpl : ProfileAvatars.ProfileAvatarsBase
 
         return new Empty();
     }
-
-    public override async Task<GetPresignedUrlResponse> GetPresignedUrl(GetPresignedUrlRequest request, ServerCallContext context)
-    {
-        var url = await _client.GeneratePresignedUrl(request.S3Path, TimeSpan.FromHours(1));
-
-        return new GetPresignedUrlResponse() { FileUrl = url };
-    }
 }

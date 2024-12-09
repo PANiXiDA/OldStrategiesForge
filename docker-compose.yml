@@ -31,6 +31,7 @@ services:
       DB_USER: postgres
       DB_PASSWORD: 123456789
       ASPNETCORE_ENVIRONMENT: production
+      IMAGES_SERVICE_URL: http://images-service:8003
       HTTP_PORT: 8000
       GRPC_PORT: 8001
       RabbitMQ: rabbitmq
@@ -82,6 +83,20 @@ services:
                                   --startup-project Services/ProfileService/ProfileService.csproj
     depends_on:
       - profile_db     
+    networks:
+      - app-network
+     
+# Images
+  images-service:
+    container_name: images-service
+    build:
+      context: .
+      dockerfile: Services/ImagesService/Dockerfile
+    restart: unless-stopped
+    environment:
+      ASPNETCORE_ENVIRONMENT: production
+      HTTP_PORT: 8002
+      GRPC_PORT: 8003
     networks:
       - app-network
       

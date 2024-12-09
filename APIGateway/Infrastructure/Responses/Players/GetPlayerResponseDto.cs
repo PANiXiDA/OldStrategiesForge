@@ -49,7 +49,8 @@ public class GetPlayerResponseDto
             {
                 S3Path = getPlayerResponse.Avatar.S3Path,
                 Name = getPlayerResponse.Avatar.Name,
-                Description = getPlayerResponse.Avatar.Description
+                Description = getPlayerResponse.Avatar.Description,
+                FileName = getPlayerResponse.Avatar.FileName
             }
         };
     }
@@ -60,4 +61,5 @@ public class AvatarDto
     public string S3Path { get; set; } = string.Empty;
     public string Name { get; set; } = string.Empty;
     public string Description { get; set; } = string.Empty;
+    public string FileName { get; set; } = string.Empty;
 }

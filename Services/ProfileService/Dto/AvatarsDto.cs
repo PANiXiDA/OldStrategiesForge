@@ -15,6 +15,24 @@ public class AvatarsDto
     public int NecessaryGames { get; set; }
     public int NecessaryWins { get; set; }
     public bool Available { get; set; }
+    public string FileName
+    {
+        get
+        {
+            var fileNameWithParams = S3Path.Substring(S3Path.LastIndexOf('/') + 1);
+            return fileNameWithParams.Contains('?')
+                ? fileNameWithParams.Substring(0, fileNameWithParams.IndexOf('?'))
+                : fileNameWithParams;
+        }
+        set
+        {
+            var basePath = S3Path.Contains('?')
+                ? S3Path.Substring(0, S3Path.IndexOf('?'))
+                : S3Path;
+            S3Path = $"{basePath.Substring(0, basePath.LastIndexOf('/') + 1)}{value}";
+        }
+    }
+
 
     public AvatarsDto(
         int id,

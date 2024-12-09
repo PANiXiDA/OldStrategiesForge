@@ -27,6 +27,7 @@ var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
 builder.Services.AddDataAccessLayer(builder.Configuration, environment!);
 builder.Services.UseAWS3(builder.Configuration);
 builder.Services.ConfigureGrpcServices();
+builder.Services.ConfigureGrpcClients();
 builder.Services.AddMessageBrokers(builder.Configuration, environment);
 
 var jwtSettings = builder.Configuration.GetSection("JwtSettings").Get<JwtSettings>();

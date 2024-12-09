@@ -1,4 +1,4 @@
-﻿namespace ProfileService.Extensions;
+﻿namespace ImagesService.Extensions;
 
 public static class PortsConfiguration
 {
