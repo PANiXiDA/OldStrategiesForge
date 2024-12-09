@@ -4,6 +4,7 @@ namespace APIGateway.Infrastructure.Responses.Avatars;
 
 public class GetAvatarResponseDto
 {
+    public int Id { get; set; }
     public string S3Path { get; set; } = string.Empty;
     public string Name { get; set; } = string.Empty;
     public string Description { get; set; } = string.Empty;
@@ -16,6 +17,7 @@ public class GetAvatarResponseDto
     {
         return new GetAvatarResponseDto()
         {
+            Id = getAvatarResponse.Id,
             S3Path = getAvatarResponse.S3Path,
             Name = getAvatarResponse.Name,
             Description = getAvatarResponse.Description,

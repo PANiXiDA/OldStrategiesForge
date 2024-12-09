@@ -61,6 +61,7 @@ public class AvatarsDto
     {
         return new GetAvatarResponse()
         {
+            Id = Id,
             S3Path = S3Path,
             Name = Name,
             Description = Description,
