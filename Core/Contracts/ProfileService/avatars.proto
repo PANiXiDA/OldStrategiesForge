@@ -7,6 +7,7 @@ option csharp_namespace = "Profile.Avatar.Gen";
 service ProfileAvatars{
 	rpc Create(CreateAvatarRequest) returns (google.protobuf.Empty);
 	rpc Get(GetAvatarRequest) returns (GetAvatarResponse);
+	rpc GetAvailable(google.protobuf.Empty) returns (GetAvatarsResponse);
 	rpc Update(UpdateAvatarRequest) returns (google.protobuf.Empty);
 	rpc Delete(DeleteAvatarRequest) returns (google.protobuf.Empty);
 }
@@ -33,6 +34,10 @@ message GetAvatarResponse {
 	int32 necessary_games = 5;
 	int32 necessary_wins = 6;
 	bool available = 7;
+}
+
+message GetAvatarsResponse {
+    repeated GetAvatarResponse avatars = 1;
 }
 
 message UpdateAvatarRequest {

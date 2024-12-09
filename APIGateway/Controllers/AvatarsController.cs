@@ -46,6 +46,23 @@ public class AvatarsController : ControllerBase
         return StatusCode(StatusCodes.Status201Created, RestApiResponseBuilder<GetAvatarResponseDto>.Success(GetAvatarResponseDto.GetAvatarResponseFromProtoToDto(grpcResponse)));
     }
 
+    [HttpGet]
+    [Authorize]
+    [Route("get-available")]
+    [ProducesResponseType(typeof(RestApiResponse<List<GetAvatarResponseDto>>), 200)]
+    public async Task<ActionResult<RestApiResponse<List<GetAvatarResponseDto>>>> GetAvailable()
+    {
+        var grpcResponse = await _avatarsClient.GetAvailableAsync(new Google.Protobuf.WellKnownTypes.Empty());
+        var avatars = new List<GetAvatarResponseDto>();
+        foreach (var avatar in grpcResponse.Avatars)
+        {
+            avatars.Add(GetAvatarResponseDto.GetAvatarResponseFromProtoToDto(avatar));
+        }
+
+        return StatusCode(StatusCodes.Status201Created, RestApiResponseBuilder<List<GetAvatarResponseDto>>.Success(avatars));
+    }
+
+
     [HttpPut]
     [Authorize(Roles = $"{nameof(PlayerRole.Developer)}")]
     [ProducesResponseType(typeof(RestApiResponse<NoContent>), 200)]

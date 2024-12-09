@@ -7,7 +7,6 @@ using ProfileService.DAL.DbModels;
 using ProfileService.DAL.Interfaces;
 using ProfileService.Dto;
 using System.Linq.Expressions;
-using System.Xml.Linq;
 
 namespace ProfileService.DAL.Implementations;
 
@@ -38,6 +37,11 @@ internal class AvatarsDAL : BaseDAL<DefaultDbContext, Avatar,
     protected override IQueryable<Avatar> BuildDbQuery(DefaultDbContext context,
         IQueryable<Avatar> dbObjects, AvatarsSearchParams searchParams)
     {
+        if (searchParams.IsAvailable.HasValue)
+        {
+            dbObjects = dbObjects.Where(item => item.Available == searchParams.IsAvailable.Value);
+        }
+
         return dbObjects;
     }
 
