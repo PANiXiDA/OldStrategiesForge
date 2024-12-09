@@ -22,11 +22,33 @@ jobs:
           script: |
             cd OldStrategiesForge
             git pull https://${{ secrets.TOKEN }}@github.com/PANiXiDA/OldStrategiesForge.git develop
+
+            # Очистка логов сервера
+            echo "Cleaning up server logs..."
+            sudo journalctl --vacuum-size=100M
+            sudo find /var/log -name "*.gz" -type f -delete
+            sudo find /var/log -type f -exec truncate -s 0 {} \;
+
+            # Очистка логов Docker-контейнеров
+            echo "Cleaning up Docker container logs..."
+            sudo find /var/lib/docker/containers/ -name "*.log" -type f -exec truncate -s 0 {} \;
+
+            # Очистка кэша APT
+            echo "Cleaning up APT cache..."
+            sudo apt clean
+
             # Остановка контейнеров без удаления данных из базы
+            echo "Stopping containers..."
             docker-compose down --remove-orphans
+
             # Очистка неиспользуемых Docker-ресурсов (контейнеров, образов, сетей и томов)
+            echo "Cleaning up Docker resources..."
             docker system prune -f --volumes
-            # Очистка неиспользуемых образов (удаляет старые, неиспользуемые образы)
             docker image prune -a -f
+            docker builder prune -f
+            docker volume prune -f
+            docker network prune -f
+
             # Перезапуск контейнеров с пересборкой
+            echo "Rebuilding and starting containers..."
             docker-compose up --build -d
