@@ -5,26 +5,27 @@ FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
 USER app
 WORKDIR /app
 EXPOSE 8080
-EXPOSE 8081
 
 
 # Этот этап используется для сборки проекта службы
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
-COPY ["Services/ImageService/ImageService.csproj", "Services/ImageService/"]
-RUN dotnet restore "./Services/ImageService/ImageService.csproj"
+COPY ["Services/ImagesService/ImagesService.csproj", "Services/ImagesService/"]
+COPY ["Common/Common.csproj", "Common/"]
+COPY ["Tools/Tools.csproj", "Tools/"]
+RUN dotnet restore "./Services/ImagesService/ImagesService.csproj"
 COPY . .
-WORKDIR "/src/Services/ImageService"
-RUN dotnet build "./ImageService.csproj" -c $BUILD_CONFIGURATION -o /app/build
+WORKDIR "/src/Services/ImagesService"
+RUN dotnet build "./ImagesService.csproj" -c $BUILD_CONFIGURATION -o /app/build
 
 # Этот этап используется для публикации проекта службы, который будет скопирован на последний этап
 FROM build AS publish
 ARG BUILD_CONFIGURATION=Release
-RUN dotnet publish "./ImageService.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
+RUN dotnet publish "./ImagesService.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
 
 # Этот этап используется в рабочей среде или при запуске из VS в обычном режиме (по умолчанию, когда конфигурация отладки не используется)
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
-ENTRYPOINT ["dotnet", "ImageService.dll"]
+ENTRYPOINT ["dotnet", "ImagesService.dll"]
