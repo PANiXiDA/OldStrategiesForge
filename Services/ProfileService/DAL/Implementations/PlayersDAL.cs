@@ -128,5 +128,21 @@ internal class PlayersDAL : BaseDAL<DefaultDbContext, Player,
     {
         return (await GetAsync(item => item.Email == email)).FirstOrDefault();
     }
+
+    public async Task UpdateLastLogin(int id)
+    {
+        var data = GetContext();
+        try
+        {
+            await data.Set<Player>()
+                .Where(player => player.Id == id)
+                .ExecuteUpdateAsync(update => update.SetProperty(p => p.LastLogin, DateTime.UtcNow));
+        }
+        finally
+        {
+            await DisposeContextAsync(data);
+        }
+    }
+
 }
 

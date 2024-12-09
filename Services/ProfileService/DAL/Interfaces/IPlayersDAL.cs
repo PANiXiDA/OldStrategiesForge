@@ -11,4 +11,5 @@ public interface IPlayersDAL : IBaseDal<DefaultDbContext, Player, PlayersDto, in
 {
     Task<bool> ExistsAsync(string email);
     Task<PlayersDto?> GetAsync(string email);
+    Task UpdateLastLogin(int id);
 }

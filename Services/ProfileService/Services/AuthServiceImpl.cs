@@ -280,6 +280,7 @@ public class AuthServiceImpl : ProfileAuth.ProfileAuthBase
         var refreshToken = await GenerateRefreshToken(playerId, token);
 
         await _tokensDAL.AddOrUpdateAsync(refreshToken);
+        await _playersDAL.UpdateLastLogin(playerId);
 
         return (accessToken, refreshToken.RefreshToken);
     }
