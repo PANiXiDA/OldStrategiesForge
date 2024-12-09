@@ -23,11 +23,15 @@ jobs:
             cd OldStrategiesForge
             git pull https://${{ secrets.TOKEN }}@github.com/PANiXiDA/OldStrategiesForge.git develop
 
-            # Очистка логов сервера Linux
-            echo "Cleaning up logs..."
+            # Очистка логов сервера
+            echo "Cleaning up server logs..."
             sudo journalctl --vacuum-size=100M
             sudo find /var/log -name "*.gz" -type f -delete
             sudo find /var/log -type f -exec truncate -s 0 {} \;
+
+            # Очистка логов Docker-контейнеров
+            echo "Cleaning up Docker container logs..."
+            sudo find /var/lib/docker/containers/ -name "*.log" -type f -exec truncate -s 0 {} \;
 
             # Очистка кэша APT
             echo "Cleaning up APT cache..."
