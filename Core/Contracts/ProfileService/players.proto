@@ -1,11 +1,13 @@
 syntax = "proto3";
 
 import "google/protobuf/timestamp.proto";
+import "google/protobuf/empty.proto";
 
 option csharp_namespace = "Profile.Players.Gen";
 
 service ProfilePlayers {
 	rpc Get (GetPlayerRequest) returns (GetPlayerResponse);
+	rpc UpdateAvatar (UpdateAvatarRequest) returns (google.protobuf.Empty);
 }
 
 message GetPlayerRequest {
@@ -38,4 +40,9 @@ message Avatar {
 	string name = 2;
 	string description = 3;
 	string file_name = 4;
+}
+
+message UpdateAvatarRequest{
+	int32 avatar_id = 1;
+	int32 player_id = 2;
 }

@@ -44,7 +44,7 @@ public class AvatarsDto
         int necessaryWins,
         bool available)
     {
-        Id = 0;
+        Id = id;
         CreatedAt = DateTime.UtcNow;
         UpdatedAt = DateTime.UtcNow;
         DeletedAt = null;

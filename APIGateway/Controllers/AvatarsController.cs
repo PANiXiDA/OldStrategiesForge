@@ -59,7 +59,7 @@ public class AvatarsController : ControllerBase
             avatars.Add(GetAvatarResponseDto.GetAvatarResponseFromProtoToDto(avatar));
         }
 
-        return StatusCode(StatusCodes.Status201Created, RestApiResponseBuilder<List<GetAvatarResponseDto>>.Success(avatars));
+        return StatusCode(StatusCodes.Status200OK, RestApiResponseBuilder<List<GetAvatarResponseDto>>.Success(avatars));
     }
 
 

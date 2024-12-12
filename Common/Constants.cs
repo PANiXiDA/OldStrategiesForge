@@ -3,7 +3,7 @@ public class Constants
 {
     public static class ErrorMessages
     {
-        public const string ErrorKey = "errorMessage.";
+        public const string ErrorKey = "ErrorMessage.";
         public const string Unavailable = "The service is unavailable.";
 
         public const string TooManyRequests = "Too many requests. Wait 15 min.";
@@ -35,6 +35,12 @@ public class Constants
 
         public const string EmailServiceUnavailable = "Failed to send confirmation email.";
         public const string EmailTimeoutError = "Timeout while waiting for email confirmation.";
+
+        public const string AvatarNotFound = "Avatar not found";
+        public const string AvatarNotAvailable = "In current time this avatar not available";
+        public const string NotEnoughMmr = "To use this avatar, your Mmr must be:";
+        public const string NotEnoughGames = "To use this avatar, your number of games must be greater:";
+        public const string NotEnoughWins = "To use this avatar, your number of wins must be greater:";
     }
 
     public static class RabbitMqQueues
