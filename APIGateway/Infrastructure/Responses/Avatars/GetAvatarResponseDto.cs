@@ -12,6 +12,7 @@ public class GetAvatarResponseDto
     public int NecessaryGames { get; set; }
     public int NecessaryWins { get; set; }
     public bool Available { get; set; }
+    public string FileName { get; set; } = string.Empty;
 
     public static GetAvatarResponseDto GetAvatarResponseFromProtoToDto(GetAvatarResponse getAvatarResponse)
     {
@@ -24,7 +25,8 @@ public class GetAvatarResponseDto
             NecessaryMmr = getAvatarResponse.NecessaryMmr,
             NecessaryGames = getAvatarResponse.NecessaryGames,
             NecessaryWins = getAvatarResponse.NecessaryWins,
-            Available = getAvatarResponse.Available
+            Available = getAvatarResponse.Available,
+            FileName = getAvatarResponse.FileName
         };
     }
 }

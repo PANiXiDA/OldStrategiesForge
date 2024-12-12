@@ -35,6 +35,7 @@ message GetAvatarResponse {
 	int32 necessary_games = 6;
 	int32 necessary_wins = 7;
 	bool available = 8;
+	string file_name = 9;
 }
 
 message GetAvatarsResponse {

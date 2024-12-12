@@ -68,7 +68,8 @@ public class AvatarsDto
             NecessaryMmr = NecessaryMmr,
             NecessaryGames = NecessaryGames,
             NecessaryWins = NecessaryWins,
-            Available = Available
+            Available = Available,
+            FileName = FileName
         };
     }
 }
