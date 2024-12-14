@@ -52,18 +52,13 @@ public class PlayersServiceImpl : ProfilePlayers.ProfilePlayersBase
 
     public override async Task<Empty> UpdateAvatar(UpdateAvatarRequest request, ServerCallContext context)
     {
-        var playerTask = _playersDAL.GetAsync(request.PlayerId);
-        var avatarTask = _avatarsDAL.GetAsync(request.AvatarId);
-
-        await Task.WhenAll(playerTask, avatarTask);
-
-        var player = await playerTask;
+        var player = await _playersDAL.GetAsync(request.PlayerId);
         if (player == null)
         {
             throw new RpcException(new Status(StatusCode.NotFound, Constants.ErrorMessages.PlayerNotFound));
         }
 
-        var avatar = await avatarTask;
+        var avatar = await _avatarsDAL.GetAsync(request.AvatarId);
         if (avatar == null)
         {
             throw new RpcException(new Status(StatusCode.NotFound, Constants.ErrorMessages.AvatarNotFound));
