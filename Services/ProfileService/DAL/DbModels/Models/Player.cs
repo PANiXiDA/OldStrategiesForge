@@ -67,4 +67,5 @@ public partial class Player : BasePostgresDbModel
     public int Experience { get; set; }
 
     public virtual Avatar? Avatar { get; set; }
+    public virtual Frame? Frame { get; set; }
 }

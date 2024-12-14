@@ -58,6 +58,7 @@
 		<Protobuf Include="..\..\Core\Contracts\ProfileService\players.proto" GrpcServices="Server" />
 		<Protobuf Include="..\..\Core\Contracts\ProfileService\auth.proto" GrpcServices="Server" />
 		<Protobuf Include="..\..\Core\Contracts\ProfileService\avatars.proto" GrpcServices="Server" />
+		<Protobuf Include="..\..\Core\Contracts\ProfileService\frames.proto" GrpcServices="Server" />
 
 		<Protobuf Include="..\..\Core\Contracts\ImagesService\s3Images.proto" GrpcServices="Client" />
 	</ItemGroup>

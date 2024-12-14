@@ -31,6 +31,7 @@ public class PlayersDto
     public int Level { get; set; }
     public int Experience { get; set; }
     public AvatarsDto? Avatar { get; set; }
+    public FramesDto? Frame { get; set; }
 
     public static PlayersDto PlayersDtoFromProtoAuth(RegistrationPlayerRequest registrationPlayer)
     {
@@ -88,7 +89,14 @@ public class PlayersDto
                 Name = Avatar?.Name,
                 Description = Avatar?.Description,
                 FileName = Avatar?.FileName
-            } 
+            },
+            Frame = new Frame
+            {
+                S3Path = Frame?.S3Path,
+                Name = Frame?.Name,
+                Description = Frame?.Description,
+                FileName = Frame?.FileName
+            }
         };
     }
 }

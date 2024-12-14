@@ -2,23 +2,23 @@
 using Common.ConvertParams.ProfileService;
 using Common.SearchParams.ProfileService;
 using Microsoft.EntityFrameworkCore;
-using ProfileService.DAL.DbModels.Models;
 using ProfileService.DAL.DbModels;
+using ProfileService.DAL.DbModels.Models;
 using ProfileService.DAL.Interfaces;
 using ProfileService.Dto;
 using System.Linq.Expressions;
 
 namespace ProfileService.DAL.Implementations;
 
-internal class AvatarsDAL : BaseDAL<DefaultDbContext, Avatar,
-    AvatarsDto, int, AvatarsSearchParams, AvatarsConvertParams>, IAvatarsDAL
+internal class FramesDAL : BaseDAL<DefaultDbContext, Frame,
+    FramesDto, int, FramesSearchParams, FramesConvertParams>, IFramesDAL
 {
     protected override bool RequiresUpdatesAfterObjectSaving => false;
 
-    public AvatarsDAL(DefaultDbContext context) : base(context) { }
+    public FramesDAL(DefaultDbContext context) : base(context) { }
 
-    protected override Task UpdateBeforeSavingAsync(DefaultDbContext context, AvatarsDto entity,
-        Avatar dbObject, bool exists)
+    protected override Task UpdateBeforeSavingAsync(DefaultDbContext context, FramesDto entity,
+        Frame dbObject, bool exists)
     {
         dbObject.CreatedAt = entity.CreatedAt;
         dbObject.UpdatedAt = DateTime.UtcNow;
@@ -34,8 +34,8 @@ internal class AvatarsDAL : BaseDAL<DefaultDbContext, Avatar,
         return Task.CompletedTask;
     }
 
-    protected override IQueryable<Avatar> BuildDbQuery(DefaultDbContext context,
-        IQueryable<Avatar> dbObjects, AvatarsSearchParams searchParams)
+    protected override IQueryable<Frame> BuildDbQuery(DefaultDbContext context,
+        IQueryable<Frame> dbObjects, FramesSearchParams searchParams)
     {
         if (searchParams.IsAvailable.HasValue)
         {
@@ -45,27 +45,27 @@ internal class AvatarsDAL : BaseDAL<DefaultDbContext, Avatar,
         return dbObjects;
     }
 
-    protected override async Task<IList<AvatarsDto>> BuildEntitiesListAsync(DefaultDbContext context,
-        IQueryable<Avatar> dbObjects, AvatarsConvertParams? convertParams, bool isFull)
+    protected override async Task<IList<FramesDto>> BuildEntitiesListAsync(DefaultDbContext context,
+        IQueryable<Frame> dbObjects, FramesConvertParams? convertParams, bool isFull)
     {
         return (await dbObjects.ToListAsync()).Select(ConvertDbObjectToEntity).ToList();
     }
 
-    protected override Expression<Func<Avatar, int>> GetIdByDbObjectExpression()
+    protected override Expression<Func<Frame, int>> GetIdByDbObjectExpression()
     {
         return item => item.Id;
     }
 
-    protected override Expression<Func<AvatarsDto, int>> GetIdByEntityExpression()
+    protected override Expression<Func<FramesDto, int>> GetIdByEntityExpression()
     {
         return item => item.Id;
     }
 
-    internal static AvatarsDto ConvertDbObjectToEntity(Avatar dbObject)
+    internal static FramesDto ConvertDbObjectToEntity(Frame dbObject)
     {
         if (dbObject == null) throw new ArgumentNullException(nameof(dbObject));
 
-        return new AvatarsDto(
+        return new FramesDto(
             dbObject.Id,
             dbObject.S3Path,
             dbObject.Name,

@@ -33,6 +33,7 @@
 		<Protobuf Include="..\Core\Contracts\ProfileService\players.proto" GrpcServices="Client" />
 		<Protobuf Include="..\Core\Contracts\ProfileService\auth.proto" GrpcServices="Client" />
 		<Protobuf Include="..\Core\Contracts\ProfileService\avatars.proto" GrpcServices="Client" />
+		<Protobuf Include="..\Core\Contracts\ProfileService\frames.proto" GrpcServices="Client" />
 	</ItemGroup>
 
 	<ItemGroup>

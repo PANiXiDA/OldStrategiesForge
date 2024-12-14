@@ -27,6 +27,7 @@ public static class DependencyInjection
         services.AddScoped<IPlayersDAL, PlayersDAL>();
         services.AddScoped<ITokensDAL, TokensDAL>();
         services.AddScoped<IAvatarsDAL, AvatarsDAL>();
+        services.AddScoped<IFramesDAL, FramesDAL>();
 
         return services;
     }

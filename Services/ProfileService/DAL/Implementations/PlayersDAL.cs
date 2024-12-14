@@ -21,7 +21,7 @@ internal class PlayersDAL : BaseDAL<DefaultDbContext, Player,
         Player dbObject, bool exists)
     {
         dbObject.CreatedAt = entity.CreatedAt;
-        dbObject.UpdatedAt = entity.UpdatedAt;
+        dbObject.UpdatedAt = DateTime.UtcNow;
         dbObject.DeletedAt = entity.DeletedAt;
         dbObject.Email = entity.Email;
         dbObject.Password = entity.Password;
@@ -72,6 +72,7 @@ internal class PlayersDAL : BaseDAL<DefaultDbContext, Player,
         if (convertParams != null && convertParams.IsIncludeChildCategories)
         {
             dbObjects = dbObjects.Include(item => item.Avatar);
+            dbObjects = dbObjects.Include(item => item.Frame);
         }
 
         return (await dbObjects.ToListAsync()).Select(ConvertDbObjectToEntity).ToList();
@@ -115,7 +116,8 @@ internal class PlayersDAL : BaseDAL<DefaultDbContext, Player,
             Gold = dbObject.Gold,
             Level = dbObject.Level,
             Experience = dbObject.Experience,
-            Avatar = dbObject.Avatar != null ? AvatarsDAL.ConvertDbObjectToEntity(dbObject.Avatar) : null
+            Avatar = dbObject.Avatar != null ? AvatarsDAL.ConvertDbObjectToEntity(dbObject.Avatar) : null,
+            Frame = dbObject.Frame != null ? FramesDAL.ConvertDbObjectToEntity(dbObject.Frame) : null
         };
     }
 
@@ -143,6 +145,5 @@ internal class PlayersDAL : BaseDAL<DefaultDbContext, Player,
             await DisposeContextAsync(data);
         }
     }
-
 }
 

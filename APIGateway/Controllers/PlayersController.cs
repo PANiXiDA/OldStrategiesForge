@@ -53,13 +53,35 @@ public class PlayersController : ControllerBase
         var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
         if (userIdClaim == null)
         {
-            return StatusCode(StatusCodes.Status401Unauthorized, RestApiResponseBuilder<GetPlayerResponseDto>.Fail(Constants.ErrorMessages.Unauthorized, Constants.ErrorMessages.ErrorKey));
+            return StatusCode(StatusCodes.Status401Unauthorized, RestApiResponseBuilder<NoContent>.Fail(Constants.ErrorMessages.Unauthorized, Constants.ErrorMessages.ErrorKey));
         }
         int userId = int.Parse(userIdClaim.Value);
 
         await _playersClient.UpdateAvatarAsync(new UpdateAvatarRequest()
         {
             AvatarId = request.AvatarId,
+            PlayerId = userId
+        });
+
+        return StatusCode(StatusCodes.Status200OK, RestApiResponseBuilder<NoContent>.Success(new NoContent()));
+    }
+
+    [HttpPost]
+    [Authorize]
+    [Route("update-frame")]
+    [ProducesResponseType(typeof(RestApiResponse<NoContent>), 200)]
+    public async Task<ActionResult<RestApiResponse<NoContent>>> UpdateFrame(UpdateFrameRequestDto request)
+    {
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+        if (userIdClaim == null)
+        {
+            return StatusCode(StatusCodes.Status401Unauthorized, RestApiResponseBuilder<NoContent>.Fail(Constants.ErrorMessages.Unauthorized, Constants.ErrorMessages.ErrorKey));
+        }
+        int userId = int.Parse(userIdClaim.Value);
+
+        await _playersClient.UpdateFrameAsync(new UpdateFrameRequest()
+        {
+            FrameId = request.FrameId,
             PlayerId = userId
         });
 

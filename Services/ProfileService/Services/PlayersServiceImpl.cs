@@ -5,6 +5,7 @@ using ProfileService.DAL.Interfaces;
 using Common.ConvertParams.ProfileService;
 using ImageService.S3Images.Gen;
 using Google.Protobuf.WellKnownTypes;
+using ProfileService.Dto;
 
 namespace ProfileService.Services;
 
@@ -14,17 +15,20 @@ public class PlayersServiceImpl : ProfilePlayers.ProfilePlayersBase
     private readonly IPlayersDAL _playersDAL;
     private readonly S3Images.S3ImagesClient _s3ImagesClient;
     private readonly IAvatarsDAL _avatarsDAL;
+    private readonly IFramesDAL _framesDAL;
 
     public PlayersServiceImpl(
         ILogger<PlayersServiceImpl> logger,
         IPlayersDAL playersDAL,
         S3Images.S3ImagesClient s3ImagesClient,
-        IAvatarsDAL avatarsDAL)
+        IAvatarsDAL avatarsDAL,
+        IFramesDAL framesDAL)
     {
         _logger = logger;
         _playersDAL = playersDAL;
         _s3ImagesClient = s3ImagesClient;
         _avatarsDAL = avatarsDAL;
+        _framesDAL = framesDAL;
     }
 
     public override async Task<GetPlayerResponse> Get(GetPlayerRequest request, ServerCallContext context)
@@ -64,27 +68,56 @@ public class PlayersServiceImpl : ProfilePlayers.ProfilePlayersBase
             throw new RpcException(new Status(StatusCode.NotFound, Constants.ErrorMessages.AvatarNotFound));
         }
 
-        if (avatar.Available == false)
-        {
-            throw new RpcException(new Status(StatusCode.PermissionDenied, Constants.ErrorMessages.AvatarNotAvailable));
-        }
-
-        if (avatar.NecessaryMmr > player.Mmr)
-        {
-            throw new RpcException(new Status(StatusCode.FailedPrecondition, $"{Constants.ErrorMessages.NotEnoughMmr} {avatar.NecessaryMmr}"));
-        }
-        if (avatar.NecessaryGames > player.Games)
-        {
-            throw new RpcException(new Status(StatusCode.FailedPrecondition, $"{Constants.ErrorMessages.NotEnoughGames} {avatar.NecessaryGames}"));
-        }
-        if (avatar.NecessaryWins > player.Wins)
-        {
-            throw new RpcException(new Status(StatusCode.FailedPrecondition, $"{Constants.ErrorMessages.NotEnoughWins} {avatar.NecessaryWins}"));
-        }
+        ValidateItemRequirements(avatar, player);
 
         player.AvatarId = request.AvatarId;
         await _playersDAL.AddOrUpdateAsync(player);
 
         return new Empty();
+    }
+
+    public override async Task<Empty> UpdateFrame(UpdateFrameRequest request, ServerCallContext context)
+    {
+        var player = await _playersDAL.GetAsync(request.PlayerId);
+        if (player == null)
+        {
+            throw new RpcException(new Status(StatusCode.NotFound, Constants.ErrorMessages.PlayerNotFound));
+        }
+
+        var frame = await _framesDAL.GetAsync(request.FrameId);
+        if (frame == null)
+        {
+            throw new RpcException(new Status(StatusCode.NotFound, Constants.ErrorMessages.AvatarNotFound));
+        }
+
+        ValidateItemRequirements(frame, player);
+
+        player.FrameId = request.FrameId;
+        await _playersDAL.AddOrUpdateAsync(player);
+
+        return new Empty();
+    }
+
+    private void ValidateItemRequirements(dynamic item, PlayersDto player)
+    {
+        if (!item.Available)
+        {
+            throw new RpcException(new Status(StatusCode.PermissionDenied, Constants.ErrorMessages.AvatarNotAvailable));
+        }
+
+        if (item.NecessaryMmr > player.Mmr)
+        {
+            throw new RpcException(new Status(StatusCode.FailedPrecondition, $"{Constants.ErrorMessages.NotEnoughMmr} {item.NecessaryMmr}"));
+        }
+
+        if (item.NecessaryGames > player.Games)
+        {
+            throw new RpcException(new Status(StatusCode.FailedPrecondition, $"{Constants.ErrorMessages.NotEnoughGames} {item.NecessaryGames}"));
+        }
+
+        if (item.NecessaryWins > player.Wins)
+        {
+            throw new RpcException(new Status(StatusCode.FailedPrecondition, $"{Constants.ErrorMessages.NotEnoughWins} {item.NecessaryWins}"));
+        }
     }
 }

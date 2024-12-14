@@ -8,6 +8,7 @@ option csharp_namespace = "Profile.Players.Gen";
 service ProfilePlayers {
 	rpc Get (GetPlayerRequest) returns (GetPlayerResponse);
 	rpc UpdateAvatar (UpdateAvatarRequest) returns (google.protobuf.Empty);
+	rpc UpdateFrame (UpdateFrameRequest) returns (google.protobuf.Empty);
 }
 
 message GetPlayerRequest {
@@ -33,6 +34,7 @@ message GetPlayerResponse {
 	int32 level = 16;
 	int32 experience = 17;
 	Avatar avatar = 18;
+	Frame frame = 19;
 }
 
 message Avatar {
@@ -42,7 +44,19 @@ message Avatar {
 	string file_name = 4;
 }
 
+message Frame {
+	string s3_path = 1;
+	string name = 2;
+	string description = 3;
+	string file_name = 4;
+}
+
 message UpdateAvatarRequest{
 	int32 avatar_id = 1;
+	int32 player_id = 2;
+}
+
+message UpdateFrameRequest{
+	int32 frame_id = 1;
 	int32 player_id = 2;
 }

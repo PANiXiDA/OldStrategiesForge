@@ -22,6 +22,7 @@ public class GetPlayerResponseDto
     public int Level { get; set; }
     public int Experience { get; set; }
     public AvatarDto Avatar { get; set; } = new AvatarDto();
+    public FrameDto Frame { get; set; } = new FrameDto();
 
 
     public static GetPlayerResponseDto GetPlayerResponseDtoFromProto(GetPlayerResponse getPlayerResponse)
@@ -51,12 +52,27 @@ public class GetPlayerResponseDto
                 Name = getPlayerResponse.Avatar.Name,
                 Description = getPlayerResponse.Avatar.Description,
                 FileName = getPlayerResponse.Avatar.FileName
+            },
+            Frame = new FrameDto()
+            {
+                S3Path = getPlayerResponse.Frame.S3Path,
+                Name = getPlayerResponse.Frame.Name,
+                Description = getPlayerResponse.Frame.Description,
+                FileName = getPlayerResponse.Frame.FileName
             }
         };
     }
 }
 
 public class AvatarDto
+{
+    public string S3Path { get; set; } = string.Empty;
+    public string Name { get; set; } = string.Empty;
+    public string Description { get; set; } = string.Empty;
+    public string FileName { get; set; } = string.Empty;
+}
+
+public class FrameDto
 {
     public string S3Path { get; set; } = string.Empty;
     public string Name { get; set; } = string.Empty;
