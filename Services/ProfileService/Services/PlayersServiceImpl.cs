@@ -44,11 +44,15 @@ public class PlayersServiceImpl : ProfilePlayers.ProfilePlayersBase
         {
             throw new RpcException(new Status(StatusCode.NotFound, Constants.ErrorMessages.PlayerNotFound));
         }
-
         if (player.Avatar != null)
         {
             var presignedUrlResponse = await _s3ImagesClient.GetPresignedUrlAsync(new GetPresignedUrlRequest() { S3Paths = { player.Avatar.S3Path } });
             player.Avatar.S3Path = presignedUrlResponse.FileUrls.First();
+        }
+        if (player.Frame != null)
+        {
+            var presignedUrlResponse = await _s3ImagesClient.GetPresignedUrlAsync(new GetPresignedUrlRequest() { S3Paths = { player.Frame.S3Path } });
+            player.Frame.S3Path = presignedUrlResponse.FileUrls.First();
         }
 
         return await Task.FromResult(player.GetPlayersResponseProtoFromDto());
