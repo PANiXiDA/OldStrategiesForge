@@ -8,7 +8,6 @@ using Tools.Redis;
 
 var builder = WebApplication.CreateBuilder(args);
 
-
 var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
 
 builder.Services.Configure<AesEncryptionConfiguration>(builder.Configuration.GetSection("AesEncryptionSettings"));

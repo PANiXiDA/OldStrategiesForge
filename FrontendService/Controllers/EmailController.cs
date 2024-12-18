@@ -1,4 +1,4 @@
-﻿using Common;
+﻿using Common.Constants;
 using Microsoft.AspNetCore.Mvc;
 using Tools.RabbitMQ;
 
@@ -27,7 +27,7 @@ public class EmailController : Controller
             }
 
             _logger.LogInformation($"Отправка запроса на подписку для {email}.");
-            _rabbitMQClient.SendMessage(email, Constants.RabbitMqQueues.SubscribeToNotifications);
+            _rabbitMQClient.SendMessage(email, RabbitMqQueues.SubscribeToNotifications);
             _logger.LogInformation($"Запрос на подписку для {email} успешно отправлен.");
 
             return Json(new { ok = true });

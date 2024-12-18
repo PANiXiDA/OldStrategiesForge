@@ -2,6 +2,7 @@
 using MediatR;
 using RabbitMQ.Client;
 using Tools.RabbitMQ;
+using Constants = Common.Constants;
 
 namespace EmailService.BackgroundServices;
 
@@ -32,7 +33,7 @@ internal class EmailProcessingService : BackgroundService
         {
             _rabbitMQClient.StartReceivingMultiple(new Dictionary<string, (Type, Func<object, IBasicProperties?, IModel?, Task>)>
             {
-                [Common.Constants.RabbitMqQueues.SubscribeToNotifications] = (typeof(string), async (message, _, _) =>
+                [Constants.RabbitMqQueues.SubscribeToNotifications] = (typeof(string), async (message, _, _) =>
                 {
                     var typedMessage = (string)message;
 

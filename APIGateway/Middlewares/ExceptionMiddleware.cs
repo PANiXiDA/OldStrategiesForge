@@ -1,6 +1,6 @@
 ﻿using APIGateway.Extensions.Exceptions;
 using APIGateway.Infrastructure.Extensions;
-using Common;
+using Common.Constants;
 using Grpc.Core;
 using System.Text.Json;
 
@@ -78,7 +78,7 @@ public class ExceptionMiddleware
     {
         context.Response.StatusCode = StatusCodes.Status500InternalServerError;
 
-        var failure = Failure.Create(Constants.ErrorMessages.Unavailable, StatusCodes.Status500InternalServerError.ToString());
+        var failure = Failure.Create(ErrorMessages.Unavailable, StatusCodes.Status500InternalServerError.ToString());
 
         var response = RestApiResponse<object>.Fail(failure);
 

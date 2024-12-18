@@ -6,6 +6,7 @@ using Tools.Encryption;
 using EmailService.BL.BL.Interfaces;
 using Tools.Redis;
 using System.Text;
+using Common.Constants;
 
 internal class EmailSenderBL : IEmailSenderBL
 {
@@ -15,8 +16,6 @@ internal class EmailSenderBL : IEmailSenderBL
     private readonly IRedisCache _redisCache;
 
     private readonly string? _domen;
-
-    private const int expiredAt = 15;
 
     public EmailSenderBL(
         ILogger<EmailSenderBL> logger,
@@ -79,7 +78,7 @@ internal class EmailSenderBL : IEmailSenderBL
         var token = Convert.ToBase64String(Encoding.UTF8.GetBytes(_encryption.Encrypt(playerId)));
         var url = $"{_domen}/api/v1/auth/confirm?token={token}";
 
-        await _redisCache.SetAsync($"confirm:{token}", true, TimeSpan.FromMinutes(expiredAt));
+        await _redisCache.SetAsync($"confirm:{token}", true, TimeSpan.FromMinutes(TimeoutSettings.ConfirmationEmailTokenLifeTimeMin));
 
         string subject = "Confirmation";
         string content = $"To confirm your account, follow the link provided: <a href=\"{url}\" target=\"_blank\">Confirm</a>";
@@ -96,7 +95,7 @@ internal class EmailSenderBL : IEmailSenderBL
 
         var url = $"{_domen}/api/v1/auth/recovery?token={token}";
 
-        await _redisCache.SetAsync($"recovery:{token}", true, TimeSpan.FromMinutes(expiredAt));
+        await _redisCache.SetAsync($"recovery:{token}", true, TimeSpan.FromMinutes(TimeoutSettings.RecoveryPasswordTokenLifeTimeMin));
 
         string subject = "Recovery Password";
         string content = $"If you did not request password recovery, please ignore this message.<br>To restore your password, follow the link: <a href=\"{url}\" target=\"_blank\">Recovery Password</a>";

@@ -1,6 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
 namespace Common.Enums;
+
 public enum PlayerRole
 {
     [Display(Name = "Разработчик")]
@@ -13,5 +14,5 @@ public enum PlayerRole
     Admin = 2,
 
     [Display(Name = "Модератор")]
-    Moderator = 3,
+    Moderator = 3
 }

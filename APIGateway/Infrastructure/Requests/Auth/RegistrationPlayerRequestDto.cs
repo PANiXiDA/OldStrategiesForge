@@ -1,6 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using Profile.Auth.Gen;
-using Common;
+using Common.Constants;
+using Common.Helpers;
 using FluentValidation;
 using Tools.Redis;
 using APIGateway.Extensions.Exceptions;
@@ -42,25 +43,25 @@ public class CreatePlayerDtoValidator : AbstractValidator<RegistrationPlayerRequ
         _redisCache = redisCache;
 
         RuleFor(player => player.Nickname)
-            .Length(1, 20).WithMessage(Constants.ErrorMessages.NotValidNickname)
-            .MustAsync(IsNicknameUniqueAsync).WithMessage(Constants.ErrorMessages.ExistsNicknane);
+            .Length(1, 20).WithMessage(ErrorMessages.NotValidNickname)
+            .MustAsync(IsNicknameUniqueAsync).WithMessage(ErrorMessages.ExistsNicknane);
 
         RuleFor(player => player.Email)
-            .EmailAddress().WithMessage(Constants.ErrorMessages.NotValidEmail)
-            .MustAsync(IsEmailUniqueAsync).WithMessage(Constants.ErrorMessages.ExistsEmail);
+            .EmailAddress().WithMessage(ErrorMessages.NotValidEmail)
+            .MustAsync(IsEmailUniqueAsync).WithMessage(ErrorMessages.ExistsEmail);
 
         RuleFor(player => player.Password)
-            .Must(Helpers.IsPasswordValid).WithMessage(Constants.ErrorMessages.NotValidPassword);
+            .Must(Helpers.IsPasswordValid).WithMessage(ErrorMessages.NotValidPassword);
 
         RuleFor(player => player.RepeatPassword)
-            .Equal(player => player.Password).WithMessage(Constants.ErrorMessages.PasswordMustMatch);
+            .Equal(player => player.Password).WithMessage(ErrorMessages.PasswordMustMatch);
     }
 
     private async Task<bool> IsNicknameUniqueAsync(string nickname, CancellationToken cancellationToken)
     {
         if (await _redisCache.ExistsAsync($"nickname:{nickname}"))
         {
-            throw new ValidationConflictException(Constants.ErrorMessages.ExistsNicknane, "Nickname");
+            throw new ValidationConflictException(ErrorMessages.ExistsNicknane, "Nickname");
         }
 
         return true;
@@ -70,7 +71,7 @@ public class CreatePlayerDtoValidator : AbstractValidator<RegistrationPlayerRequ
     {
         if (await _redisCache.ExistsAsync($"email:{email}"))
         {
-            throw new ValidationConflictException(Constants.ErrorMessages.ExistsEmail, "Email");
+            throw new ValidationConflictException(ErrorMessages.ExistsEmail, "Email");
         }
 
         return true;

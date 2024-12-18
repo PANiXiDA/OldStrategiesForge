@@ -14,19 +14,18 @@ using System.Threading.RateLimiting;
 using APIGateway.Filters;
 using Microsoft.AspNetCore.Mvc;
 using System.Text.Encodings.Web;
+using Common.Constants;
 
 var builder = WebApplication.CreateBuilder(args);
 
-PortsConfiguration.ConfigurePort();
-
 builder.WebHost.ConfigureKestrel(options =>
 {
-    options.ListenAnyIP(PortsConfiguration.HttpPort, listenOptions =>
+    options.ListenAnyIP(PortsConstants.APIGatewayHttpPort, listenOptions =>
     {
         listenOptions.Protocols = Microsoft.AspNetCore.Server.Kestrel.Core.HttpProtocols.Http1;
     });
 
-    options.ListenAnyIP(PortsConfiguration.GrpcPort, listenOptions =>
+    options.ListenAnyIP(PortsConstants.APIGatewayGrpcPort, listenOptions =>
     {
         listenOptions.Protocols = Microsoft.AspNetCore.Server.Kestrel.Core.HttpProtocols.Http2;
     });

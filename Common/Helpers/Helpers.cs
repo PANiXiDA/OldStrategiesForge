@@ -2,7 +2,8 @@
 using System.Text;
 using System.Text.RegularExpressions;
 
-namespace Common;
+namespace Common.Helpers;
+
 public class Helpers
 {
     private static readonly Random Random = new Random();

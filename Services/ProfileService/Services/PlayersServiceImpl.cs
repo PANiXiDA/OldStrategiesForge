@@ -1,4 +1,4 @@
-﻿using Common;
+﻿using Common.Constants;
 using Grpc.Core;
 using Profile.Players.Gen;
 using ProfileService.DAL.Interfaces;
@@ -42,7 +42,7 @@ public class PlayersServiceImpl : ProfilePlayers.ProfilePlayersBase
 
         if (player == null)
         {
-            throw new RpcException(new Status(StatusCode.NotFound, Constants.ErrorMessages.PlayerNotFound));
+            throw new RpcException(new Status(StatusCode.NotFound, ErrorMessages.PlayerNotFound));
         }
         if (player.Avatar != null)
         {
@@ -63,13 +63,13 @@ public class PlayersServiceImpl : ProfilePlayers.ProfilePlayersBase
         var player = await _playersDAL.GetAsync(request.PlayerId);
         if (player == null)
         {
-            throw new RpcException(new Status(StatusCode.NotFound, Constants.ErrorMessages.PlayerNotFound));
+            throw new RpcException(new Status(StatusCode.NotFound, ErrorMessages.PlayerNotFound));
         }
 
         var avatar = await _avatarsDAL.GetAsync(request.AvatarId);
         if (avatar == null)
         {
-            throw new RpcException(new Status(StatusCode.NotFound, Constants.ErrorMessages.AvatarNotFound));
+            throw new RpcException(new Status(StatusCode.NotFound, ErrorMessages.AvatarNotFound));
         }
 
         ValidateItemRequirements(avatar, player);
@@ -85,13 +85,13 @@ public class PlayersServiceImpl : ProfilePlayers.ProfilePlayersBase
         var player = await _playersDAL.GetAsync(request.PlayerId);
         if (player == null)
         {
-            throw new RpcException(new Status(StatusCode.NotFound, Constants.ErrorMessages.PlayerNotFound));
+            throw new RpcException(new Status(StatusCode.NotFound, ErrorMessages.PlayerNotFound));
         }
 
         var frame = await _framesDAL.GetAsync(request.FrameId);
         if (frame == null)
         {
-            throw new RpcException(new Status(StatusCode.NotFound, Constants.ErrorMessages.AvatarNotFound));
+            throw new RpcException(new Status(StatusCode.NotFound, ErrorMessages.AvatarNotFound));
         }
 
         ValidateItemRequirements(frame, player);
@@ -106,22 +106,22 @@ public class PlayersServiceImpl : ProfilePlayers.ProfilePlayersBase
     {
         if (!item.Available)
         {
-            throw new RpcException(new Status(StatusCode.PermissionDenied, Constants.ErrorMessages.AvatarNotAvailable));
+            throw new RpcException(new Status(StatusCode.PermissionDenied, ErrorMessages.AvatarNotAvailable));
         }
 
         if (item.NecessaryMmr > player.Mmr)
         {
-            throw new RpcException(new Status(StatusCode.FailedPrecondition, $"{Constants.ErrorMessages.NotEnoughMmr} {item.NecessaryMmr}"));
+            throw new RpcException(new Status(StatusCode.FailedPrecondition, $"{ErrorMessages.NotEnoughMmr} {item.NecessaryMmr}"));
         }
 
         if (item.NecessaryGames > player.Games)
         {
-            throw new RpcException(new Status(StatusCode.FailedPrecondition, $"{Constants.ErrorMessages.NotEnoughGames} {item.NecessaryGames}"));
+            throw new RpcException(new Status(StatusCode.FailedPrecondition, $"{ErrorMessages.NotEnoughGames} {item.NecessaryGames}"));
         }
 
         if (item.NecessaryWins > player.Wins)
         {
-            throw new RpcException(new Status(StatusCode.FailedPrecondition, $"{Constants.ErrorMessages.NotEnoughWins} {item.NecessaryWins}"));
+            throw new RpcException(new Status(StatusCode.FailedPrecondition, $"{ErrorMessages.NotEnoughWins} {item.NecessaryWins}"));
         }
     }
 }

@@ -1,5 +1,5 @@
 ﻿using Common.Enums;
-using Common;
+using Common.Helpers;
 using Profile.Auth.Gen;
 using Profile.Players.Gen;
 using Google.Protobuf.WellKnownTypes;
@@ -85,6 +85,7 @@ public class PlayersDto
             Experience = Experience,
             Avatar = new Avatar
             {
+                Id = Avatar == null ? 0 : Avatar.Id,
                 S3Path = Avatar?.S3Path,
                 Name = Avatar?.Name,
                 Description = Avatar?.Description,
@@ -92,6 +93,7 @@ public class PlayersDto
             },
             Frame = new Frame
             {
+                Id = Frame == null ? 0 : Frame.Id,
                 S3Path = Frame?.S3Path,
                 Name = Frame?.Name,
                 Description = Frame?.Description,

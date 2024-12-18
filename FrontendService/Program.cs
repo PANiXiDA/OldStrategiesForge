@@ -1,10 +1,11 @@
+using Common.Constants;
 using Tools.RabbitMQ.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.WebHost.ConfigureKestrel(options =>
 {
-    options.ListenAnyIP(int.Parse(Environment.GetEnvironmentVariable("ASPNETCORE_HTTP_PORTS")!));
+    options.ListenAnyIP(PortsConstants.FrontendServiceHttpPort);
 });
 
 var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");

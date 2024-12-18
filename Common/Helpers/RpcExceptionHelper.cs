@@ -1,6 +1,6 @@
 ﻿using Grpc.Core;
 
-namespace ProfileService.Extensions.Helpers;
+namespace Common.Helpers;
 
 public static class RpcExceptionHelper
 {
@@ -16,4 +16,3 @@ public static class RpcExceptionHelper
     public static RpcException PermissionDenied(string message) => Create(StatusCode.PermissionDenied, message);
     public static RpcException FailedPrecondition(string message) => Create(StatusCode.FailedPrecondition, message);
 }
-

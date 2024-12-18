@@ -1,19 +1,15 @@
 services:
 # API Gateway
-  api-gateway-service:
-    container_name: APIGateway
+  api-gateway:
+    container_name: api-gateway
     build:
       context: .
       dockerfile: APIGateway/Dockerfile
     restart: unless-stopped
     ports:
       - "8080:8080"
-    environment:
-      PROFILE_SERVICE_URL: http://profile-service:8001
-      HTTP_PORT: 8080
-      GRPC_PORT: 8081
     depends_on:
-      - profile-service  
+      - profile-service
     networks:
       - app-network
 
@@ -31,9 +27,6 @@ services:
       DB_USER: postgres
       DB_PASSWORD: 123456789
       ASPNETCORE_ENVIRONMENT: production
-      IMAGES_SERVICE_URL: http://images-service:8003
-      HTTP_PORT: 8000
-      GRPC_PORT: 8001
       RabbitMQ: rabbitmq
     depends_on:
       - profile_db
@@ -67,9 +60,6 @@ services:
       DB_USER: postgres
       DB_PASSWORD: 123456789
       ASPNETCORE_ENVIRONMENT: production
-      IMAGES_SERVICE_URL: http://images-service:8003
-      HTTP_PORT: 8000
-      GRPC_PORT: 8001
       RabbitMQ: rabbitmq
     working_dir: /app
     volumes:
@@ -96,8 +86,6 @@ services:
     restart: unless-stopped
     environment:
       ASPNETCORE_ENVIRONMENT: production
-      HTTP_PORT: 8002
-      GRPC_PORT: 8003
     networks:
       - app-network
       
@@ -165,8 +153,8 @@ services:
       - app-network
 
 # UI      
-  old-strategy-forge-ui-service:
-    container_name: old-strategy-forge-ui-service
+  frontend-service:
+    container_name: frontend-service
     build:
       context: .
       dockerfile: FrontendService/Dockerfile
@@ -175,7 +163,6 @@ services:
       - "9080:9080"
     environment:
       ASPNETCORE_ENVIRONMENT: Production
-      ASPNETCORE_HTTP_PORTS: 9080
       RabbitMQ: rabbitmq
     networks:
       - app-network

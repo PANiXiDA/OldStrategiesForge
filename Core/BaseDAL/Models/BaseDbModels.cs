@@ -18,4 +18,3 @@ public class BaseDbModel<TObjectId>
     [Column("deleted_at")]
     public DateTime? DeletedAt { get; set; }
 }
-

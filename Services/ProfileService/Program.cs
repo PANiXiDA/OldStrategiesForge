@@ -4,19 +4,18 @@ using ProfileService.Extensions;
 using Tools.RabbitMQ.Extensions;
 using Tools.AWS3.Extensions;
 using Tools.Redis;
+using Common.Constants;
 
 var builder = WebApplication.CreateBuilder(args);
 
-PortsConfiguration.ConfigurePort();
-
 builder.WebHost.ConfigureKestrel(options =>
 {
-    options.ListenAnyIP(PortsConfiguration.HttpPort, listenOptions =>
+    options.ListenAnyIP(PortsConstants.ProfileServiceHttpPort, listenOptions =>
     {
         listenOptions.Protocols = Microsoft.AspNetCore.Server.Kestrel.Core.HttpProtocols.Http1;
     });
 
-    options.ListenAnyIP(PortsConfiguration.GrpcPort, listenOptions =>
+    options.ListenAnyIP(PortsConstants.ProfileServiceGrpcPort, listenOptions =>
     {
         listenOptions.Protocols = Microsoft.AspNetCore.Server.Kestrel.Core.HttpProtocols.Http2;
     });
@@ -46,10 +45,5 @@ builder.Services.AddSingleton<IRedisCache>(provider =>
 var app = builder.Build();
 
 app.MapGrpcEndpoints();
-
-if (app.Environment.IsDevelopment())
-{
-    app.MapGrpcReflectionService();
-}
 
 app.Run();

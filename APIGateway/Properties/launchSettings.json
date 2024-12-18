@@ -5,13 +5,10 @@
       "launchBrowser": true,
       "launchUrl": "swagger",
       "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development",
-        "PROFILE_SERVICE_URL": "http://localhost:8001",
-        "HTTP_PORT": "8080",
-        "GRPC_PORT": "8081"
+        "ASPNETCORE_ENVIRONMENT": "Development"
       },
       "dotnetRunMessages": true,
-      "applicationUrl": "http://localhost:8080;http://localhost:8081"
+      "applicationUrl": "http://localhost:8080"
     }
   }
 }

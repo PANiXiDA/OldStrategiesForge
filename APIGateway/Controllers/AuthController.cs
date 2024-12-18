@@ -1,6 +1,5 @@
 ﻿using Asp.Versioning;
 using Profile.Auth.Gen;
-using Common;
 using Microsoft.AspNetCore.Mvc;
 using APIGateway.Infrastructure.Extensions;
 using APIGateway.Infrastructure.Requests.Auth;
@@ -13,6 +12,7 @@ using Tools.Redis;
 using FluentValidation;
 using APIGateway.Extensions.Cooldowns;
 using System.Text;
+using Common.Constants;
 
 namespace APIGateway.Controllers;
 
@@ -80,7 +80,7 @@ public class AuthController : ControllerBase
     {
         if (!await Cooldowns.CanSendConfirmAccountAsync(request.Email, _redisCache))
         {
-            return StatusCode(StatusCodes.Status429TooManyRequests, RestApiResponseBuilder<NoContent>.Fail(Constants.ErrorMessages.TooManyRequests, Constants.ErrorMessages.ErrorKey));
+            return StatusCode(StatusCodes.Status429TooManyRequests, RestApiResponseBuilder<NoContent>.Fail(ErrorMessages.TooManyRequests, ErrorMessages.ErrorKey));
         }
 
         var grpcResponse = await _authClient.ConfirmEmailAsync(request.ConfirmEmailRequestDtoToProto());
@@ -114,7 +114,7 @@ public class AuthController : ControllerBase
     {
         if (!await Cooldowns.CanSendRecoveryEmailAsync(request.Email, _redisCache))
         {
-            return StatusCode(StatusCodes.Status429TooManyRequests, RestApiResponseBuilder<NoContent>.Fail(Constants.ErrorMessages.TooManyRequests, Constants.ErrorMessages.ErrorKey));
+            return StatusCode(StatusCodes.Status429TooManyRequests, RestApiResponseBuilder<NoContent>.Fail(ErrorMessages.TooManyRequests, ErrorMessages.ErrorKey));
         }
 
         var grpcResponse = await _authClient.RecoveryPasswordAsync(request.RecoveryPasswordRequestDtoToProto());
@@ -161,7 +161,7 @@ public class AuthController : ControllerBase
 
         if (playerIdClaim == null)
         {
-            return StatusCode(StatusCodes.Status401Unauthorized, RestApiResponseBuilder<GetPlayerResponseDto>.Fail(Constants.ErrorMessages.Unauthorized, Constants.ErrorMessages.ErrorKey));
+            return StatusCode(StatusCodes.Status401Unauthorized, RestApiResponseBuilder<GetPlayerResponseDto>.Fail(ErrorMessages.Unauthorized, ErrorMessages.ErrorKey));
         }
 
         int playerId = int.Parse(playerIdClaim.Value);

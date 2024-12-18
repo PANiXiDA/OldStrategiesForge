@@ -36,5 +36,4 @@ public static class Cooldowns
         var actionKey = $"ConfirmAccount:{email}";
         return await CanPerformActionAsync(actionKey, cache, TimeSpan.FromMinutes(15));
     }
-
 }

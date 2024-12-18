@@ -48,6 +48,7 @@ public class GetPlayerResponseDto
             Experience = getPlayerResponse.Experience,
             Avatar = new AvatarDto()
             {
+                Id = getPlayerResponse.Avatar.Id,
                 S3Path = getPlayerResponse.Avatar.S3Path,
                 Name = getPlayerResponse.Avatar.Name,
                 Description = getPlayerResponse.Avatar.Description,
@@ -55,6 +56,7 @@ public class GetPlayerResponseDto
             },
             Frame = new FrameDto()
             {
+                Id = getPlayerResponse.Frame.Id,
                 S3Path = getPlayerResponse.Frame.S3Path,
                 Name = getPlayerResponse.Frame.Name,
                 Description = getPlayerResponse.Frame.Description,
@@ -66,6 +68,7 @@ public class GetPlayerResponseDto
 
 public class AvatarDto
 {
+    public int Id { get; set; }
     public string S3Path { get; set; } = string.Empty;
     public string Name { get; set; } = string.Empty;
     public string Description { get; set; } = string.Empty;
@@ -74,6 +77,7 @@ public class AvatarDto
 
 public class FrameDto
 {
+    public int Id { get; set; }
     public string S3Path { get; set; } = string.Empty;
     public string Name { get; set; } = string.Empty;
     public string Description { get; set; } = string.Empty;

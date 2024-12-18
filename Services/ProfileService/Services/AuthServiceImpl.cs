@@ -1,5 +1,5 @@
 ﻿using Profile.Auth.Gen;
-using Common;
+using Common.Constants;
 using Common.SearchParams.ProfileService;
 using Google.Protobuf.WellKnownTypes;
 using Grpc.Core;
@@ -14,17 +14,14 @@ using Common.Configurations;
 using Microsoft.Extensions.Options;
 using System.Security.Cryptography;
 using Tools.RabbitMQ;
-using ProfileService.Extensions.Helpers;
 using Tools.Redis;
 using Common.Dto.RabbitMq;
+using Common.Helpers;
 
 namespace ProfileService.Services;
 
 public class AuthServiceImpl : ProfileAuth.ProfileAuthBase
 {
-    private const int _timeoutSec = 30;
-    private const int _redisLifeTimeDays = 30;
-
     private readonly ILogger<AuthServiceImpl> _logger;
     private readonly JwtSettings _jwtSettings;
     private readonly IPlayersDAL _playersDAL;
@@ -53,35 +50,31 @@ public class AuthServiceImpl : ProfileAuth.ProfileAuthBase
         var players = (await _playersDAL.GetAsync(new PlayersSearchParams() { IsRegistrationCheck = true })).Objects;
         if (players.Any(item => item.Email == request.Email))
         {
-            await _redisCache.SetAsync($"email:{request.Email}", true, TimeSpan.FromDays(_redisLifeTimeDays));
-            throw RpcExceptionHelper.AlreadyExists(Constants.ErrorMessages.ExistsEmail);
+            await _redisCache.SetAsync($"email:{request.Email}", true, TimeSpan.FromDays(TimeoutSettings.RedisEmailLifeTimeDays));
+            throw RpcExceptionHelper.AlreadyExists(ErrorMessages.ExistsEmail);
         }
         if (players.Any(item => item.Nickname == request.Nickname))
         {
-            await _redisCache.SetAsync($"nickname:{request.Nickname}", true, TimeSpan.FromDays(_redisLifeTimeDays));
-            throw RpcExceptionHelper.AlreadyExists(Constants.ErrorMessages.ExistsNicknane);
+            await _redisCache.SetAsync($"nickname:{request.Nickname}", true, TimeSpan.FromDays(TimeoutSettings.RedisNicknameLifeTimeDays));
+            throw RpcExceptionHelper.AlreadyExists(ErrorMessages.ExistsNicknane);
         }
 
         var playerId = await _playersDAL.AddOrUpdateAsync(PlayersDto.PlayersDtoFromProtoAuth(request));
-        await _redisCache.SetAsync($"email:{request.Email}", true, TimeSpan.FromDays(_redisLifeTimeDays));
-        await _redisCache.SetAsync($"nickname:{request.Nickname}", true, TimeSpan.FromDays(_redisLifeTimeDays));
+        await _redisCache.SetAsync($"email:{request.Email}", true, TimeSpan.FromDays(TimeoutSettings.RedisEmailLifeTimeDays));
+        await _redisCache.SetAsync($"nickname:{request.Nickname}", true, TimeSpan.FromDays(TimeoutSettings.RedisNicknameLifeTimeDays));
 
         var rabbitRequest = new SendEmailRequest() { Email = request.Email, Id = playerId };
 
-        var result = await RabbitMqHelper.CallSafely<SendEmailRequest, SendEmailResponse>(
-            _rabbitMQClient,
+        var result = await _rabbitMQClient.CallAsync<SendEmailRequest, SendEmailResponse>(
             rabbitRequest,
-            Constants.RabbitMqQueues.ConfirmEmail,
-            TimeSpan.FromSeconds(_timeoutSec),
-            _logger,
-            Constants.ErrorMessages.EmailTimeoutError,
-            Constants.ErrorMessages.Unavailable
+            RabbitMqQueues.ConfirmEmail,
+            TimeSpan.FromSeconds(TimeoutSettings.RabbitMqTimeoutSec)
         );
 
         if (result == null || !result.Success)
         {
             _logger.LogError($"Ошибка во время отправки сообщения в email service: {result?.Error}");
-            throw RpcExceptionHelper.InternalError(Constants.ErrorMessages.EmailServiceUnavailable);
+            throw RpcExceptionHelper.InternalError(ErrorMessages.EmailServiceUnavailable);
         }
 
         return new Empty();
@@ -94,7 +87,7 @@ public class AuthServiceImpl : ProfileAuth.ProfileAuthBase
 
         if (player!.Password != Helpers.GetPasswordHash(request.Password))
         {
-            throw RpcExceptionHelper.PermissionDenied(Constants.ErrorMessages.PlayerPasswordIncorrect);
+            throw RpcExceptionHelper.PermissionDenied(ErrorMessages.PlayerPasswordIncorrect);
         }
 
         var (accessToken, refreshToken) = await GenerateTokens(player!.Id, (PlayerRole)player.Role);
@@ -113,29 +106,25 @@ public class AuthServiceImpl : ProfileAuth.ProfileAuthBase
         var player = await _playersDAL.GetAsync(request.Email);
         if (player == null)
         {
-            throw RpcExceptionHelper.NotFound(Constants.ErrorMessages.PlayerNotFound);
+            throw RpcExceptionHelper.NotFound(ErrorMessages.PlayerNotFound);
         }
         if (player.Confirmed)
         {
-            throw RpcExceptionHelper.AlreadyExists(Constants.ErrorMessages.PlayerAlreadyConfirmed);
+            throw RpcExceptionHelper.AlreadyExists(ErrorMessages.PlayerAlreadyConfirmed);
         }
 
         var rabbitRequest = new SendEmailRequest() { Email = request.Email, Id = player.Id };
 
-        var result = await RabbitMqHelper.CallSafely<SendEmailRequest, SendEmailResponse>(
-            _rabbitMQClient,
+        var result = await _rabbitMQClient.CallAsync<SendEmailRequest, SendEmailResponse>(
             rabbitRequest,
-            Constants.RabbitMqQueues.ConfirmEmail,
-            TimeSpan.FromSeconds(_timeoutSec),
-            _logger,
-            Constants.ErrorMessages.EmailTimeoutError,
-            Constants.ErrorMessages.Unavailable
+            RabbitMqQueues.ConfirmEmail,
+            TimeSpan.FromSeconds(TimeoutSettings.RabbitMqTimeoutSec)
         );
 
         if (result == null || !result.Success)
         {
             _logger.LogError($"Ошибка во время отправки сообщения в email service: {result?.Error}");
-            throw RpcExceptionHelper.InternalError(Constants.ErrorMessages.EmailServiceUnavailable);
+            throw RpcExceptionHelper.InternalError(ErrorMessages.EmailServiceUnavailable);
         }
 
         return new Empty();
@@ -147,7 +136,7 @@ public class AuthServiceImpl : ProfileAuth.ProfileAuthBase
 
         if (player.Blocked)
         {
-            throw RpcExceptionHelper.PermissionDenied(Constants.ErrorMessages.PlayerBlocked);
+            throw RpcExceptionHelper.PermissionDenied(ErrorMessages.PlayerBlocked);
         }
         player.Confirmed = true;
 
@@ -168,20 +157,16 @@ public class AuthServiceImpl : ProfileAuth.ProfileAuthBase
 
         var rabbitRequest = new SendEmailRequest() { Email = request.Email, Id = player?.Id };
 
-        var result = await RabbitMqHelper.CallSafely<SendEmailRequest, SendEmailResponse>(
-            _rabbitMQClient,
+        var result = await _rabbitMQClient.CallAsync<SendEmailRequest, SendEmailResponse>(
             rabbitRequest,
-            Constants.RabbitMqQueues.RecoveryPassword,
-            TimeSpan.FromSeconds(_timeoutSec),
-            _logger,
-            Constants.ErrorMessages.EmailTimeoutError,
-            Constants.ErrorMessages.Unavailable
+            RabbitMqQueues.RecoveryPassword,
+            TimeSpan.FromSeconds(TimeoutSettings.RabbitMqTimeoutSec)
         );
 
         if (result == null || !result.Success)
         {
             _logger.LogError($"Ошибка во время отправки сообщения в email service: {result?.Error}");
-            throw RpcExceptionHelper.InternalError(Constants.ErrorMessages.EmailServiceUnavailable);
+            throw RpcExceptionHelper.InternalError(ErrorMessages.EmailServiceUnavailable);
         }
 
         return new Empty();
@@ -199,20 +184,16 @@ public class AuthServiceImpl : ProfileAuth.ProfileAuthBase
 
         var rabbitRequest = new SendEmailRequest() { Email = player.Email, Password = newPassword };
 
-        var result = await RabbitMqHelper.CallSafely<SendEmailRequest, SendEmailResponse>(
-            _rabbitMQClient,
+        var result = await _rabbitMQClient.CallAsync<SendEmailRequest, SendEmailResponse>(
             rabbitRequest,
-            Constants.RabbitMqQueues.ChangePassword,
-            TimeSpan.FromSeconds(_timeoutSec),
-            _logger,
-            Constants.ErrorMessages.EmailTimeoutError,
-            Constants.ErrorMessages.Unavailable
+            RabbitMqQueues.ChangePassword,
+            TimeSpan.FromSeconds(TimeoutSettings.RabbitMqTimeoutSec)
         );
 
         if (result == null || !result.Success)
         {
             _logger.LogError($"Ошибка во время отправки сообщения в email service: {result?.Error}");
-            throw RpcExceptionHelper.InternalError(Constants.ErrorMessages.EmailServiceUnavailable);
+            throw RpcExceptionHelper.InternalError(ErrorMessages.EmailServiceUnavailable);
         }
 
         return new Empty();
@@ -223,7 +204,7 @@ public class AuthServiceImpl : ProfileAuth.ProfileAuthBase
         var isTokenDeleted = await _tokensDAL.DeleteByRefreshTokenAsync(request.RefreshToken);
         if (!isTokenDeleted)
         {
-            throw RpcExceptionHelper.NotFound(Constants.ErrorMessages.BadRefreshToken);
+            throw RpcExceptionHelper.NotFound(ErrorMessages.BadRefreshToken);
         }
 
         return new Empty();
@@ -234,7 +215,7 @@ public class AuthServiceImpl : ProfileAuth.ProfileAuthBase
         var isTokenDeleted = await _tokensDAL.DeleteByPlayerIdAsync(request.PlayerId);
         if (!isTokenDeleted)
         {
-            throw RpcExceptionHelper.NotFound(Constants.ErrorMessages.NoActiveSessions);
+            throw RpcExceptionHelper.NotFound(ErrorMessages.NoActiveSessions);
         }
 
         return new Empty();
@@ -245,22 +226,22 @@ public class AuthServiceImpl : ProfileAuth.ProfileAuthBase
         var token = await _tokensDAL.GetAsync(request.RefreshToken);
         if (token == null)
         {
-            throw RpcExceptionHelper.NotFound(Constants.ErrorMessages.BadRefreshToken);
+            throw RpcExceptionHelper.NotFound(ErrorMessages.BadRefreshToken);
         }
 
         var player = await _playersDAL.GetAsync(token.PlayerId);
 
         if (player == null)
         {
-            throw RpcExceptionHelper.NotFound(Constants.ErrorMessages.PlayerNotFound);
+            throw RpcExceptionHelper.NotFound(ErrorMessages.PlayerNotFound);
         }
         if (!player.Confirmed)
         {
-            throw RpcExceptionHelper.FailedPrecondition(Constants.ErrorMessages.PlayerNotConfirm);
+            throw RpcExceptionHelper.FailedPrecondition(ErrorMessages.PlayerNotConfirm);
         }
         if (player.Blocked)
         {
-            throw RpcExceptionHelper.PermissionDenied(Constants.ErrorMessages.PlayerBlocked);
+            throw RpcExceptionHelper.PermissionDenied(ErrorMessages.PlayerBlocked);
         }
 
         var (accessToken, refreshToken) = await GenerateTokens(player.Id, (PlayerRole)player.Role, token);
@@ -341,15 +322,15 @@ public class AuthServiceImpl : ProfileAuth.ProfileAuthBase
     {
         if (player == null)
         {
-            throw RpcExceptionHelper.NotFound(Constants.ErrorMessages.PlayerNotFound);
+            throw RpcExceptionHelper.NotFound(ErrorMessages.PlayerNotFound);
         }
         if (!player.Confirmed)
         {
-            throw RpcExceptionHelper.FailedPrecondition(Constants.ErrorMessages.PlayerNotConfirm);
+            throw RpcExceptionHelper.FailedPrecondition(ErrorMessages.PlayerNotConfirm);
         }
         if (player.Blocked)
         {
-            throw RpcExceptionHelper.PermissionDenied(Constants.ErrorMessages.PlayerBlocked);
+            throw RpcExceptionHelper.PermissionDenied(ErrorMessages.PlayerBlocked);
         }
     }
 }

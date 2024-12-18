@@ -1,18 +1,18 @@
+using Common.Configurations;
+using Common.Constants;
 using ImagesService.Extensions;
 using Tools.AWS3.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
-PortsConfiguration.ConfigurePort();
-
 builder.WebHost.ConfigureKestrel(options =>
 {
-    options.ListenAnyIP(PortsConfiguration.HttpPort, listenOptions =>
+    options.ListenAnyIP(PortsConstants.ImagesServiceHttpPort, listenOptions =>
     {
         listenOptions.Protocols = Microsoft.AspNetCore.Server.Kestrel.Core.HttpProtocols.Http1;
     });
 
-    options.ListenAnyIP(PortsConfiguration.GrpcPort, listenOptions =>
+    options.ListenAnyIP(PortsConstants.ImageServiceGrpcPort, listenOptions =>
     {
         listenOptions.Protocols = Microsoft.AspNetCore.Server.Kestrel.Core.HttpProtocols.Http2;
     });

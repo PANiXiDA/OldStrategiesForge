@@ -6,6 +6,7 @@ using Tools.RabbitMQ;
 using static EmailService.BL.Dto.Commands.ProcessEmailSenderCommand;
 using System.Text.Json;
 using Common.Dto.RabbitMq;
+using Constants = Common.Constants;
 
 namespace EmailService.BackgroundServices;
 
@@ -36,7 +37,7 @@ internal class SendEmailProcessingService : BackgroundService
         {
             _rabbitMQClient.StartReceivingMultiple(new Dictionary<string, (Type, Func<object, IBasicProperties?, IModel?, Task>)>
             {
-                [Common.Constants.RabbitMqQueues.ConfirmEmail] = (typeof(SendEmailRequest), async (message, props, channel) =>
+                [Constants.RabbitMqQueues.ConfirmEmail] = (typeof(SendEmailRequest), async (message, props, channel) =>
                 {
                     var typedMessage = (SendEmailRequest)message;
                     await ProcessMessageAsync(typedMessage, props, channel!, async (msg, provider) =>
@@ -51,7 +52,7 @@ internal class SendEmailProcessingService : BackgroundService
                     });
                 }
                 ),
-                [Common.Constants.RabbitMqQueues.RecoveryPassword] = (typeof(SendEmailRequest), async (message, props, channel) =>
+                [Constants.RabbitMqQueues.RecoveryPassword] = (typeof(SendEmailRequest), async (message, props, channel) =>
                 {
                     var typedMessage = (SendEmailRequest)message;
                     await ProcessMessageAsync(typedMessage, props, channel!, async (msg, provider) =>

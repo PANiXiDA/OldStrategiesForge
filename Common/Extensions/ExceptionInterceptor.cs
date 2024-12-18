@@ -1,9 +1,8 @@
 ﻿using Grpc.Core.Interceptors;
 using Grpc.Core;
-using Common;
+using Microsoft.Extensions.Logging;
 
-namespace ImagesService.Extensions;
-
+namespace Common.Extensions;
 public class ExceptionInterceptor : Interceptor
 {
     private readonly ILogger<ExceptionInterceptor> _logger;

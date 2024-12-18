@@ -10,18 +10,12 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Grpc.AspNetCore" Version="2.67.0" />
-		<PackageReference Include="Grpc.AspNetCore.Server.Reflection" Version="2.67.0" />
 		<PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.21.0" />
 	</ItemGroup>
 
 	<ItemGroup>
 		<ProjectReference Include="..\..\Common\Common.csproj" />
 		<ProjectReference Include="..\..\Tools\Tools.csproj" />
-	</ItemGroup>
-
-	<ItemGroup>
-		<Protobuf Include="..\..\Core\Contracts\ImagesService\s3Images.proto" GrpcServices="Server" />
 	</ItemGroup>
 
 </Project>

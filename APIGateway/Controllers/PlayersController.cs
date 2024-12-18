@@ -3,7 +3,7 @@ using Profile.Players.Gen;
 using Asp.Versioning;
 using APIGateway.Infrastructure.Extensions;
 using Microsoft.AspNetCore.Authorization;
-using Common;
+using Common.Constants;
 using System.Security.Claims;
 using APIGateway.Infrastructure.Responses.Players;
 using APIGateway.Infrastructure.Requests.Players;
@@ -35,7 +35,7 @@ public class PlayersController : ControllerBase
         var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
         if (userIdClaim == null)
         {
-            return StatusCode(StatusCodes.Status401Unauthorized, RestApiResponseBuilder<GetPlayerResponseDto>.Fail(Constants.ErrorMessages.Unauthorized, Constants.ErrorMessages.ErrorKey));
+            return StatusCode(StatusCodes.Status401Unauthorized, RestApiResponseBuilder<GetPlayerResponseDto>.Fail(ErrorMessages.Unauthorized, ErrorMessages.ErrorKey));
         }
         int userId = int.Parse(userIdClaim.Value);
 
@@ -53,7 +53,7 @@ public class PlayersController : ControllerBase
         var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
         if (userIdClaim == null)
         {
-            return StatusCode(StatusCodes.Status401Unauthorized, RestApiResponseBuilder<NoContent>.Fail(Constants.ErrorMessages.Unauthorized, Constants.ErrorMessages.ErrorKey));
+            return StatusCode(StatusCodes.Status401Unauthorized, RestApiResponseBuilder<NoContent>.Fail(ErrorMessages.Unauthorized, ErrorMessages.ErrorKey));
         }
         int userId = int.Parse(userIdClaim.Value);
 
@@ -75,7 +75,7 @@ public class PlayersController : ControllerBase
         var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
         if (userIdClaim == null)
         {
-            return StatusCode(StatusCodes.Status401Unauthorized, RestApiResponseBuilder<NoContent>.Fail(Constants.ErrorMessages.Unauthorized, Constants.ErrorMessages.ErrorKey));
+            return StatusCode(StatusCodes.Status401Unauthorized, RestApiResponseBuilder<NoContent>.Fail(ErrorMessages.Unauthorized, ErrorMessages.ErrorKey));
         }
         int userId = int.Parse(userIdClaim.Value);
 
