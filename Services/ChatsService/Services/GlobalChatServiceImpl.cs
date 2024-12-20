@@ -73,6 +73,8 @@ public class GlobalChatServiceImpl : GlobalChat.GlobalChatBase
         var messagesQueue = new Queue<ChatMessageResponse>();
         var processingTasks = new List<Task>();
 
+        var historyQueue = new Queue<ChatMessageResponse>();
+
         var historyMessages = (await _messagesDAL.GetAsync(new MessagesSearchParams
         {
             ChatId = _globalChatId.Value,
@@ -98,7 +100,7 @@ public class GlobalChatServiceImpl : GlobalChat.GlobalChatBase
         {
             var message = historyMessages[i];
 
-            messagesQueue.Enqueue(new ChatMessageResponse
+            historyQueue.Enqueue(new ChatMessageResponse
             {
                 MessageId = message.Id.ToString(),
                 SenderId = message.SenderId,
@@ -156,6 +158,14 @@ public class GlobalChatServiceImpl : GlobalChat.GlobalChatBase
 
         async Task ProcessOutgoingMessages()
         {
+            // Отправляем историю сообщений только текущему клиенту
+            while (historyQueue.Count > 0)
+            {
+                var historyMessage = historyQueue.Dequeue();
+                await responseStream.WriteAsync(historyMessage);
+            }
+
+            // Затем переходим к отправке новых сообщений из глобальной очереди
             while (!context.CancellationToken.IsCancellationRequested)
             {
                 ChatMessageResponse? messageToSend = null;
@@ -189,4 +199,5 @@ public class GlobalChatServiceImpl : GlobalChat.GlobalChatBase
 
         await Task.WhenAll(processingTasks);
     }
+
 }

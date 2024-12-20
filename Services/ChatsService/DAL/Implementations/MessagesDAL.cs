@@ -40,8 +40,10 @@ public class MessagesDAL : BaseDAL<DefaultDbContext, Message,
     {
         if (searchParams.GetHistoryChat.HasValue && searchParams.GetHistoryChat.Value == true && searchParams.ChatId.HasValue)
         {
-            dbObjects = dbObjects.Where(item => item.ChatId == searchParams.ChatId.Value && item.CreatedAt >= DateTime.UtcNow.AddHours(-2));
+            dbObjects = dbObjects.Where(item => item.ChatId == searchParams.ChatId.Value && item.CreatedAt >= DateTime.UtcNow.AddHours(-12));
         }
+
+        dbObjects = dbObjects.OrderBy(item => item.CreatedAt);
 
         return dbObjects;
     }
