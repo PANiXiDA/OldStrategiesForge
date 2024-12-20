@@ -87,7 +87,7 @@ public class ExceptionMiddleware
         return context.Response.WriteAsJsonAsync(response);
     }
 
-    private Task HandleJsonExceptionAsync(HttpContext context, System.Text.Json.JsonException ex)
+    private Task HandleJsonExceptionAsync(HttpContext context, JsonException ex)
     {
         context.Response.StatusCode = StatusCodes.Status400BadRequest;
 
@@ -99,4 +99,3 @@ public class ExceptionMiddleware
         return context.Response.WriteAsJsonAsync(response);
     }
 }
-

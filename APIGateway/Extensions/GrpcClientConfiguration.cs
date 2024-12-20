@@ -4,6 +4,8 @@ using Profile.Avatar.Gen;
 using Profile.Frames.Gen;
 using Common.Configurations;
 using Common.Constants;
+using ImageService.S3Images.Gen;
+using Global.Chat.Gen;
 
 namespace APIGateway.Extensions;
 
@@ -15,5 +17,7 @@ public static class GrpcClientConfiguration
         GrpcConfiguration.ConfigureGrpcClient<ProfileAuth.ProfileAuthClient>(services, ServiceNames.ProfileService);
         GrpcConfiguration.ConfigureGrpcClient<ProfileAvatars.ProfileAvatarsClient>(services, ServiceNames.ProfileService);
         GrpcConfiguration.ConfigureGrpcClient<ProfileFrames.ProfileFramesClient>(services, ServiceNames.ProfileService);
+        GrpcConfiguration.ConfigureGrpcClient<S3Images.S3ImagesClient>(services, ServiceNames.ImagesService);
+        GrpcConfiguration.ConfigureGrpcClient<GlobalChat.GlobalChatClient>(services, ServiceNames.ChatsService);
     }
 }

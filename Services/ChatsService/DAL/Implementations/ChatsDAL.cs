@@ -33,6 +33,11 @@ internal class ChatsDAL : BaseDAL<DefaultDbContext, Chat,
     protected override IQueryable<Chat> BuildDbQuery(DefaultDbContext context,
         IQueryable<Chat> dbObjects, ChatsSearchParams searchParams)
     {
+        if (searchParams.ChatType.HasValue)
+        {
+            dbObjects = dbObjects.Where(item => item.ChatType == searchParams.ChatType.Value);
+        }
+
         return dbObjects;
     }
 

@@ -7,6 +7,7 @@ using Common.Constants;
 using System.Security.Claims;
 using APIGateway.Infrastructure.Responses.Players;
 using APIGateway.Infrastructure.Requests.Players;
+using ImageService.S3Images.Gen;
 
 namespace APIGateway.Controllers;
 
@@ -18,13 +19,16 @@ public class PlayersController : ControllerBase
 {
     private readonly ILogger<PlayersController> _logger;
     private readonly ProfilePlayers.ProfilePlayersClient _playersClient;
+    private readonly S3Images.S3ImagesClient _s3ImagesClient;
 
     public PlayersController(
         ILogger<PlayersController> logger,
-        ProfilePlayers.ProfilePlayersClient playersClient)
+        ProfilePlayers.ProfilePlayersClient playersClient,
+        S3Images.S3ImagesClient s3ImagesClient)
     {
         _logger = logger;
         _playersClient = playersClient;
+        _s3ImagesClient = s3ImagesClient;
     }
 
     [HttpGet]
@@ -40,6 +44,12 @@ public class PlayersController : ControllerBase
         int userId = int.Parse(userIdClaim.Value);
 
         var getPlayerResponse = await _playersClient.GetAsync(new GetPlayerRequest() { Id = userId });
+
+        var avatarPresignedUrlResponse = await _s3ImagesClient.GetPresignedUrlAsync(new GetPresignedUrlRequest() { S3Paths = { getPlayerResponse.Avatar.S3Path } });
+        getPlayerResponse.Avatar.S3Path = avatarPresignedUrlResponse.FileUrls.First();
+
+        var framePresignedUrlResponse = await _s3ImagesClient.GetPresignedUrlAsync(new GetPresignedUrlRequest() { S3Paths = { getPlayerResponse.Frame.S3Path } });
+        getPlayerResponse.Frame.S3Path = framePresignedUrlResponse.FileUrls.First();
 
         return StatusCode(StatusCodes.Status200OK, RestApiResponseBuilder<GetPlayerResponseDto>.Success(GetPlayerResponseDto.GetPlayerResponseDtoFromProto(getPlayerResponse)));
     }

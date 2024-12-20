@@ -2,10 +2,9 @@
 
 # Этот этап используется при запуске из VS в быстром режиме (по умолчанию для конфигурации отладки)
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
-USER app
+USER $APP_UID
 WORKDIR /app
 EXPOSE 8080
-EXPOSE 8081
 
 
 # Этот этап используется для сборки проекта службы
@@ -13,6 +12,11 @@ FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
 COPY ["Services/ChatsService/ChatsService.csproj", "Services/ChatsService/"]
+COPY ["Common/Common.csproj", "Common/"]
+COPY ["Core/Contracts/Contracts.csproj", "Core/Contracts/"]
+COPY ["Core/BaseBL/BaseBL.csproj", "Core/BaseBL/"]
+COPY ["Core/BaseDAL/BaseDAL.csproj", "Core/BaseDAL/"]
+COPY ["Tools/Tools.csproj", "Tools/"]
 RUN dotnet restore "./Services/ChatsService/ChatsService.csproj"
 COPY . .
 WORKDIR "/src/Services/ChatsService"

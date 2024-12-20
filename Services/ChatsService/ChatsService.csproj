@@ -25,12 +25,4 @@
 		<ProjectReference Include="..\..\Tools\Tools.csproj" />
 	</ItemGroup>
 
-	<ItemGroup>
-		<Protobuf Include="..\Core\Contracts\ProfileService\players.proto" GrpcServices="Client" />
-	</ItemGroup>
-
-	<ItemGroup>
-		<Folder Include="Services\" />
-	</ItemGroup>
-
 </Project>

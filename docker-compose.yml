@@ -152,6 +152,68 @@ services:
     networks:
       - app-network
 
+# Chats     
+  chats-service:
+    container_name: chats-service
+    build:
+      context: .
+      dockerfile: Services/ChatsService/Dockerfile
+    restart: unless-stopped
+    environment:
+      DB_HOST: chats_db
+      DB_PORT: 5432
+      POSTGRES_DB: ChatsServiceDb
+      DB_USER: postgres
+      DB_PASSWORD: 123456789
+      ASPNETCORE_ENVIRONMENT: production
+    depends_on:
+      - chats_db
+      - chats_db_migrator
+    networks:
+      - app-network
+      
+  chats_db:
+    image: postgres:15
+    container_name: chats_db
+    restart: always   
+    ports:
+      - "5436:5432"
+    volumes:
+      - chats-database-data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: ChatsServiceDb
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 123456789
+    networks:
+      - app-network
+
+  chats_db_migrator:
+    image: mcr.microsoft.com/dotnet/sdk:8.0
+    container_name: chats_db_migrator
+    restart: on-failure
+    environment:
+      DB_HOST: chats_db
+      DB_PORT: 5432
+      POSTGRES_DB: ChatsServiceDb
+      DB_USER: postgres
+      DB_PASSWORD: 123456789
+      ASPNETCORE_ENVIRONMENT: production
+    working_dir: /app
+    volumes:
+      - .:/app
+    command:
+      - sh
+      - -c
+      - |
+        dotnet tool install --global dotnet-ef &&
+        export PATH="/usr/local/bin:/usr/bin:/bin:/root/.dotnet/tools" &&
+        dotnet ef database update --project Services/ChatsService/ChatsService.csproj \
+                                  --startup-project Services/ChatsService/ChatsService.csproj
+    depends_on:
+      - chats_db     
+    networks:
+      - app-network
+
 # UI      
   frontend-service:
     container_name: frontend-service
@@ -211,3 +273,4 @@ volumes:
   profile-database-data:
   email-database-data:
   redis_data:
+  chats-database-data:

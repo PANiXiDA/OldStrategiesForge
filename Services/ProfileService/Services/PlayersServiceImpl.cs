@@ -13,20 +13,17 @@ public class PlayersServiceImpl : ProfilePlayers.ProfilePlayersBase
 {
     private readonly ILogger<PlayersServiceImpl> _logger;
     private readonly IPlayersDAL _playersDAL;
-    private readonly S3Images.S3ImagesClient _s3ImagesClient;
     private readonly IAvatarsDAL _avatarsDAL;
     private readonly IFramesDAL _framesDAL;
 
     public PlayersServiceImpl(
         ILogger<PlayersServiceImpl> logger,
         IPlayersDAL playersDAL,
-        S3Images.S3ImagesClient s3ImagesClient,
         IAvatarsDAL avatarsDAL,
         IFramesDAL framesDAL)
     {
         _logger = logger;
         _playersDAL = playersDAL;
-        _s3ImagesClient = s3ImagesClient;
         _avatarsDAL = avatarsDAL;
         _framesDAL = framesDAL;
     }
@@ -43,16 +40,6 @@ public class PlayersServiceImpl : ProfilePlayers.ProfilePlayersBase
         if (player == null)
         {
             throw new RpcException(new Status(StatusCode.NotFound, ErrorMessages.PlayerNotFound));
-        }
-        if (player.Avatar != null)
-        {
-            var presignedUrlResponse = await _s3ImagesClient.GetPresignedUrlAsync(new GetPresignedUrlRequest() { S3Paths = { player.Avatar.S3Path } });
-            player.Avatar.S3Path = presignedUrlResponse.FileUrls.First();
-        }
-        if (player.Frame != null)
-        {
-            var presignedUrlResponse = await _s3ImagesClient.GetPresignedUrlAsync(new GetPresignedUrlRequest() { S3Paths = { player.Frame.S3Path } });
-            player.Frame.S3Path = presignedUrlResponse.FileUrls.First();
         }
 
         return await Task.FromResult(player.GetPlayersResponseProtoFromDto());

@@ -25,8 +25,11 @@ public class MessagesDAL : BaseDAL<DefaultDbContext, Message,
         dbObject.UpdatedAt = DateTime.UtcNow;
         dbObject.DeletedAt = entity.DeletedAt;
         dbObject.ChatId = entity.ChatId;
-        dbObject.SenderId = entity.SenderId;
         dbObject.Content = entity.Content;
+        dbObject.SenderId = entity.SenderId;
+        dbObject.SenderNickname = entity.SenderNickname;
+        dbObject.AvatarS3Path = entity.AvatarS3Path;
+        dbObject.FrameS3Path = entity.FrameS3Path;
         dbObject.IsRead = entity.IsRead;
 
         return Task.CompletedTask;
@@ -35,6 +38,11 @@ public class MessagesDAL : BaseDAL<DefaultDbContext, Message,
     protected override IQueryable<Message> BuildDbQuery(DefaultDbContext context,
         IQueryable<Message> dbObjects, MessagesSearchParams searchParams)
     {
+        if (searchParams.GetHistoryChat.HasValue && searchParams.GetHistoryChat.Value == true && searchParams.ChatId.HasValue)
+        {
+            dbObjects = dbObjects.Where(item => item.ChatId == searchParams.ChatId.Value && item.CreatedAt >= DateTime.UtcNow.AddHours(-2));
+        }
+
         return dbObjects;
     }
 
@@ -64,8 +72,11 @@ public class MessagesDAL : BaseDAL<DefaultDbContext, Message,
             dbObject.UpdatedAt,
             dbObject.DeletedAt,
             dbObject.ChatId,
-            dbObject.SenderId,
             dbObject.Content,
+            dbObject.SenderId,
+            dbObject.SenderNickname,
+            dbObject.AvatarS3Path,
+            dbObject.FrameS3Path,
             dbObject.IsRead
             )
         {

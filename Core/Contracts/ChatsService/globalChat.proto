@@ -1,0 +1,26 @@
+﻿syntax = "proto3";
+
+import "google/protobuf/timestamp.proto";
+
+option csharp_namespace = "Global.Chat.Gen";
+
+service GlobalChat {
+    rpc ChatStream (stream ChatMessageRequest) returns (stream ChatMessageResponse);
+}
+
+message ChatMessageRequest {
+    int32 sender_id = 1;
+    string content = 2;
+}
+
+message ChatMessageResponse {
+    string message_id = 1;
+    int32 sender_id = 2;
+    string sender_nickname = 3;
+    string content = 4;
+    string avatar_s3_path = 5;
+    string avatar_file_name = 6;
+    string frame_s3_path = 7;
+    string frame_file_name = 8;
+	google.protobuf.Timestamp time_sending = 9;
+}
