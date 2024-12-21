@@ -37,6 +37,16 @@ public class ExceptionMiddleware
             _logger.LogError(rpcEx, "gRPC вызов завершился с ошибкой.");
             await HandleGrpcExceptionAsync(context, rpcEx);
         }
+        catch (InvalidOperationException ex)
+        {
+            _logger.LogWarning(ex, "Неправильная операция: {Message}", ex.Message);
+            await HandleInvalidOperationExceptionAsync(context, ex);
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            _logger.LogWarning(ex, "Неавторизованный доступ: {Message}", ex.Message);
+            await HandleUnauthorizedAccessExceptionAsync(context, ex);
+        }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Необработанное исключение.");
@@ -67,6 +77,30 @@ public class ExceptionMiddleware
         };
 
         var failure = Failure.Create(ex.Message, ex.Status.StatusCode.ToString());
+        var response = RestApiResponse<object>.Fail(failure);
+
+        context.Response.ContentType = "application/json";
+
+        return context.Response.WriteAsJsonAsync(response);
+    }
+
+    private Task HandleInvalidOperationExceptionAsync(HttpContext context, InvalidOperationException ex)
+    {
+        context.Response.StatusCode = StatusCodes.Status400BadRequest;
+
+        var failure = Failure.Create(ex.Message, "InvalidOperation");
+        var response = RestApiResponse<object>.Fail(failure);
+
+        context.Response.ContentType = "application/json";
+
+        return context.Response.WriteAsJsonAsync(response);
+    }
+
+    private Task HandleUnauthorizedAccessExceptionAsync(HttpContext context, UnauthorizedAccessException ex)
+    {
+        context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+
+        var failure = Failure.Create(ex.Message, "UnauthorizedAccess");
         var response = RestApiResponse<object>.Fail(failure);
 
         context.Response.ContentType = "application/json";

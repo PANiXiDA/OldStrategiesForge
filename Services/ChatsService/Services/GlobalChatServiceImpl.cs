@@ -39,10 +39,7 @@ public class GlobalChatServiceImpl : GlobalChat.GlobalChatBase
         _messagesDAL = messagesDAL;
     }
 
-    public override async Task ChatStream(
-        IAsyncStreamReader<ChatMessageRequest> requestStream,
-        IServerStreamWriter<ChatMessageResponse> responseStream,
-        ServerCallContext context)
+    private async Task SetGlobalChatId()
     {
         if (!_globalChatId.HasValue)
         {
@@ -69,59 +66,26 @@ public class GlobalChatServiceImpl : GlobalChat.GlobalChatBase
                 _globalChatLock.Release();
             }
         }
+    }
+
+    public override async Task ChatStream(
+        IAsyncStreamReader<ChatMessageRequest> requestStream,
+        IServerStreamWriter<ChatMessageResponse> responseStream,
+        ServerCallContext context)
+    {
+        await SetGlobalChatId();
 
         var messagesQueue = new Queue<ChatMessageResponse>();
         var processingTasks = new List<Task>();
 
-        var historyQueue = new Queue<ChatMessageResponse>();
-
-        var historyMessages = (await _messagesDAL.GetAsync(new MessagesSearchParams
-        {
-            ChatId = _globalChatId.Value,
-            GetHistoryChat = true
-        })).Objects.ToList();
-
-        var avatarPaths = historyMessages.Select(m => m.AvatarS3Path).ToList();
-        var framePaths = historyMessages.Select(m => m.FrameS3Path).ToList();
-
-        var avatarPresignedUrlsResponse = await _s3ImagesClient.GetPresignedUrlAsync(new GetPresignedUrlRequest
-        {
-            S3Paths = { avatarPaths }
-        });
-        var framePresignedUrlsResponse = await _s3ImagesClient.GetPresignedUrlAsync(new GetPresignedUrlRequest
-        {
-            S3Paths = { framePaths }
-        });
-
-        var avatarPresignedUrls = avatarPresignedUrlsResponse.FileUrls.ToList();
-        var framePresignedUrls = framePresignedUrlsResponse.FileUrls.ToList();
-
-        for (int i = 0; i < historyMessages.Count; i++)
-        {
-            var message = historyMessages[i];
-
-            historyQueue.Enqueue(new ChatMessageResponse
-            {
-                MessageId = message.Id.ToString(),
-                SenderId = message.SenderId,
-                SenderNickname = message.SenderNickname,
-                Content = message.Content,
-                AvatarS3Path = avatarPresignedUrls[i],
-                AvatarFileName = FileNameHelper.GetFileName(message.AvatarS3Path),
-                FrameS3Path = framePresignedUrls[i],
-                FrameFileName = FileNameHelper.GetFileName(message.FrameS3Path),
-                TimeSending = Timestamp.FromDateTime(message.CreatedAt)
-            });
-        }
-
         async Task ProcessIncomingMessages()
         {
-            await foreach (var request in requestStream.ReadAllAsync())
+            await foreach (var request in requestStream.ReadAllAsync(context.CancellationToken))
             {
                 var player = await _playersClient.GetAsync(new GetPlayerRequest { Id = request.SenderId });
 
                 var message = new MessageDto(
-                    _globalChatId.Value,
+                    _globalChatId!.Value,
                     request.Content,
                     request.SenderId,
                     player.Nickname,
@@ -158,14 +122,6 @@ public class GlobalChatServiceImpl : GlobalChat.GlobalChatBase
 
         async Task ProcessOutgoingMessages()
         {
-            // Отправляем историю сообщений только текущему клиенту
-            while (historyQueue.Count > 0)
-            {
-                var historyMessage = historyQueue.Dequeue();
-                await responseStream.WriteAsync(historyMessage);
-            }
-
-            // Затем переходим к отправке новых сообщений из глобальной очереди
             while (!context.CancellationToken.IsCancellationRequested)
             {
                 ChatMessageResponse? messageToSend = null;
@@ -185,7 +141,7 @@ public class GlobalChatServiceImpl : GlobalChat.GlobalChatBase
 
                 if (messageToSend != null)
                 {
-                    await responseStream.WriteAsync(messageToSend);
+                    await responseStream.WriteAsync(messageToSend, context.CancellationToken);
                 }
                 else
                 {
@@ -197,7 +153,54 @@ public class GlobalChatServiceImpl : GlobalChat.GlobalChatBase
         processingTasks.Add(ProcessIncomingMessages());
         processingTasks.Add(ProcessOutgoingMessages());
 
-        await Task.WhenAll(processingTasks);
+        await Task.WhenAny(Task.WhenAll(processingTasks), Task.Delay(-1, context.CancellationToken));
     }
 
+    public override async Task<GetHistoryResponse> GetHistory(Empty empty, ServerCallContext context)
+    {
+        await SetGlobalChatId();
+
+        var historyMessages = (await _messagesDAL.GetAsync(new MessagesSearchParams
+        {
+            ChatId = _globalChatId!.Value,
+            GetHistoryChat = true
+        })).Objects.ToList();
+
+        var avatarPaths = historyMessages.Select(m => m.AvatarS3Path).ToList();
+        var framePaths = historyMessages.Select(m => m.FrameS3Path).ToList();
+
+        var avatarPresignedUrlsResponse = await _s3ImagesClient.GetPresignedUrlAsync(new GetPresignedUrlRequest
+        {
+            S3Paths = { avatarPaths }
+        });
+        var framePresignedUrlsResponse = await _s3ImagesClient.GetPresignedUrlAsync(new GetPresignedUrlRequest
+        {
+            S3Paths = { framePaths }
+        });
+
+        var avatarPresignedUrls = avatarPresignedUrlsResponse.FileUrls.ToList();
+        var framePresignedUrls = framePresignedUrlsResponse.FileUrls.ToList();
+
+        var messageHistory = new GetHistoryResponse();
+
+        for (int i = 0; i < historyMessages.Count; i++)
+        {
+            var message = historyMessages[i];
+
+            messageHistory.Messages.Add(new ChatMessageResponse
+            {
+                MessageId = message.Id.ToString(),
+                SenderId = message.SenderId,
+                SenderNickname = message.SenderNickname,
+                Content = message.Content,
+                AvatarS3Path = avatarPresignedUrls[i],
+                AvatarFileName = FileNameHelper.GetFileName(message.AvatarS3Path),
+                FrameS3Path = framePresignedUrls[i],
+                FrameFileName = FileNameHelper.GetFileName(message.FrameS3Path),
+                TimeSending = Timestamp.FromDateTime(message.CreatedAt)
+            });
+        }
+
+        return messageHistory;
+    }
 }

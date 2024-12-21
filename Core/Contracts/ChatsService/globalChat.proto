@@ -1,11 +1,13 @@
 ﻿syntax = "proto3";
 
 import "google/protobuf/timestamp.proto";
+import "google/protobuf/empty.proto";
 
 option csharp_namespace = "Global.Chat.Gen";
 
 service GlobalChat {
     rpc ChatStream (stream ChatMessageRequest) returns (stream ChatMessageResponse);
+    rpc GetHistory (google.protobuf.Empty) returns (GetHistoryResponse);
 }
 
 message ChatMessageRequest {
@@ -23,4 +25,8 @@ message ChatMessageResponse {
     string frame_s3_path = 7;
     string frame_file_name = 8;
 	google.protobuf.Timestamp time_sending = 9;
+}
+
+message GetHistoryResponse {
+    repeated ChatMessageResponse messages = 1;
 }

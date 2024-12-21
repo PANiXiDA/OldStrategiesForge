@@ -15,8 +15,6 @@ public class MessageDto : BaseEntity<Guid>
     public string? AvatarFileName { get; set; }
     public string? FrameFileName { get; set; }
 
-    public MessageDto() : base(Guid.NewGuid(), DateTime.UtcNow, DateTime.UtcNow, null) { }
-
     public MessageDto(
         Guid id,
         DateTime createdAt,

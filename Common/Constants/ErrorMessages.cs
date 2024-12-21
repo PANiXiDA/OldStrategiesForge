@@ -6,11 +6,16 @@ public static class ErrorMessages
     public const string ErrorKey = "ErrorMessage.";
     public const string Unavailable = "The service is unavailable.";
     public const string TooManyRequests = "Too many requests. Wait 15 min.";
+    public const string Unauthorized = "Unauthorized";
     #endregion
 
     #region Validation errors
     public const string NotFound = "Not found.";
     public const string NotValidModel = "Invalid model.";
+    #endregion
+
+    #region WebSocker errors
+    public const string WebSocketConnection = "WebSocket connection required.";
     #endregion
 
     #region Profile service errors
@@ -27,7 +32,6 @@ public static class ErrorMessages
     #endregion
 
     #region Auth errors
-    public const string Unauthorized = "Unauthorized.";
     public const string BadRefreshToken = "Refresh token not found.";
     public const string NoActiveSessions = "No active sessions.";
 
