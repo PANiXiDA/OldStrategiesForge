@@ -213,6 +213,68 @@ services:
       - chats_db     
     networks:
       - app-network
+      
+# Games     
+  games-service:
+    container_name: games-service
+    build:
+      context: .
+      dockerfile: Services/GamesService/Dockerfile
+    restart: unless-stopped
+    environment:
+      DB_HOST: games_db
+      DB_PORT: 5432
+      POSTGRES_DB: GamesServiceDb
+      DB_USER: postgres
+      DB_PASSWORD: 123456789
+      ASPNETCORE_ENVIRONMENT: production
+    depends_on:
+      - games_db
+      - games_db_migrator
+    networks:
+      - app-network
+      
+  games_db:
+    image: postgres:15
+    container_name: games_db
+    restart: always   
+    ports:
+      - "5437:5432"
+    volumes:
+      - games-database-data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: GamesServiceDb
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 123456789
+    networks:
+      - app-network
+
+  games_db_migrator:
+    image: mcr.microsoft.com/dotnet/sdk:8.0
+    container_name: games_db_migrator
+    restart: on-failure
+    environment:
+      DB_HOST: games_db
+      DB_PORT: 5432
+      POSTGRES_DB: GamesServiceDb
+      DB_USER: postgres
+      DB_PASSWORD: 123456789
+      ASPNETCORE_ENVIRONMENT: production
+    working_dir: /app
+    volumes:
+      - .:/app
+    command:
+      - sh
+      - -c
+      - |
+        dotnet tool install --global dotnet-ef &&
+        export PATH="/usr/local/bin:/usr/bin:/bin:/root/.dotnet/tools" &&
+        dotnet ef database update --project Services/GamesService/GamesService.csproj \
+                                  --startup-project Services/GamesService/GamesService.csproj
+    depends_on:
+      - games_db     
+    networks:
+      - app-network
 
 # UI      
   frontend-service:
@@ -272,5 +334,6 @@ networks:
 volumes:
   profile-database-data:
   email-database-data:
-  redis_data:
   chats-database-data:
+  games-database-data:
+  redis_data:

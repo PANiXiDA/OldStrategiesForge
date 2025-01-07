@@ -6,6 +6,7 @@ using Common.Configurations;
 using Common.Constants;
 using ImageService.S3Images.Gen;
 using Global.Chat.Gen;
+using Matchmaking.Gen;
 
 namespace APIGateway.Extensions;
 
@@ -19,5 +20,6 @@ public static class GrpcClientConfiguration
         GrpcConfiguration.ConfigureGrpcClient<ProfileFrames.ProfileFramesClient>(services, ServiceNames.ProfileService);
         GrpcConfiguration.ConfigureGrpcClient<S3Images.S3ImagesClient>(services, ServiceNames.ImagesService);
         GrpcConfiguration.ConfigureGrpcClient<GlobalChat.GlobalChatClient>(services, ServiceNames.ChatsService);
+        GrpcConfiguration.ConfigureGrpcClient<GameMatchmaking.GameMatchmakingClient>(services, ServiceNames.GamesService);
     }
 }

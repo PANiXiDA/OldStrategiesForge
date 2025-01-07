@@ -14,5 +14,8 @@ public static class PortsConstants
     public const int ChatsServiceHttpPort = 8004;
     public const int ChatsServiceGrpcPort = 8005;
 
+    public const int GamesServiceHttpPort = 8006;
+    public const int GamesServiceGrpcPort = 8007;
+
     public const int FrontendServiceHttpPort = 9080;
 }

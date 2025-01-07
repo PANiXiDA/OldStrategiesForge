@@ -25,6 +25,28 @@ public static class WebSocketHelper
         await webSocket.SendAsync(new ArraySegment<byte>(messageBuffer), WebSocketMessageType.Text, true, CancellationToken.None);
     }
 
+    public static async Task ReceiveMessagesAndDetectClose(
+       WebSocket webSocket,
+       HttpContext context)
+    {
+        var buffer = new byte[1024 * 4];
+
+        while (webSocket.State == WebSocketState.Open && !context.RequestAborted.IsCancellationRequested)
+        {
+            var result = await webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), context.RequestAborted);
+
+            if (result.MessageType == WebSocketMessageType.Close)
+            {
+                await webSocket.CloseAsync(
+                    WebSocketCloseStatus.NormalClosure,
+                    "Closed by client",
+                    context.RequestAborted);
+
+                break;
+            }
+        }
+    }
+
     public static async Task ReceiveMessagesFromClient<TRequest>(
         WebSocket webSocket,
         IClientStreamWriter<TRequest> grpcRequestStream,
@@ -98,6 +120,32 @@ public static class WebSocketHelper
                 }
             }
             await Task.WhenAll(sendTasks);
+        }
+    }
+
+    public static async Task SendPersonalizedMessages<TResponse>(
+        IAsyncStreamReader<TResponse> grpcResponseStream,
+        WebSocket webSocket,
+        HttpContext context,
+        Func<TResponse, object> responseConverter)
+    {
+        while (await grpcResponseStream.MoveNext(context.RequestAborted))
+        {
+            var responseDto = responseConverter(grpcResponseStream.Current);
+            var responseJson = JsonSerializer.Serialize(responseDto);
+            var messageBuffer = Encoding.UTF8.GetBytes(responseJson);
+
+            if (webSocket.State == WebSocketState.Open)
+            {
+                await webSocket.SendAsync(messageBuffer, WebSocketMessageType.Text, true, CancellationToken.None);
+            }
+        }
+        if (webSocket.State == WebSocketState.Open)
+        {
+            await webSocket.CloseAsync(
+                WebSocketCloseStatus.NormalClosure,
+                "Closed by server.",
+                CancellationToken.None);
         }
     }
 }

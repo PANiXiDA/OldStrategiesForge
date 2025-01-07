@@ -8,6 +8,7 @@ public static class ServicePorts
         { ServiceNames.ProfileService, (PortsConstants.ProfileServiceHttpPort, PortsConstants.ProfileServiceGrpcPort) },
         { ServiceNames.ImagesService, (PortsConstants.ImagesServiceHttpPort, PortsConstants.ImageServiceGrpcPort) },
         { ServiceNames.ChatsService, (PortsConstants.ChatsServiceHttpPort, PortsConstants.ChatsServiceGrpcPort) },
+        { ServiceNames.GamesService, (PortsConstants.GamesServiceHttpPort, PortsConstants.GamesServiceGrpcPort) },
         { ServiceNames.FrontendService, (PortsConstants.FrontendServiceHttpPort, 0) }
     };
 

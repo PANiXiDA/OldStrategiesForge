@@ -10,6 +10,7 @@ public static class ServiceNames
     public const string ProfileService = "profile-service";
     public const string ImagesService = "images-service";
     public const string ChatsService = "chats-service";
+    public const string GamesService = "games-service";
     #endregion
 
     public const string EmailService = "email-service";
