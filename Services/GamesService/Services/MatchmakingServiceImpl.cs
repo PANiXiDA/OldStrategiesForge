@@ -174,21 +174,21 @@ public class GamesServiceImpl : GameMatchmaking.GameMatchmakingBase
         }
     }
 
-    private async Task NotifyPlayers(PlayerQueue player, Guid gameId)
+    private async Task NotifyPlayers(PlayerQueue opponent, Guid gameId, int playerId)
     {
         var response = new MatchmakingResponse
         {
             GameId = gameId.ToString(),
-            OpponentId = player.Id,
-            OpponentNickname = player.Nickname,
-            Mmr = player.Mmr,
-            Rank = player.Rank,
-            Level = player.Level,
-            Avatar = player.Avatar,
-            Frame = player.Frame
+            OpponentId = opponent.Id,
+            OpponentNickname = opponent.Nickname,
+            Mmr = opponent.Mmr,
+            Rank = opponent.Rank,
+            Level = opponent.Level,
+            Avatar = opponent.Avatar,
+            Frame = opponent.Frame
         };
 
-        if (_responseStreams.TryGetValue(player.Id, out var responseStream1))
+        if (_responseStreams.TryGetValue(playerId, out var responseStream1))
         {
             await responseStream1.WriteAsync(response);
         }
