@@ -142,8 +142,8 @@ public class GamesServiceImpl : GameMatchmaking.GameMatchmakingBase
                             var playerSessionId = await CreateSession(player.Id, gameId);
                             var opponentSessionId = await CreateSession(opponent.Id, gameId);
 
-                            await NotifyPlayers(player, gameId);
-                            await NotifyPlayers(opponent, gameId);
+                            await NotifyPlayers(player, gameId, opponent.Id);
+                            await NotifyPlayers(opponent, gameId, player.Id);
 
                             if (_playerCts.TryGetValue(player.Id, out var cts1))
                             {
