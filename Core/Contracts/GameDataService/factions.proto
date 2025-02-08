@@ -1,0 +1,23 @@
+﻿syntax = "proto3";
+
+import "google/protobuf/empty.proto";
+
+option csharp_namespace = "GameData.Factions.Gen";
+
+service Factions {
+    rpc GetFaction(GetFactionRequest) returns (GetFactionResponse);
+    rpc GetAllFactions(google.protobuf.Empty) returns (GetFactionsResponse);
+}
+
+message GetFactionRequest {
+    int32 faction_id = 1;
+}
+
+message GetFactionResponse {
+    int32 faction_id = 1;
+    string faction_name = 2;
+}
+
+message GetFactionsResponse {
+    repeated GetFactionResponse factions = 1;
+}

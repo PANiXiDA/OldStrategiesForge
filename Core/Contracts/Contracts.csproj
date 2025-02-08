@@ -26,6 +26,7 @@
 		<Protobuf Include="ImagesService\s3Images.proto" GrpcServices="Both" />
 		<Protobuf Include="ChatsService\globalChat.proto" GrpcServices="Both" />
 		<Protobuf Include="GamesService\matchmaking.proto" GrpcServices="Both" />
+		<Protobuf Include="GameDataService\factions.proto" GrpcServices="Both" />
 	</ItemGroup>
 
 </Project>

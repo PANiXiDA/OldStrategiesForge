@@ -31,6 +31,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ChatsService", "Services\Ch
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GamesService", "Services\GamesService\GamesService.csproj", "{993B8CD8-11BB-45AB-AFA2-01BED94457E7}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GameDataService", "Services\GameDataService\GameDataService.csproj", "{20053029-CAA7-4C2D-A24C-77F1281191AE}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -85,6 +87,10 @@ Global
 		{993B8CD8-11BB-45AB-AFA2-01BED94457E7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{993B8CD8-11BB-45AB-AFA2-01BED94457E7}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{993B8CD8-11BB-45AB-AFA2-01BED94457E7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{20053029-CAA7-4C2D-A24C-77F1281191AE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{20053029-CAA7-4C2D-A24C-77F1281191AE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{20053029-CAA7-4C2D-A24C-77F1281191AE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{20053029-CAA7-4C2D-A24C-77F1281191AE}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -98,6 +104,7 @@ Global
 		{D569F0BC-9C6C-446B-BBAC-065D89E27931} = {282C7EF7-628C-482D-AC41-DC2BE77D605D}
 		{76681392-C946-4503-BEBF-944B261CD19D} = {282C7EF7-628C-482D-AC41-DC2BE77D605D}
 		{993B8CD8-11BB-45AB-AFA2-01BED94457E7} = {282C7EF7-628C-482D-AC41-DC2BE77D605D}
+		{20053029-CAA7-4C2D-A24C-77F1281191AE} = {282C7EF7-628C-482D-AC41-DC2BE77D605D}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {AF7927CF-8C05-423F-802C-BBCE8DF0F2AE}
