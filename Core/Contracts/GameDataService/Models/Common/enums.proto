@@ -1,0 +1,27 @@
+﻿syntax = "proto3";
+
+option csharp_namespace = "GameData.Enums.Gen";
+
+enum ArtefactSlot {
+    HEAD = 0;
+    CHEST = 1;
+    HANDS = 2;
+    LEGS = 3;
+    FEET = 4;
+    RING = 5;
+    AMULET = 6;
+    WEAPON = 7;
+    SHIELD = 8;
+}
+
+enum SkillType {
+    FLY = 0;
+    DOUBLE_DAMAGE = 1;
+    VAMPIRISME = 2;
+}
+
+enum EffectType {
+    FLY1 = 0;
+    DOUBLE_DAMAGE1 = 1;
+    VAMPIRISME1 = 2;
+}

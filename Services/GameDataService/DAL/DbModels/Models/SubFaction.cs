@@ -2,7 +2,7 @@
 
 namespace GameDataService.DAL.DbModels.Models;
 
-public class SubFaction
+public class Subfaction
 {
     [Column("id")]
     public int Id { get; set; }
@@ -17,12 +17,12 @@ public class SubFaction
     public int FactionId { get; set; }
 
     public virtual Faction? Faction { get; set; }
-
-    public virtual ICollection<SubFactionAndAbilityScope> SubFactionAndAbilityScopes { get; set; } = new HashSet<SubFactionAndAbilityScope>();
     public virtual ICollection<Skill> Skills { get; set; } = new HashSet<Skill>();
 
+    public virtual ICollection<SubfactionAndAbilityScope> SubfactionAndAbilityScopes { get; set; } = new HashSet<SubfactionAndAbilityScope>();
+
     [NotMapped]
-    public IEnumerable<Ability> Abilities => SubFactionAndAbilityScopes
+    public IEnumerable<Ability> Abilities => SubfactionAndAbilityScopes
         .Where(item => item.Ability != null)
         .Select(item => item.Ability!);
 }

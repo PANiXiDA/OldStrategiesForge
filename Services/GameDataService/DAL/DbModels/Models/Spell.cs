@@ -17,6 +17,7 @@ public class Spell
     public int? RequiredSkillId { get; set; }
 
     public virtual Skill? RequiredSkill { get; set; }
+
     public virtual ICollection<SpellAndAbilityScope> SpellAndAbilityScopes { get; set; } = new HashSet<SpellAndAbilityScope>();
 
     [NotMapped]

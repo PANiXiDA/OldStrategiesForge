@@ -1,0 +1,33 @@
+﻿syntax = "proto3";
+
+import "google/protobuf/empty.proto";
+import "GameDataService/Models/entities.proto";
+import "GameDataService/Models/Common/search_params.proto";
+import "GameDataService/Models/Common/convert_params.proto";
+
+option csharp_namespace = "GameData.Subfactions.Gen";
+
+service SubfactionsService {
+    rpc Get(GetSubfactionRequest) returns (Subfaction);
+    rpc GetByFilter(GetSubfactionsRequest) returns (GetSubfactionsResponse);
+    rpc CreateOrUpdate(Subfaction) returns (google.protobuf.Empty);
+    rpc Delete(DeleteSubfactionRequest) returns (google.protobuf.Empty);
+}
+
+message GetSubfactionRequest {
+    int32 id = 1;
+    optional SubfactionsConvertParams subfactions_convert_params = 2;
+}
+
+message GetSubfactionsRequest {
+    SubfactionsSearchParams subfactions_search_params = 1;
+    optional SubfactionsConvertParams subfactions_convert_params = 2;
+}
+
+message GetSubfactionsResponse {
+    repeated Subfaction subfactions = 1;
+}
+
+message DeleteSubfactionRequest {
+    int32 id = 1;
+}

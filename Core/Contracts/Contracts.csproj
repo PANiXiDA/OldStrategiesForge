@@ -22,11 +22,28 @@
 		<Protobuf Include="ProfileService\auth.proto" GrpcServices="Both" />
 		<Protobuf Include="ProfileService\avatars.proto" GrpcServices="Both" />
 		<Protobuf Include="ProfileService\frames.proto" GrpcServices="Both" />
-		<Protobuf Include="ProfileService\players.proto" GrpcServices="Both" />		
-		<Protobuf Include="ImagesService\s3Images.proto" GrpcServices="Both" />
-		<Protobuf Include="ChatsService\globalChat.proto" GrpcServices="Both" />
+		<Protobuf Include="ProfileService\players.proto" GrpcServices="Both" />	
+		<Protobuf Include="ImagesService\s3Images.proto" GrpcServices="Both" />	
+		<Protobuf Include="ChatsService\globalChat.proto" GrpcServices="Both" />	
 		<Protobuf Include="GamesService\matchmaking.proto" GrpcServices="Both" />
+		
+		<Protobuf Include="GameDataService\Models\entities.proto" GrpcServices="Both" />
+		<Protobuf Include="GameDataService\Models\Common\enums.proto" GrpcServices="Both" />
+		<Protobuf Include="GameDataService\Models\Common\search_params.proto" GrpcServices="Both" />
+		<Protobuf Include="GameDataService\Models\Common\convert_params.proto" GrpcServices="Both" />
+		<Protobuf Include="GameDataService\abilities.proto" GrpcServices="Both" />
+		<Protobuf Include="GameDataService\artefact_set_bonuses.proto" GrpcServices="Both" />
+		<Protobuf Include="GameDataService\artefact_sets.proto" GrpcServices="Both" />
+		<Protobuf Include="GameDataService\artefacts.proto" GrpcServices="Both" />
+		<Protobuf Include="GameDataService\competencies.proto" GrpcServices="Both" />
+		<Protobuf Include="GameDataService\effects.proto" GrpcServices="Both" />
 		<Protobuf Include="GameDataService\factions.proto" GrpcServices="Both" />
+		<Protobuf Include="GameDataService\hero_classes.proto" GrpcServices="Both" />
+		<Protobuf Include="GameDataService\heroes.proto" GrpcServices="Both" />
+		<Protobuf Include="GameDataService\skills.proto" GrpcServices="Both" />
+		<Protobuf Include="GameDataService\spells.proto" GrpcServices="Both" />
+		<Protobuf Include="GameDataService\subfactions.proto" GrpcServices="Both" />
+		<Protobuf Include="GameDataService\units.proto" GrpcServices="Both" />
 	</ItemGroup>
 
 </Project>

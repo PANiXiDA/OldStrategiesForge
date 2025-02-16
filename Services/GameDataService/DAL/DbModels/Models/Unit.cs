@@ -55,6 +55,7 @@ public class Unit
     public virtual Faction? Faction { get; set; }
     public virtual Unit? BaseUnit { get; set; }
     public virtual ICollection<Unit> Upgrades { get; set; } = new HashSet<Unit>();
+
     public virtual ICollection<UnitAndAbilitytScope> UnitAndAbilitytScopes { get; set; } = new HashSet<UnitAndAbilitytScope>();
 
     [NotMapped]

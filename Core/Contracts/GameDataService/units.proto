@@ -1,0 +1,33 @@
+﻿syntax = "proto3";
+
+import "google/protobuf/empty.proto";
+import "GameDataService/Models/entities.proto";
+import "GameDataService/Models/Common/search_params.proto";
+import "GameDataService/Models/Common/convert_params.proto";
+
+option csharp_namespace = "GameData.Units.Gen";
+
+service UnitsService {
+    rpc Get(GetUnitRequest) returns (Unit);
+    rpc GetByFilter(GetUnitsRequest) returns (GetUnitsResponse);
+    rpc CreateOrUpdate(Unit) returns (google.protobuf.Empty);
+    rpc Delete(DeleteUnitRequest) returns (google.protobuf.Empty);
+}
+
+message GetUnitRequest {
+    int32 id = 1;
+    optional UnitsConvertParams units_convert_params = 2;
+}
+
+message GetUnitsRequest {
+    UnitsSearchParams units_search_params = 1;
+    optional UnitsConvertParams units_convert_params = 2;
+}
+
+message GetUnitsResponse {
+    repeated Unit units = 1;
+}
+
+message DeleteUnitRequest {
+    int32 id = 1;
+}

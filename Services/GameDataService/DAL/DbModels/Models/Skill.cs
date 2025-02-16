@@ -1,4 +1,5 @@
 ﻿using Common.Enums;
+using GameData.Enums.Gen;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace GameDataService.DAL.DbModels.Models;
@@ -17,17 +18,17 @@ public class Skill
     [Column("skill_type")]
     public SkillType SkillType { get; set; }
 
-    [Column("competency_id")]
-    public int? CompetencyId { get; set; }
+    [Column("competence_id")]
+    public int? CompetenceId { get; set; }
 
     [Column("subfaction_id")]
-    public int? SubFactionId { get; set; }
+    public int? SubfactionId { get; set; }
 
     [Column("ability_id")]
     public int? AbilityId { get; set; }
 
-    public virtual Competency? Competency { get; set; }
-    public virtual SubFaction? SubFaction { get; set; }
+    public virtual Competence? Competence { get; set; }
+    public virtual Subfaction? Subfaction { get; set; }
     public virtual Ability? Ability { get; set; }
 
     public virtual ICollection<SkillDependency> RequiredSkillDependencies { get; set; } = new HashSet<SkillDependency>();

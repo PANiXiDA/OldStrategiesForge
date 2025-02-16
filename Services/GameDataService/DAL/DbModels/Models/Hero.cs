@@ -35,12 +35,12 @@ public class Hero
     public int Luck { get; set; }
 
     [Column("subfaction_id")]
-    public int SubFactionId { get; set; }
+    public int SubfactionId { get; set; }
 
     [Column("hero_class_id")]
     public int HeroClassId { get; set; }
 
-    public virtual SubFaction? SubFaction { get; set; }
+    public virtual Subfaction? Subfaction { get; set; }
     public virtual HeroClass? HeroClass { get; set; }
     public virtual ICollection<HeroAndAbilityScope> HeroAndAbilityScopes { get; set; } = new HashSet<HeroAndAbilityScope>();
     public virtual ICollection<HeroAndArtefactScope> HeroAndArtefactScopes { get; set; } = new HashSet<HeroAndArtefactScope>();

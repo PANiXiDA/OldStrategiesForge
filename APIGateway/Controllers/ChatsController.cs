@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using System.Net.WebSockets;
 using APIGateway.Extensions.Helpers;
 using Empty = Google.Protobuf.WellKnownTypes.Empty;
-using APIGateway.Infrastructure.Extensions;
+using APIGateway.Infrastructure.Core;
 
 [ApiVersion("1.0")]
 [Route("api/v{version:apiVersion}/chats")]

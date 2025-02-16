@@ -1,0 +1,71 @@
+﻿syntax = "proto3";
+
+option csharp_namespace = "GameData.ConvertParams.Gen";
+
+message FactionsConvertParams {
+    optional bool include_abilities = 1;
+}
+
+message SubfactionsConvertParams {
+    optional bool include_faction = 1;
+    optional bool include_skills = 2;
+    optional bool include_abilities = 3;
+}
+
+message HeroesConvertParams {
+    optional bool include_subfaction = 1;
+    optional bool include_hero_class = 2;
+    optional bool include_abilities = 3;
+    optional bool include_artefacts = 4;
+}
+
+message HeroClassesConvertParams {
+    optional bool include_abilities = 1;
+}
+
+message UnitsConvertParams {
+    optional bool include_faction = 1;
+    optional bool include_base_unit = 2;
+    optional bool include_upgrades = 3;
+    optional bool include_abilities = 4;
+}
+
+message ArtefactsConvertParams {
+    optional bool include_hero_class = 1;
+    optional bool include_artefact_set = 2;
+    optional bool include_abilities = 3;
+}
+
+message ArtefactSetsConvertParams {
+    optional bool include_artefact_set_bonus = 1;
+    optional bool include_artefacts = 2;
+}
+
+message ArtefactSetBonusesConvertParams {
+    optional bool include_hero_class = 1;
+    optional bool include_artefact_set = 2;
+    optional bool include_abilities = 3;
+}
+
+message CompetenciesConvertParams {
+    optional bool include_subfaction = 1;
+    optional bool include_skills = 2;
+}
+
+message SkillsConvertParams {
+    optional bool include_competence = 1;
+    optional bool include_subfaction = 2;
+    optional bool include_ability = 3;
+}
+
+message SpellsConvertParams {
+    optional bool include_required_skill = 1;
+    optional bool include_abilities = 2;
+}
+
+message AbilitiesConvertParams {
+    optional bool include_effects = 1;
+}
+
+message EffectsConvertParams {
+}

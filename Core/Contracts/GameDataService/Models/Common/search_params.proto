@@ -1,0 +1,57 @@
+﻿syntax = "proto3";
+
+import "GameDataService/Models/Common/enums.proto";
+
+option csharp_namespace = "GameData.SearchParams.Gen";
+
+message FactionsSearchParams {
+    optional string name = 1;
+}
+
+message SubfactionsSearchParams {
+    optional int32 faction_id = 1;
+}
+
+message HeroesSearchParams {
+    optional string name = 1;
+}
+
+message HeroClassesSearchParams {
+    optional string name = 1;
+}
+
+message UnitsSearchParams {
+    optional string name = 1;
+}
+
+message ArtefactsSearchParams {
+    optional string name = 1;
+}
+
+message ArtefactSetsSearchParams {
+    optional string name = 1;
+}
+
+message ArtefactSetBonusesSearchParams {
+    optional string name = 1;
+}
+
+message CompetenciesSearchParams {
+    optional int32 subfaction_id = 1;
+}
+
+message SkillsSearchParams {
+    optional int32 subfaction_id = 1;
+}
+
+message SpellsSearchParams {
+    optional int32 required_skill_id = 1;
+}
+
+message AbilitiesSearchParams {
+    optional string name = 1;
+}
+
+message EffectsSearchParams {
+    optional EffectType effect_type = 1;
+}

@@ -1,23 +1,33 @@
 ﻿syntax = "proto3";
 
 import "google/protobuf/empty.proto";
+import "GameDataService/Models/entities.proto";
+import "GameDataService/Models/Common/search_params.proto";
+import "GameDataService/Models/Common/convert_params.proto";
 
 option csharp_namespace = "GameData.Factions.Gen";
 
-service Factions {
-    rpc GetFaction(GetFactionRequest) returns (GetFactionResponse);
-    rpc GetAllFactions(google.protobuf.Empty) returns (GetFactionsResponse);
+service FactionsService {
+    rpc Get(GetFactionRequest) returns (Faction);
+    rpc GetByFilter(GetFactionsRequest) returns (GetFactionsResponse);
+    rpc CreateOrUpdate(Faction) returns (google.protobuf.Empty);
+    rpc Delete(DeleteFactionRequest) returns (google.protobuf.Empty);
 }
 
 message GetFactionRequest {
-    int32 faction_id = 1;
+    int32 id = 1;
+    optional FactionsConvertParams factions_convert_params = 2;
 }
 
-message GetFactionResponse {
-    int32 faction_id = 1;
-    string faction_name = 2;
+message GetFactionsRequest {
+    FactionsSearchParams factions_search_params = 1;
+    optional FactionsConvertParams factions_convert_params = 2;
 }
 
 message GetFactionsResponse {
-    repeated GetFactionResponse factions = 1;
+    repeated Faction factions = 1;
+}
+
+message DeleteFactionRequest {
+    int32 id = 1;
 }

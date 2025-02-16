@@ -7,7 +7,7 @@ public interface IBaseDal<TDbContext, TDbObject, TEntity, TObjectId, TSearchPara
     where TDbContext : DbContext
     where TDbObject : class, new()
     where TEntity : class
-    where TSearchParams : BaseSearchParams
+    where TSearchParams : class
     where TConvertParams : class
 {
     Task<TObjectId> AddOrUpdateAsync(TEntity entity);

@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
-using APIGateway.Infrastructure.Extensions;
+using APIGateway.Infrastructure.Core;
 
 namespace APIGateway.Filters;
 

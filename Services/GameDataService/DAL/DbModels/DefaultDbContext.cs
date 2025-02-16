@@ -11,8 +11,8 @@ public partial class DefaultDbContext : DbContext
 
     public virtual DbSet<Faction> Factions { get; set; }
     public virtual DbSet<FactionAndAbilityScope> FactionAndAbilityScopes { get; set; }
-    public virtual DbSet<SubFaction> SubFactions { get; set; }
-    public virtual DbSet<SubFactionAndAbilityScope> SubFactionAndAbilityScopes { get; set; }
+    public virtual DbSet<Subfaction> Subfactions { get; set; }
+    public virtual DbSet<SubfactionAndAbilityScope> SubfactionAndAbilityScopes { get; set; }
     public virtual DbSet<Unit> Units { get; set; }
     public virtual DbSet<UnitAndAbilitytScope> UnitAndAbilitytScopes { get; set; }
     public virtual DbSet<Hero> Heroes { get; set; }
@@ -25,7 +25,7 @@ public partial class DefaultDbContext : DbContext
     public virtual DbSet<ArtefactSet> ArtefactSets { get; set; }
     public virtual DbSet<ArtefactSetBonus> ArtefactSetBonuses { get; set; }
     public virtual DbSet<ArtefactSetBonusAndAbilityScope> ArtefactSetBonusAndAbilityScopes { get; set; }
-    public virtual DbSet<Competency> Competencies { get; set; }
+    public virtual DbSet<Competence> Competencies { get; set; }
     public virtual DbSet<Skill> Skills { get; set; }
     public virtual DbSet<SkillDependency> SkillDependencies { get; set; }
     public virtual DbSet<SkillAndSpellScope> SkillAndSpellScopes { get; set; }

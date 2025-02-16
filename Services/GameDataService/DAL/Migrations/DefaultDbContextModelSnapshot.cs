@@ -89,9 +89,9 @@ namespace GameDataService.DAL.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("artefact_set_id");
 
-                    b.Property<int>("ArtifactSlot")
+                    b.Property<int>("ArtefactSlot")
                         .HasColumnType("integer")
-                        .HasColumnName("artifact_slot");
+                        .HasColumnName("artefact_slot");
 
                     b.Property<int?>("AttackBonus")
                         .HasColumnType("integer")
@@ -302,7 +302,7 @@ namespace GameDataService.DAL.Migrations
                     b.ToTable("ArtefactSetBonusAndAbilityScopes");
                 });
 
-            modelBuilder.Entity("GameDataService.DAL.DbModels.Models.Competency", b =>
+            modelBuilder.Entity("GameDataService.DAL.DbModels.Models.Competence", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -321,13 +321,13 @@ namespace GameDataService.DAL.Migrations
                         .HasColumnType("text")
                         .HasColumnName("name");
 
-                    b.Property<int>("SubFactionId")
+                    b.Property<int>("SubfactionId")
                         .HasColumnType("integer")
                         .HasColumnName("subfaction_id");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("SubFactionId");
+                    b.HasIndex("SubfactionId");
 
                     b.ToTable("Competencies");
                 });
@@ -464,7 +464,7 @@ namespace GameDataService.DAL.Migrations
                         .HasColumnType("text")
                         .HasColumnName("name");
 
-                    b.Property<int>("SubFactionId")
+                    b.Property<int>("SubfactionId")
                         .HasColumnType("integer")
                         .HasColumnName("subfaction_id");
 
@@ -472,7 +472,7 @@ namespace GameDataService.DAL.Migrations
 
                     b.HasIndex("HeroClassId");
 
-                    b.HasIndex("SubFactionId");
+                    b.HasIndex("SubfactionId");
 
                     b.ToTable("Heroes");
                 });
@@ -592,9 +592,9 @@ namespace GameDataService.DAL.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("ability_id");
 
-                    b.Property<int?>("CompetencyId")
+                    b.Property<int?>("CompetenceId")
                         .HasColumnType("integer")
-                        .HasColumnName("competency_id");
+                        .HasColumnName("competence_id");
 
                     b.Property<string>("Description")
                         .IsRequired()
@@ -610,7 +610,7 @@ namespace GameDataService.DAL.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("skill_type");
 
-                    b.Property<int?>("SubFactionId")
+                    b.Property<int?>("SubfactionId")
                         .HasColumnType("integer")
                         .HasColumnName("subfaction_id");
 
@@ -618,9 +618,9 @@ namespace GameDataService.DAL.Migrations
 
                     b.HasIndex("AbilityId");
 
-                    b.HasIndex("CompetencyId");
+                    b.HasIndex("CompetenceId");
 
-                    b.HasIndex("SubFactionId");
+                    b.HasIndex("SubfactionId");
 
                     b.ToTable("Skills");
                 });
@@ -733,7 +733,7 @@ namespace GameDataService.DAL.Migrations
                     b.ToTable("SpellAndAbilityScopes");
                 });
 
-            modelBuilder.Entity("GameDataService.DAL.DbModels.Models.SubFaction", b =>
+            modelBuilder.Entity("GameDataService.DAL.DbModels.Models.Subfaction", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -760,10 +760,10 @@ namespace GameDataService.DAL.Migrations
 
                     b.HasIndex("FactionId");
 
-                    b.ToTable("SubFactions");
+                    b.ToTable("Subfactions");
                 });
 
-            modelBuilder.Entity("GameDataService.DAL.DbModels.Models.SubFactionAndAbilityScope", b =>
+            modelBuilder.Entity("GameDataService.DAL.DbModels.Models.SubfactionAndAbilityScope", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -776,7 +776,7 @@ namespace GameDataService.DAL.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("ability_id");
 
-                    b.Property<int>("SubFactionId")
+                    b.Property<int>("SubfactionId")
                         .HasColumnType("integer")
                         .HasColumnName("subfaction_id");
 
@@ -784,9 +784,9 @@ namespace GameDataService.DAL.Migrations
 
                     b.HasIndex("AbilityId");
 
-                    b.HasIndex("SubFactionId");
+                    b.HasIndex("SubfactionId");
 
-                    b.ToTable("SubFactionAndAbilityScopes");
+                    b.ToTable("SubfactionAndAbilityScopes");
                 });
 
             modelBuilder.Entity("GameDataService.DAL.DbModels.Models.Unit", b =>
@@ -984,15 +984,15 @@ namespace GameDataService.DAL.Migrations
                     b.Navigation("ArtefactSetBonus");
                 });
 
-            modelBuilder.Entity("GameDataService.DAL.DbModels.Models.Competency", b =>
+            modelBuilder.Entity("GameDataService.DAL.DbModels.Models.Competence", b =>
                 {
-                    b.HasOne("GameDataService.DAL.DbModels.Models.SubFaction", "SubFaction")
+                    b.HasOne("GameDataService.DAL.DbModels.Models.Subfaction", "Subfaction")
                         .WithMany()
-                        .HasForeignKey("SubFactionId")
+                        .HasForeignKey("SubfactionId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("SubFaction");
+                    b.Navigation("Subfaction");
                 });
 
             modelBuilder.Entity("GameDataService.DAL.DbModels.Models.FactionAndAbilityScope", b =>
@@ -1022,15 +1022,15 @@ namespace GameDataService.DAL.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("GameDataService.DAL.DbModels.Models.SubFaction", "SubFaction")
+                    b.HasOne("GameDataService.DAL.DbModels.Models.Subfaction", "Subfaction")
                         .WithMany()
-                        .HasForeignKey("SubFactionId")
+                        .HasForeignKey("SubfactionId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("HeroClass");
 
-                    b.Navigation("SubFaction");
+                    b.Navigation("Subfaction");
                 });
 
             modelBuilder.Entity("GameDataService.DAL.DbModels.Models.HeroAndAbilityScope", b =>
@@ -1096,19 +1096,19 @@ namespace GameDataService.DAL.Migrations
                         .WithMany()
                         .HasForeignKey("AbilityId");
 
-                    b.HasOne("GameDataService.DAL.DbModels.Models.Competency", "Competency")
+                    b.HasOne("GameDataService.DAL.DbModels.Models.Competence", "Competence")
                         .WithMany("Skills")
-                        .HasForeignKey("CompetencyId");
+                        .HasForeignKey("CompetenceId");
 
-                    b.HasOne("GameDataService.DAL.DbModels.Models.SubFaction", "SubFaction")
+                    b.HasOne("GameDataService.DAL.DbModels.Models.Subfaction", "Subfaction")
                         .WithMany("Skills")
-                        .HasForeignKey("SubFactionId");
+                        .HasForeignKey("SubfactionId");
 
                     b.Navigation("Ability");
 
-                    b.Navigation("Competency");
+                    b.Navigation("Competence");
 
-                    b.Navigation("SubFaction");
+                    b.Navigation("Subfaction");
                 });
 
             modelBuilder.Entity("GameDataService.DAL.DbModels.Models.SkillAndSpellScope", b =>
@@ -1177,7 +1177,7 @@ namespace GameDataService.DAL.Migrations
                     b.Navigation("Spell");
                 });
 
-            modelBuilder.Entity("GameDataService.DAL.DbModels.Models.SubFaction", b =>
+            modelBuilder.Entity("GameDataService.DAL.DbModels.Models.Subfaction", b =>
                 {
                     b.HasOne("GameDataService.DAL.DbModels.Models.Faction", "Faction")
                         .WithMany()
@@ -1188,7 +1188,7 @@ namespace GameDataService.DAL.Migrations
                     b.Navigation("Faction");
                 });
 
-            modelBuilder.Entity("GameDataService.DAL.DbModels.Models.SubFactionAndAbilityScope", b =>
+            modelBuilder.Entity("GameDataService.DAL.DbModels.Models.SubfactionAndAbilityScope", b =>
                 {
                     b.HasOne("GameDataService.DAL.DbModels.Models.Ability", "Ability")
                         .WithMany()
@@ -1196,15 +1196,15 @@ namespace GameDataService.DAL.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("GameDataService.DAL.DbModels.Models.SubFaction", "SubFaction")
-                        .WithMany("SubFactionAndAbilityScopes")
-                        .HasForeignKey("SubFactionId")
+                    b.HasOne("GameDataService.DAL.DbModels.Models.Subfaction", "Subfaction")
+                        .WithMany("SubfactionAndAbilityScopes")
+                        .HasForeignKey("SubfactionId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Ability");
 
-                    b.Navigation("SubFaction");
+                    b.Navigation("Subfaction");
                 });
 
             modelBuilder.Entity("GameDataService.DAL.DbModels.Models.Unit", b =>
@@ -1263,7 +1263,7 @@ namespace GameDataService.DAL.Migrations
                     b.Navigation("ArtefactSetBonusAndAbilityScopes");
                 });
 
-            modelBuilder.Entity("GameDataService.DAL.DbModels.Models.Competency", b =>
+            modelBuilder.Entity("GameDataService.DAL.DbModels.Models.Competence", b =>
                 {
                     b.Navigation("Skills");
                 });
@@ -1299,11 +1299,11 @@ namespace GameDataService.DAL.Migrations
                     b.Navigation("SpellAndAbilityScopes");
                 });
 
-            modelBuilder.Entity("GameDataService.DAL.DbModels.Models.SubFaction", b =>
+            modelBuilder.Entity("GameDataService.DAL.DbModels.Models.Subfaction", b =>
                 {
                     b.Navigation("Skills");
 
-                    b.Navigation("SubFactionAndAbilityScopes");
+                    b.Navigation("SubfactionAndAbilityScopes");
                 });
 
             modelBuilder.Entity("GameDataService.DAL.DbModels.Models.Unit", b =>

@@ -1,4 +1,4 @@
-﻿using Common.Enums;
+﻿using GameData.Enums.Gen;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace GameDataService.DAL.DbModels.Models;
@@ -47,8 +47,8 @@ public class Artefact
     [Column("luck_bonus")]
     public int? LuckBonus { get; set; }
 
-    [Column("artifact_slot")]
-    public ArtifactSlot ArtifactSlot { get; set; }
+    [Column("artefact_slot")]
+    public ArtefactSlot ArtefactSlot { get; set; }
 
     [Column("hero_class_id")]
     public int? HeroClassId { get; set; }

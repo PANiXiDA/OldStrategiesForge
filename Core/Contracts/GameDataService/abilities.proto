@@ -1,0 +1,33 @@
+﻿syntax = "proto3";
+
+import "google/protobuf/empty.proto";
+import "GameDataService/Models/entities.proto";
+import "GameDataService/Models/Common/search_params.proto";
+import "GameDataService/Models/Common/convert_params.proto";
+
+option csharp_namespace = "GameData.Abilities.Gen";
+
+service AbilitiesService {
+    rpc Get(GetAbilityRequest) returns (Ability);
+    rpc GetByFilter(GetAbilitiesRequest) returns (GetAbilitiesResponse);
+    rpc CreateOrUpdate(Ability) returns (google.protobuf.Empty);
+    rpc Delete(DeleteAbilityRequest) returns (google.protobuf.Empty);
+}
+
+message GetAbilityRequest {
+    int32 id = 1;
+    optional AbilitiesConvertParams abilities_convert_params = 2;
+}
+
+message GetAbilitiesRequest {
+    AbilitiesSearchParams abilities_search_params = 1;
+    optional AbilitiesConvertParams abilities_convert_params = 2;
+}
+
+message GetAbilitiesResponse {
+    repeated Ability abilities = 1;
+}
+
+message DeleteAbilityRequest {
+    int32 id = 1;
+}

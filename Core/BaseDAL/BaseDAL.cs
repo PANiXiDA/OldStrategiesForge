@@ -11,7 +11,7 @@ public abstract class BaseDAL<TDbContext, TDbObject, TEntity, TObjectId, TSearch
       where TDbObject : class, new()
       where TEntity : class
       where TObjectId : notnull
-      where TSearchParams : BaseSearchParams
+      where TSearchParams : class
       where TConvertParams : class
 {
     protected TDbContext _context;
@@ -232,18 +232,7 @@ public abstract class BaseDAL<TDbContext, TDbObject, TEntity, TObjectId, TSearch
             {
                 Total = await objects.CountAsync(),
                 Objects = new List<TEntity>(),
-                RequestedObjectsCount = searchParams.ObjectsCount,
-                RequestedStartIndex = searchParams.StartIndex,
             };
-
-            if (searchParams.ObjectsCount == 0)
-            {
-                return result;
-            }
-
-            objects = objects.Skip(searchParams.StartIndex);
-            if (searchParams.ObjectsCount.HasValue)
-                objects = objects.Take(searchParams.ObjectsCount.Value);
 
             result.Objects = await BuildEntitiesListAsync(data, objects, convertParams, false);
             return result;

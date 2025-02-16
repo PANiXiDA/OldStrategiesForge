@@ -1,5 +1,5 @@
 ﻿using APIGateway.Extensions.Exceptions;
-using APIGateway.Infrastructure.Extensions;
+using APIGateway.Infrastructure.Core;
 using Common.Constants;
 using Grpc.Core;
 using System.Text.Json;

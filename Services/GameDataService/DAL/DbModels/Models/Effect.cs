@@ -1,4 +1,5 @@
 ﻿using Common.Enums;
+using GameData.Enums.Gen;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace GameDataService.DAL.DbModels.Models;

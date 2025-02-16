@@ -1,0 +1,172 @@
+﻿syntax = "proto3";
+
+import "GameDataService/Models/Common/enums.proto";
+import "google/protobuf/wrappers.proto";
+
+option csharp_namespace = "GameData.Entities.Gen";
+
+message Faction {
+    int32 id = 1;
+    string name = 2;
+    string description = 3;
+    repeated Ability abilities = 4;
+}
+
+message Subfaction {
+    int32 id = 1;
+    string name = 2;
+    string description = 3;
+    int32  faction_id = 4;
+    optional Faction faction = 5;
+    repeated Skill skills = 6;
+    repeated Ability abilities = 7;
+}
+
+message Hero {
+    int32 id = 1;
+    string name = 2;
+    string description = 3;
+    int32 attack = 4;
+    int32 defence = 5;
+    int32 min_damage = 6;
+    int32 max_damage = 7;
+    double initiative = 8;
+    int32 morale = 9;
+    int32 luck = 10;
+    optional int32 subfaction_id = 11;
+    optional int32 hero_class_id = 12;
+    optional Subfaction subfaction = 13;
+    optional HeroClass hero_class = 14;
+    repeated Ability abilities = 15;
+    repeated Artefact artefacts = 16;
+}
+
+message HeroClass {
+    int32 id = 1;
+    string name = 2;
+    string description = 3;
+    repeated Ability abilities = 4;
+}
+
+message Unit {
+    int32 id = 1;
+    string name = 2;
+    string description = 3;
+    int32 attack = 4;
+    int32 defence = 5;
+    int32 health = 6;
+    int32 min_damage = 7;
+    int32 max_damage = 8;
+    double initiative = 9;
+    int32 speed = 10;
+    optional google.protobuf.Int32Value range = 11;
+    optional google.protobuf.Int32Value arrows = 12;
+    int32 morale = 13;
+    int32 luck = 14;
+    optional google.protobuf.Int32Value faction_id = 15;
+    optional google.protobuf.Int32Value base_unit_id = 16;
+    optional Faction faction = 17;
+    optional Unit base_unit = 18;
+    repeated Unit upgrades = 19;
+    repeated Ability abilities = 20;
+}
+
+message Artefact {
+    int32 id = 1;
+    string name = 2;
+    string description = 3;
+    optional google.protobuf.Int32Value attack_bonus = 4;
+    optional google.protobuf.Int32Value defence_bonus = 5;
+    optional google.protobuf.Int32Value health_bonus = 6;
+    optional google.protobuf.Int32Value min_damage_bonus = 7;
+    optional google.protobuf.Int32Value max_damage_bonus = 8;
+    optional google.protobuf.DoubleValue initiative_bonus = 9;
+    optional google.protobuf.Int32Value speed_bonus = 10;
+    optional google.protobuf.Int32Value range_bonus = 11;
+    optional google.protobuf.Int32Value arrows_bonus = 12;
+    optional google.protobuf.Int32Value morale_bonus = 13;
+    optional google.protobuf.Int32Value luck_bonus = 14;
+    ArtefactSlot artefact_slot = 15;
+    optional google.protobuf.Int32Value hero_class_id = 16;
+    optional google.protobuf.Int32Value artefact_set_id = 17;
+    optional HeroClass hero_class = 18;
+    optional ArtefactSet artefact_set = 19;
+    repeated Ability abilities = 20;
+}
+
+message ArtefactSet {
+    int32 id = 1;
+    string name = 2;
+    string description = 3;
+    repeated ArtefactSetBonus artefact_set_bonuses = 4;
+    repeated Artefact artefacts = 5;
+}
+
+message ArtefactSetBonus {
+    int32 id = 1;
+    optional google.protobuf.Int32Value attack_bonus = 2;
+    optional google.protobuf.Int32Value defence_bonus = 3;
+    optional google.protobuf.Int32Value health_bonus = 4;
+    optional google.protobuf.Int32Value min_damage_bonus = 5;
+    optional google.protobuf.Int32Value max_damage_bonus = 6;
+    optional google.protobuf.DoubleValue initiative_bonus = 7;
+    optional google.protobuf.Int32Value speed_bonus = 8;
+    optional google.protobuf.Int32Value range_bonus = 9;
+    optional google.protobuf.Int32Value arrows_bonus = 10;
+    optional google.protobuf.Int32Value morale_bonus = 11;
+    optional google.protobuf.Int32Value luck_bonus = 12;
+    optional google.protobuf.Int32Value hero_class_id = 13;
+    int32 artefact_set_id = 14;
+    optional HeroClass hero_class = 15;
+    optional ArtefactSet artefact_set = 16;
+    repeated Ability abilities = 17;
+}
+
+message Competence {
+    int32 id = 1;
+    string name = 2;
+    string description = 3;
+    int32  subfaction_id = 4;
+    optional Subfaction subfaction = 5;
+    repeated Skill skills = 6;
+}
+
+message Skill {
+    int32 id = 1;
+    string name = 2;
+    string description = 3;
+    SkillType skill_type = 4;
+    optional google.protobuf.Int32Value competence_id = 5;
+    optional google.protobuf.Int32Value subfaction_id = 6;
+    optional google.protobuf.Int32Value ability_id = 7;
+    optional Competence competence = 8;
+    optional Subfaction subfaction = 9;
+    optional Ability ability = 10;
+    repeated Skill required_skills = 11;
+    repeated Skill dependent_skills = 12;
+    repeated Spell spells = 13;
+}
+
+message Spell {
+    int32 id = 1;
+    string name = 2;
+    string description = 3;
+    optional google.protobuf.Int32Value  required_skill_id = 4;
+    optional Skill required_skill = 5;
+    repeated Ability abilities = 6;
+}
+
+message Ability {
+    int32 id = 1;
+    string name = 2;
+    string description = 3;
+    repeated Effect effects = 4; 
+}
+
+message Effect {
+    int32 id = 1;
+    EffectType effect_type = 2;
+    optional google.protobuf.DoubleValue value = 3;
+    optional google.protobuf.DoubleValue duration = 4;
+    string parameters = 5;
+}

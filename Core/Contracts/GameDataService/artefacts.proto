@@ -1,0 +1,33 @@
+﻿syntax = "proto3";
+
+import "google/protobuf/empty.proto";
+import "GameDataService/Models/entities.proto";
+import "GameDataService/Models/Common/search_params.proto";
+import "GameDataService/Models/Common/convert_params.proto";
+
+option csharp_namespace = "GameData.Artefacts.Gen";
+
+service ArtefactsService {
+    rpc Get(GetArtefactRequest) returns (Artefact);
+    rpc GetByFilter(GetArtefactsRequest) returns (GetArtefactsResponse);
+    rpc CreateOrUpdate(Artefact) returns (google.protobuf.Empty);
+    rpc Delete(DeleteArtefactRequest) returns (google.protobuf.Empty);
+}
+
+message GetArtefactRequest {
+    int32 id = 1;
+    optional ArtefactsConvertParams artefacts_convert_params = 2;
+}
+
+message GetArtefactsRequest {
+    ArtefactsSearchParams artefacts_search_params = 1;
+    optional ArtefactsConvertParams artefacts_convert_params = 2;
+}
+
+message GetArtefactsResponse {
+    repeated Artefact artefacts = 1;
+}
+
+message DeleteArtefactRequest {
+    int32 id = 1;
+}

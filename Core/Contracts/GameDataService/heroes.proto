@@ -1,0 +1,33 @@
+﻿syntax = "proto3";
+
+import "google/protobuf/empty.proto";
+import "GameDataService/Models/entities.proto";
+import "GameDataService/Models/Common/search_params.proto";
+import "GameDataService/Models/Common/convert_params.proto";
+
+option csharp_namespace = "GameData.Heroes.Gen";
+
+service HeroesService {
+    rpc Get(GetHeroRequest) returns (Hero);
+    rpc GetByFilter(GetHeroesRequest) returns (GetHeroesResponse);
+    rpc CreateOrUpdate(Hero) returns (google.protobuf.Empty);
+    rpc Delete(DeleteHeroRequest) returns (google.protobuf.Empty);
+}
+
+message GetHeroRequest {
+    int32 id = 1;
+    optional HeroesConvertParams heroes_convert_params = 2;
+}
+
+message GetHeroesRequest {
+    HeroesSearchParams heroes_search_params = 1;
+    optional HeroesConvertParams heroes_convert_params = 2;
+}
+
+message GetHeroesResponse {
+    repeated Hero heroes = 1;
+}
+
+message DeleteHeroRequest {
+    int32 id = 1;
+}

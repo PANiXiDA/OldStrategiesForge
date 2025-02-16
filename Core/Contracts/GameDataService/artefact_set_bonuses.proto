@@ -1,0 +1,33 @@
+﻿syntax = "proto3";
+
+import "google/protobuf/empty.proto";
+import "GameDataService/Models/entities.proto";
+import "GameDataService/Models/Common/search_params.proto";
+import "GameDataService/Models/Common/convert_params.proto";
+
+option csharp_namespace = "GameData.ArtefactSetBonuses.Gen";
+
+service ArtefactSetBonusesService {
+    rpc Get(GetArtefactSetBonusRequest) returns (ArtefactSetBonus);
+    rpc GetByFilter(GetArtefactSetBonusesRequest) returns (GetArtefactSetBonusesResponse);
+    rpc CreateOrUpdate(ArtefactSetBonus) returns (google.protobuf.Empty);
+    rpc Delete(DeleteArtefactSetBonusRequest) returns (google.protobuf.Empty);
+}
+
+message GetArtefactSetBonusRequest {
+    int32 id = 1;
+    optional ArtefactSetBonusesConvertParams artefact_set_bonuses_convert_params = 2;
+}
+
+message GetArtefactSetBonusesRequest {
+    ArtefactSetBonusesSearchParams artefact_set_bonuses_search_params = 1;
+    optional ArtefactSetBonusesConvertParams artefact_set_bonuses_convert_params = 2;
+}
+
+message GetArtefactSetBonusesResponse {
+    repeated ArtefactSetBonus artefact_set_bonuses = 1;
+}
+
+message DeleteArtefactSetBonusRequest {
+    int32 id = 1;
+}

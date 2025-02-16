@@ -1,0 +1,33 @@
+﻿syntax = "proto3";
+
+import "google/protobuf/empty.proto";
+import "GameDataService/Models/entities.proto";
+import "GameDataService/Models/Common/search_params.proto";
+import "GameDataService/Models/Common/convert_params.proto";
+
+option csharp_namespace = "GameData.Spells.Gen";
+
+service SpellsService {
+    rpc Get(GetSpellRequest) returns (Spell);
+    rpc GetByFilter(GetSpellsRequest) returns (GetSpellsResponse);
+    rpc CreateOrUpdate(Spell) returns (google.protobuf.Empty);
+    rpc Delete(DeleteSpellRequest) returns (google.protobuf.Empty);
+}
+
+message GetSpellRequest {
+    int32 id = 1;
+    optional SpellsConvertParams spells_convert_params = 2;
+}
+
+message GetSpellsRequest {
+    SpellsSearchParams spells_search_params = 1;
+    optional SpellsConvertParams spells_convert_params = 2;
+}
+
+message GetSpellsResponse {
+    repeated Spell spells = 1;
+}
+
+message DeleteSpellRequest {
+    int32 id = 1;
+}

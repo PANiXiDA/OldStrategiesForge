@@ -25,9 +25,4 @@
     <ProjectReference Include="..\..\Tools\Tools.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="DAL\Interfaces\" />
-    <Folder Include="Dto\" />
-  </ItemGroup>
-
 </Project>

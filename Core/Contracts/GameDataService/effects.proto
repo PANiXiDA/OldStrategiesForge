@@ -1,0 +1,33 @@
+﻿syntax = "proto3";
+
+import "google/protobuf/empty.proto";
+import "GameDataService/Models/entities.proto";
+import "GameDataService/Models/Common/search_params.proto";
+import "GameDataService/Models/Common/convert_params.proto";
+
+option csharp_namespace = "GameData.Effects.Gen";
+
+service EffectsService {
+    rpc Get(GetEffectRequest) returns (Effect);
+    rpc GetByFilter(GetEffectsRequest) returns (GetEffectsResponse);
+    rpc CreateOrUpdate(Effect) returns (google.protobuf.Empty);
+    rpc Delete(DeleteEffectRequest) returns (google.protobuf.Empty);
+}
+
+message GetEffectRequest {
+    int32 id = 1;
+    optional EffectsConvertParams effects_convert_params = 2;
+}
+
+message GetEffectsRequest {
+    EffectsSearchParams effects_search_params = 1;
+    optional EffectsConvertParams effects_convert_params = 2;
+}
+
+message GetEffectsResponse {
+    repeated Effect effects = 1;
+}
+
+message DeleteEffectRequest {
+    int32 id = 1;
+}

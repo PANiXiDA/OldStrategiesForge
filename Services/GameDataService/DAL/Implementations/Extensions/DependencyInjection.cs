@@ -1,4 +1,5 @@
 ﻿using GameDataService.DAL.DbModels;
+using GameDataService.DAL.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
 namespace GameDataService.DAL.Implementations.Extensions;
@@ -24,6 +25,20 @@ public static class DependencyInjection
         //}
 
         services.AddDbContext<DefaultDbContext>(config => config.UseNpgsql(configuration["ConnectionStrings:DefaultConnectionString"]));
+
+        services.AddScoped<IUnitsDAL, UnitsDAL>();
+        services.AddScoped<ISubfactionsDAL, SubfactionsDAL>();
+        services.AddScoped<ISpellsDAL, SpellsDAL>();
+        services.AddScoped<ISkillsDAL, SkillsDAL>();
+        services.AddScoped<IHeroesDAL, HeroesDAL>();
+        services.AddScoped<IFactionsDAL, FactionsDAL>();
+        services.AddScoped<IHeroClassesDAL, HeroClassesDAL>();
+        services.AddScoped<IEffectsDAL, EffectsDAL>();
+        services.AddScoped<ICompetenciesDAL, CompetenciesDAL>();
+        services.AddScoped<IArtefactSetsDAL, ArtefactSetsDAL>();
+        services.AddScoped<IArtefactSetBonusesDAL, ArtefactSetBonusesDAL>();
+        services.AddScoped<IArtefactsDAL, ArtefactsDAL>();
+        services.AddScoped<IAbilitiesDAL, AbilitiesDAL>();
 
         return services;
     }

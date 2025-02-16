@@ -1,0 +1,33 @@
+﻿syntax = "proto3";
+
+import "google/protobuf/empty.proto";
+import "GameDataService/Models/entities.proto";
+import "GameDataService/Models/Common/search_params.proto";
+import "GameDataService/Models/Common/convert_params.proto";
+
+option csharp_namespace = "GameData.Skills.Gen";
+
+service SkillsService {
+    rpc Get(GetSkillRequest) returns (Skill);
+    rpc GetByFilter(GetSkillsRequest) returns (GetSkillsResponse);
+    rpc CreateOrUpdate(Skill) returns (google.protobuf.Empty);
+    rpc Delete(DeleteSkillRequest) returns (google.protobuf.Empty);
+}
+
+message GetSkillRequest {
+    int32 id = 1;
+    optional SkillsConvertParams skills_convert_params = 2;
+}
+
+message GetSkillsRequest {
+    SkillsSearchParams skills_search_params = 1;
+    optional SkillsConvertParams skills_convert_params = 2;
+}
+
+message GetSkillsResponse {
+    repeated Skill skills = 1;
+}
+
+message DeleteSkillRequest {
+    int32 id = 1;
+}
