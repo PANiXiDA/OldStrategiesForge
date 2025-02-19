@@ -5,7 +5,6 @@ FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
 USER $APP_UID
 WORKDIR /app
 EXPOSE 8080
-EXPOSE 8081
 
 
 # Этот этап используется для сборки проекта службы
@@ -13,6 +12,11 @@ FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
 COPY ["Services/GameDataService/GameDataService.csproj", "Services/GameDataService/"]
+COPY ["Common/Common.csproj", "Common/"]
+COPY ["Core/Contracts/Contracts.csproj", "Core/Contracts/"]
+COPY ["Core/BaseBL/BaseBL.csproj", "Core/BaseBL/"]
+COPY ["Core/BaseDAL/BaseDAL.csproj", "Core/BaseDAL/"]
+COPY ["Tools/Tools.csproj", "Tools/"]
 RUN dotnet restore "./Services/GameDataService/GameDataService.csproj"
 COPY . .
 WORKDIR "/src/Services/GameDataService"
