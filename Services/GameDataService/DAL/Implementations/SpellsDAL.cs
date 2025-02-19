@@ -31,12 +31,29 @@ public class SpellsDAL : BaseDAL<DefaultDbContext, SpellDb,
     protected override IQueryable<SpellDb> BuildDbQuery(DefaultDbContext context,
         IQueryable<SpellDb> dbObjects, SpellsSearchParams searchParams)
     {
+        if (searchParams.HasRequiredSkillId)
+        {
+            dbObjects = dbObjects.Where(item => item.RequiredSkillId == searchParams.RequiredSkillId);
+        }
+
         return dbObjects;
     }
 
     protected override async Task<IList<Spell>> BuildEntitiesListAsync(DefaultDbContext context,
         IQueryable<SpellDb> dbObjects, SpellsConvertParams? convertParams, bool isFull)
     {
+        if (convertParams != null)
+        {
+            if (convertParams.HasIncludeRequiredSkill && convertParams.IncludeRequiredSkill)
+            {
+                dbObjects = dbObjects.Include(item => item.RequiredSkill);
+            }
+            if (convertParams.HasIncludeAbilities && convertParams.IncludeAbilities)
+            {
+                dbObjects = dbObjects.Include(item => item.Abilities);
+            }
+        }
+
         return (await dbObjects.ToListAsync()).Select(ConvertDbObjectToEntity).ToList();
     }
 

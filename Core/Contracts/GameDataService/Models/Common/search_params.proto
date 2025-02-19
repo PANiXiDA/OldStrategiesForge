@@ -5,7 +5,6 @@ import "GameDataService/Models/Common/enums.proto";
 option csharp_namespace = "GameData.SearchParams.Gen";
 
 message FactionsSearchParams {
-    optional string name = 1;
 }
 
 message SubfactionsSearchParams {
@@ -13,27 +12,21 @@ message SubfactionsSearchParams {
 }
 
 message HeroesSearchParams {
-    optional string name = 1;
 }
 
 message HeroClassesSearchParams {
-    optional string name = 1;
 }
 
 message UnitsSearchParams {
-    optional string name = 1;
 }
 
 message ArtefactsSearchParams {
-    optional string name = 1;
 }
 
 message ArtefactSetsSearchParams {
-    optional string name = 1;
 }
 
 message ArtefactSetBonusesSearchParams {
-    optional string name = 1;
 }
 
 message CompetenciesSearchParams {
@@ -49,7 +42,6 @@ message SpellsSearchParams {
 }
 
 message AbilitiesSearchParams {
-    optional string name = 1;
 }
 
 message EffectsSearchParams {

@@ -3,6 +3,7 @@ using APIGateway.Infrastructure.GameDataService.Models.Artefacts;
 using APIGateway.Infrastructure.GameDataService.Models.HeroClasses;
 using APIGateway.Infrastructure.GameDataService.Models.Subfactions;
 using GameData.Entities.Gen;
+using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 using System.ComponentModel.DataAnnotations;
 
 namespace APIGateway.Infrastructure.GameDataService.Models.Heroes;
@@ -45,12 +46,16 @@ public class HeroDto
     [Required(ErrorMessage = "HeroClassId is required.")]
     public int HeroClassId { get; set; }
 
+    [ValidateNever]
     public SubfactionDto? Subfaction { get; set; }
 
+    [ValidateNever]
     public HeroClassDto? HeroClass { get; set; }
 
+    [ValidateNever]
     public List<AbilityDto> Abilities { get; set; } = new();
 
+    [ValidateNever]
     public List<ArtefactDto> Artefacts { get; set; } = new();
 
     public static HeroDto FromEntity(Hero obj)

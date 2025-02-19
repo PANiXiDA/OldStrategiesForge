@@ -2,6 +2,7 @@
 using APIGateway.Infrastructure.GameDataService.Models.Factions;
 using APIGateway.Infrastructure.GameDataService.Models.Skills;
 using GameData.Entities.Gen;
+using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 using System.ComponentModel.DataAnnotations;
 
 namespace APIGateway.Infrastructure.GameDataService.Models.Subfactions;
@@ -20,10 +21,13 @@ public class SubfactionDto
     [Required(ErrorMessage = "FactionId is required.")]
     public int FactionId { get; set; }
 
+    [ValidateNever]
     public FactionDto? Faction { get; set; }
 
+    [ValidateNever]
     public List<SkillDto> Skills { get; set; } = new();
 
+    [ValidateNever]
     public List<AbilityDto> Abilities { get; set; } = new();
 
     public static SubfactionDto FromEntity(Subfaction obj)

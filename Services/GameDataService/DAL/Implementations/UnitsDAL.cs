@@ -48,6 +48,26 @@ public class UnitsDAL : BaseDAL<DefaultDbContext, UnitDb,
     protected override async Task<IList<Unit>> BuildEntitiesListAsync(DefaultDbContext context,
         IQueryable<UnitDb> dbObjects, UnitsConvertParams? convertParams, bool isFull)
     {
+        if (convertParams != null)
+        {
+            if (convertParams.HasIncludeBaseUnit && convertParams.IncludeBaseUnit)
+            {
+                dbObjects = dbObjects.Include(item => item.BaseUnit);
+            }
+            if (convertParams.HasIncludeFaction && convertParams.IncludeFaction)
+            {
+                dbObjects = dbObjects.Include(item => item.Faction);
+            }
+            if (convertParams.HasIncludeAbilities && convertParams.IncludeAbilities)
+            {
+                dbObjects = dbObjects.Include(item => item.Abilities);
+            }
+            if (convertParams.HasIncludeUpgrades && convertParams.IncludeUpgrades)
+            {
+                dbObjects = dbObjects.Include(item => item.Upgrades);
+            }
+        }
+
         return (await dbObjects.ToListAsync()).Select(ConvertDbObjectToEntity).ToList();
     }
 

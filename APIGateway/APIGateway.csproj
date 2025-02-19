@@ -34,9 +34,4 @@
 		<None Remove="..\.dockerignore" />
 	</ItemGroup>
 
-	<ItemGroup>
-	  <Folder Include="Infrastructure\GameDataService\Requests\Factions\" />
-	  <Folder Include="Infrastructure\GameDataService\Responses\Factions\" />
-	</ItemGroup>
-
 </Project>

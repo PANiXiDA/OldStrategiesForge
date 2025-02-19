@@ -33,12 +33,33 @@ public class SkillsDAL : BaseDAL<DefaultDbContext, SkillDb,
     protected override IQueryable<SkillDb> BuildDbQuery(DefaultDbContext context,
         IQueryable<SkillDb> dbObjects, SkillsSearchParams searchParams)
     {
+        if (searchParams.HasSubfactionId)
+        {
+            dbObjects = dbObjects.Where(item => item.SubfactionId == searchParams.SubfactionId);
+        }
+
         return dbObjects;
     }
 
     protected override async Task<IList<Skill>> BuildEntitiesListAsync(DefaultDbContext context,
         IQueryable<SkillDb> dbObjects, SkillsConvertParams? convertParams, bool isFull)
     {
+        if (convertParams != null)
+        {
+            if (convertParams.HasIncludeCompetence && convertParams.IncludeCompetence)
+            {
+                dbObjects = dbObjects.Include(item => item.Competence);
+            }
+            if (convertParams.HasIncludeSubfaction && convertParams.IncludeSubfaction)
+            {
+                dbObjects = dbObjects.Include(item => item.Subfaction);
+            }
+            if (convertParams.HasIncludeAbility && convertParams.IncludeAbility)
+            {
+                dbObjects = dbObjects.Include(item => item.Ability);
+            }
+        }
+
         return (await dbObjects.ToListAsync()).Select(ConvertDbObjectToEntity).ToList();
     }
 

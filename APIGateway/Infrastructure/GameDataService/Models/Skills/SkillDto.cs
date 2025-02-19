@@ -4,6 +4,7 @@ using APIGateway.Infrastructure.GameDataService.Models.Spells;
 using APIGateway.Infrastructure.GameDataService.Models.Subfactions;
 using GameData.Entities.Gen;
 using GameData.Enums.Gen;
+using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 using System.ComponentModel.DataAnnotations;
 
 namespace APIGateway.Infrastructure.GameDataService.Models.Skills;
@@ -28,16 +29,22 @@ public class SkillDto
 
     public int? AbilityId { get; set; }
 
+    [ValidateNever]
     public CompetenceDto? Competence { get; set; }
 
+    [ValidateNever]
     public SubfactionDto? Subfaction { get; set; }
 
+    [ValidateNever]
     public AbilityDto? Ability { get; set; }
 
+    [ValidateNever]
     public List<SkillDto> RequiredSkills { get; set; } = new();
 
+    [ValidateNever]
     public List<SkillDto> DependentSkills { get; set; } = new();
 
+    [ValidateNever]
     public List<SpellDto> Spells { get; set; } = new();
 
     public static SkillDto FromEntity(Skill obj)

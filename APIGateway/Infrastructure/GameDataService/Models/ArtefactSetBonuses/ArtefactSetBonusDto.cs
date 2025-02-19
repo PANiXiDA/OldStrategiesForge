@@ -2,6 +2,7 @@
 using APIGateway.Infrastructure.GameDataService.Models.ArtefactSets;
 using APIGateway.Infrastructure.GameDataService.Models.HeroClasses;
 using GameData.Entities.Gen;
+using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 using System.ComponentModel.DataAnnotations;
 
 namespace APIGateway.Infrastructure.GameDataService.Models.ArtefactSetBonuses;
@@ -38,10 +39,13 @@ public class ArtefactSetBonusDto
     [Required(ErrorMessage = "ArtefactSetId is required.")]
     public int ArtefactSetId { get; set; }
 
+    [ValidateNever]
     public HeroClassDto? HeroClass { get; set; }
 
+    [ValidateNever]
     public ArtefactSetDto? ArtefactSet { get; set; }
 
+    [ValidateNever]
     public List<AbilityDto> Abilities { get; set; } = new();
 
     public static ArtefactSetBonusDto FromEntity(ArtefactSetBonus obj)

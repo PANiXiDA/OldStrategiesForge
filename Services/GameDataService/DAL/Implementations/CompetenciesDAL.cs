@@ -30,12 +30,29 @@ public class CompetenciesDAL : BaseDAL<DefaultDbContext, CompetenceDb,
     protected override IQueryable<CompetenceDb> BuildDbQuery(DefaultDbContext context,
         IQueryable<CompetenceDb> dbObjects, CompetenciesSearchParams searchParams)
     {
+        if (searchParams.HasSubfactionId)
+        {
+            dbObjects = dbObjects.Where(item => item.SubfactionId == searchParams.SubfactionId);
+        }
+
         return dbObjects;
     }
 
     protected override async Task<IList<Competence>> BuildEntitiesListAsync(DefaultDbContext context,
         IQueryable<CompetenceDb> dbObjects, CompetenciesConvertParams? convertParams, bool isFull)
     {
+        if (convertParams != null)
+        {
+            if (convertParams.HasIncludeSubfaction && convertParams.IncludeSubfaction)
+            {
+                dbObjects = dbObjects.Include(item => item.Subfaction);
+            }
+            if (convertParams.HasIncludeSkills && convertParams.IncludeSkills)
+            {
+                dbObjects = dbObjects.Include(item => item.Skills);
+            }
+        }
+
         return (await dbObjects.ToListAsync()).Select(ConvertDbObjectToEntity).ToList();
     }
 

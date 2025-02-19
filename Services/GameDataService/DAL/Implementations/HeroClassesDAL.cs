@@ -35,6 +35,14 @@ public class HeroClassesDAL : BaseDAL<DefaultDbContext, HeroClassDb,
     protected override async Task<IList<HeroClass>> BuildEntitiesListAsync(DefaultDbContext context,
         IQueryable<HeroClassDb> dbObjects, HeroClassesConvertParams? convertParams, bool isFull)
     {
+        if (convertParams != null)
+        {
+            if (convertParams.HasIncludeAbilities && convertParams.IncludeAbilities)
+            {
+                dbObjects = dbObjects.Include(item => item.Abilities);
+            }
+        }
+
         return (await dbObjects.ToListAsync()).Select(ConvertDbObjectToEntity).ToList();
     }
 

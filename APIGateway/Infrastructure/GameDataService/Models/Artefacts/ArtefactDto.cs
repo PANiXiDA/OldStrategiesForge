@@ -3,6 +3,7 @@ using APIGateway.Infrastructure.GameDataService.Models.ArtefactSets;
 using APIGateway.Infrastructure.GameDataService.Models.HeroClasses;
 using GameData.Entities.Gen;
 using GameData.Enums.Gen;
+using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 using System.ComponentModel.DataAnnotations;
 
 namespace APIGateway.Infrastructure.GameDataService.Models.Artefacts;
@@ -47,10 +48,13 @@ public class ArtefactDto
 
     public int? ArtefactSetId { get; set; }
 
+    [ValidateNever]
     public HeroClassDto? HeroClass { get; set; }
 
+    [ValidateNever]
     public ArtefactSetDto? ArtefactSet { get; set; }
 
+    [ValidateNever]
     public List<AbilityDto> Abilities { get; set; } = new();
 
     public static ArtefactDto FromEntity(Artefact obj)

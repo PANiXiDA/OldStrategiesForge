@@ -1,6 +1,7 @@
 ﻿using APIGateway.Infrastructure.GameDataService.Models.Artefacts;
 using APIGateway.Infrastructure.GameDataService.Models.ArtefactSetBonuses;
 using GameData.Entities.Gen;
+using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 using System.ComponentModel.DataAnnotations;
 
 namespace APIGateway.Infrastructure.GameDataService.Models.ArtefactSets;
@@ -16,8 +17,10 @@ public class ArtefactSetDto
     [Required(ErrorMessage = "Description is required.")]
     public string Description { get; set; } = string.Empty;
 
+    [ValidateNever]
     public List<ArtefactSetBonusDto> ArtefactSetBonuses { get; set; } = new();
 
+    [ValidateNever]
     public List<ArtefactDto> Artefacts { get; set; } = new();
 
     public static ArtefactSetDto FromEntity(ArtefactSet obj)

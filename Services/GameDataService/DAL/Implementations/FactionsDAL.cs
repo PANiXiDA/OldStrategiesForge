@@ -35,6 +35,14 @@ public class FactionsDAL : BaseDAL<DefaultDbContext, FactionDb,
     protected override async Task<IList<Faction>> BuildEntitiesListAsync(DefaultDbContext context,
         IQueryable<FactionDb> dbObjects, FactionsConvertParams? convertParams, bool isFull)
     {
+        if (convertParams != null)
+        {
+            if (convertParams.HasIncludeAbilities && convertParams.IncludeAbilities)
+            {
+                dbObjects = dbObjects.Include(item => item.Abilities);
+            }
+        }
+
         return (await dbObjects.ToListAsync()).Select(ConvertDbObjectToEntity).ToList();
     }
 

@@ -30,12 +30,33 @@ public class SubfactionsDAL : BaseDAL<DefaultDbContext, SubfactionDb,
     protected override IQueryable<SubfactionDb> BuildDbQuery(DefaultDbContext context,
         IQueryable<SubfactionDb> dbObjects, SubfactionsSearchParams searchParams)
     {
+        if (searchParams.HasFactionId)
+        {
+            dbObjects = dbObjects.Include(item => item.FactionId == searchParams.FactionId);
+        }
+
         return dbObjects;
     }
 
     protected override async Task<IList<Subfaction>> BuildEntitiesListAsync(DefaultDbContext context,
         IQueryable<SubfactionDb> dbObjects, SubfactionsConvertParams? convertParams, bool isFull)
     {
+        if (convertParams != null)
+        {
+            if (convertParams.HasIncludeAbilities && convertParams.IncludeAbilities)
+            {
+                dbObjects = dbObjects.Include(item => item.Abilities);
+            }
+            if (convertParams.HasIncludeFaction && convertParams.IncludeFaction)
+            {
+                dbObjects = dbObjects.Include(item => item.Faction);
+            }
+            if (convertParams.HasIncludeSkills && convertParams.IncludeSkills)
+            {
+                dbObjects = dbObjects.Include(item => item.Skills);
+            }
+        }
+
         return (await dbObjects.ToListAsync()).Select(ConvertDbObjectToEntity).ToList();
     }
 

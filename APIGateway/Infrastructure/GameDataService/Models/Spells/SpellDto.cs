@@ -1,6 +1,7 @@
 ﻿using APIGateway.Infrastructure.GameDataService.Models.Abilities;
 using APIGateway.Infrastructure.GameDataService.Models.Skills;
 using GameData.Entities.Gen;
+using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 using System.ComponentModel.DataAnnotations;
 
 namespace APIGateway.Infrastructure.GameDataService.Models.Spells;
@@ -18,8 +19,10 @@ public class SpellDto
 
     public int? RequiredSkillId { get; set; }
 
+    [ValidateNever]
     public SkillDto? RequiredSkill { get; set; }
 
+    [ValidateNever]
     public List<AbilityDto> Abilities { get; set; } = new();
 
     public static SpellDto FromEntity(Spell obj)

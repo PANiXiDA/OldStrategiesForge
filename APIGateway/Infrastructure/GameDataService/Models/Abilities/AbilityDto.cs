@@ -1,5 +1,6 @@
 ﻿using APIGateway.Infrastructure.GameDataService.Models.Effects;
 using GameData.Entities.Gen;
+using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 using System.ComponentModel.DataAnnotations;
 
 namespace APIGateway.Infrastructure.GameDataService.Models.Abilities;
@@ -15,6 +16,7 @@ public class AbilityDto
     [Required(ErrorMessage = "Description is required.")]
     public string Description { get; set; } = string.Empty;
 
+    [ValidateNever]
     public List<EffectDto> Effects { get; set; } = new();
 
     public static AbilityDto FromEntity(Ability obj)

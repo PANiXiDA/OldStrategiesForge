@@ -35,6 +35,14 @@ public class AbilitiesDAL : BaseDAL<DefaultDbContext, AbilityDb,
     protected override async Task<IList<Ability>> BuildEntitiesListAsync(DefaultDbContext context,
         IQueryable<AbilityDb> dbObjects, AbilitiesConvertParams? convertParams, bool isFull)
     {
+        if (convertParams != null)
+        {
+            if (convertParams.HasIncludeEffects && convertParams.IncludeEffects)
+            {
+                dbObjects = dbObjects.Include(item => item.Effects);
+            }
+        }
+
         return (await dbObjects.ToListAsync()).Select(ConvertDbObjectToEntity).ToList();
     }
 

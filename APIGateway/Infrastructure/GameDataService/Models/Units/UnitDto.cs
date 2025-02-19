@@ -1,6 +1,7 @@
 ﻿using APIGateway.Infrastructure.GameDataService.Models.Abilities;
 using APIGateway.Infrastructure.GameDataService.Models.Factions;
 using GameData.Entities.Gen;
+using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 using System.ComponentModel.DataAnnotations;
 
 namespace APIGateway.Infrastructure.GameDataService.Models.Units;
@@ -53,12 +54,16 @@ public class UnitDto
 
     public int? BaseUnitId { get; set; }
 
+    [ValidateNever]
     public FactionDto? Faction { get; set; }
 
+    [ValidateNever]
     public UnitDto? BaseUnit { get; set; }
 
+    [ValidateNever]
     public List<UnitDto> Upgrades { get; set; } = new();
 
+    [ValidateNever]
     public List<AbilityDto> Abilities { get; set; } = new();
 
     public static UnitDto FromEntity(Unit obj)

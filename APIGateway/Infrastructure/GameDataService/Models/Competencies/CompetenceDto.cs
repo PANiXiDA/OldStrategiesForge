@@ -1,6 +1,7 @@
 ﻿using APIGateway.Infrastructure.GameDataService.Models.Skills;
 using APIGateway.Infrastructure.GameDataService.Models.Subfactions;
 using GameData.Entities.Gen;
+using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 using System.ComponentModel.DataAnnotations;
 
 namespace APIGateway.Infrastructure.GameDataService.Models.Competencies;
@@ -19,8 +20,10 @@ public class CompetenceDto
     [Required(ErrorMessage = "SubfactionId is required.")]
     public int SubfactionId { get; set; }
 
+    [ValidateNever]
     public SubfactionDto? Subfaction { get; set; }
 
+    [ValidateNever]
     public List<SkillDto> Skills { get; set; } = new();
 
     public static CompetenceDto FromEntity(Competence obj)

@@ -35,6 +35,18 @@ public class ArtefactSetsDAL : BaseDAL<DefaultDbContext, ArtefactSetDb,
     protected override async Task<IList<ArtefactSet>> BuildEntitiesListAsync(DefaultDbContext context,
         IQueryable<ArtefactSetDb> dbObjects, ArtefactSetsConvertParams? convertParams, bool isFull)
     {
+        if (convertParams != null)
+        {
+            if (convertParams.HasIncludeArtefactSetBonus && convertParams.IncludeArtefactSetBonus)
+            {
+                dbObjects = dbObjects.Include(item => item.ArtefactSetBonuses);
+            }
+            if (convertParams.HasIncludeArtefacts && convertParams.IncludeArtefacts)
+            {
+                dbObjects = dbObjects.Include(item => item.Artefacts);
+            }
+        }
+
         return (await dbObjects.ToListAsync()).Select(ConvertDbObjectToEntity).ToList();
     }
 

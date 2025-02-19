@@ -1,5 +1,6 @@
 ﻿using APIGateway.Infrastructure.GameDataService.Models.Abilities;
 using GameData.Entities.Gen;
+using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 using System.ComponentModel.DataAnnotations;
 
 namespace APIGateway.Infrastructure.GameDataService.Models.Factions;
@@ -15,6 +16,7 @@ public class FactionDto
     [Required(ErrorMessage = "Description is required.")]
     public string Description { get; set; } = string.Empty;
 
+    [ValidateNever]
     public List<AbilityDto> Abilities { get; set; } = new();
 
     public static FactionDto FromEntity(Faction obj)
