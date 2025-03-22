@@ -1,75 +1,94 @@
 ﻿using BaseDAL;
-using Common.ConvertParams.GamesService;
-using Common.SearchParams.GamesService;
 using GamesService.DAL.DbModels;
-using GamesService.DAL.DbModels.Models;
 using GamesService.DAL.Interfaces;
-using GamesService.Dto;
+using GameDb = GamesService.DAL.DbModels.Models.Game;
 using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
+using Games.SearchParams.Gen;
+using Games.Entities.Gen;
+using Games.ConvertParams.Gen;
+using Google.Protobuf.WellKnownTypes;
 
 namespace GamesService.DAL.Implementations;
 
-public class GamesDAL : BaseDAL<DefaultDbContext, Game,
-    GameDto, Guid, GamesSearchParams, GamesConvertParams>, IGamesDAL
+public class GamesDAL : BaseDAL<DefaultDbContext, GameDb,
+    Game, Guid, GamesSearchParams, GamesConvertParams>, IGamesDAL
 {
     protected override bool RequiresUpdatesAfterObjectSaving => false;
 
     public GamesDAL(DefaultDbContext context) : base(context) { }
 
-    protected override Task UpdateBeforeSavingAsync(DefaultDbContext context, GameDto entity,
-        Game dbObject, bool exists)
+    protected override Task UpdateBeforeSavingAsync(DefaultDbContext context, Game entity,
+        GameDb dbObject, bool exists)
     {
-        dbObject.Id = entity.Id;
-        dbObject.CreatedAt = entity.CreatedAt;
+        dbObject.Id = Guid.Parse(entity.Id);
+        dbObject.CreatedAt = entity.CreatedAt.ToDateTime();
         dbObject.UpdatedAt = DateTime.UtcNow;
-        dbObject.DeletedAt = entity.DeletedAt;
+        dbObject.DeletedAt = entity.DeletedAt.ToDateTime();
         dbObject.GameType = entity.GameType;
         dbObject.WinnerId = entity.WinnerId;
 
         return Task.CompletedTask;
     }
 
-    protected override IQueryable<Game> BuildDbQuery(DefaultDbContext context,
-        IQueryable<Game> dbObjects, GamesSearchParams searchParams)
+    protected override IQueryable<GameDb> BuildDbQuery(DefaultDbContext context,
+        IQueryable<GameDb> dbObjects, GamesSearchParams searchParams)
     {
-        dbObjects = dbObjects.OrderBy(item => item.CreatedAt);
+        if (searchParams.HasGameType)
+        {
+            dbObjects = dbObjects.Where(item => item.GameType == searchParams.GameType);
+        }
+        if (searchParams.HasWinnerId)
+        {
+            dbObjects = dbObjects.Where(item => item.WinnerId == searchParams.WinnerId);
+        }
 
         return dbObjects;
     }
 
-    protected override async Task<IList<GameDto>> BuildEntitiesListAsync(DefaultDbContext context,
-        IQueryable<Game> dbObjects, GamesConvertParams? convertParams, bool isFull)
+    protected override async Task<IList<Game>> BuildEntitiesListAsync(DefaultDbContext context,
+        IQueryable<GameDb> dbObjects, GamesConvertParams? convertParams, bool isFull)
     {
-        dbObjects = dbObjects.Include(item => item.Sessions);
+        if (convertParams != null)
+        {
+            if (convertParams.HasIncludeSessions && convertParams.IncludeSessions)
+            {
+                dbObjects = dbObjects.Include(item => item.Sessions);
+            }
+        }
 
         return (await dbObjects.ToListAsync()).Select(item => ConvertDbObjectToEntity(item)).ToList();
     }
 
-    protected override Expression<Func<Game, Guid>> GetIdByDbObjectExpression()
+    protected override Expression<Func<GameDb, Guid>> GetIdByDbObjectExpression()
     {
         return item => item.Id;
     }
 
-    protected override Expression<Func<GameDto, Guid>> GetIdByEntityExpression()
+    protected override Expression<Func<Game, Guid>> GetIdByEntityExpression()
     {
-        return item => item.Id;
+        return item => Guid.Parse(item.Id);
     }
 
-    internal static GameDto ConvertDbObjectToEntity(Game dbObject, bool isIncludeAdditional = true)
+    internal static Game ConvertDbObjectToEntity(GameDb dbObject, bool includeAdditional = true)
     {
         if (dbObject == null) throw new ArgumentNullException(nameof(dbObject));
 
-        return new GameDto(
-            dbObject.Id,
-            dbObject.CreatedAt,
-            dbObject.UpdatedAt,
-            dbObject.DeletedAt,
-            dbObject.GameType,
-            dbObject.WinnerId
-            )
+        var game = new Game()
         {
-            Sessions = isIncludeAdditional ? dbObject.Sessions.Select(SessionsDAL.ConvertDbObjectToEntity).ToList() : null
+            Id = dbObject.Id.ToString(),
+            CreatedAt = dbObject.CreatedAt.ToTimestamp(),
+            UpdatedAt = dbObject.UpdatedAt.ToTimestamp(),
+            DeletedAt = dbObject.DeletedAt?.ToTimestamp(),
+            GameType = dbObject.GameType,
+            WinnerId = dbObject.WinnerId
         };
+
+        if (includeAdditional)
+        {
+            game.Sessions.AddRange(dbObject.Sessions.Select(SessionsDAL.ConvertDbObjectToEntity));
+        }
+
+        return game;
     }
 }

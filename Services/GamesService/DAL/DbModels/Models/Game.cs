@@ -2,6 +2,7 @@
 using Common.Enums;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
+using Games.Enums.Gen;
 
 namespace GamesService.DAL.DbModels.Models;
 

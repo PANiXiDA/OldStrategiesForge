@@ -1,75 +1,97 @@
 ﻿using BaseDAL;
-using Common.ConvertParams.GamesService;
-using Common.SearchParams.GamesService;
 using GamesService.DAL.DbModels;
-using GamesService.DAL.DbModels.Models;
 using GamesService.DAL.Interfaces;
-using GamesService.Dto;
+using SessionDb = GamesService.DAL.DbModels.Models.Session;
 using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
+using Games.Entities.Gen;
+using Games.SearchParams.Gen;
+using Games.ConvertParams.Gen;
+using Google.Protobuf.WellKnownTypes;
 
 namespace GamesService.DAL.Implementations;
 
-public class SessionsDAL : BaseDAL<DefaultDbContext, Session,
-    SessionDto, Guid, SessionsSearchParams, SessionsConvertParams>, ISessionsDAL
+public class SessionsDAL : BaseDAL<DefaultDbContext, SessionDb,
+    Session, Guid, SessionsSearchParams, SessionsConvertParams>, ISessionsDAL
 {
     protected override bool RequiresUpdatesAfterObjectSaving => false;
 
     public SessionsDAL(DefaultDbContext context) : base(context) { }
 
-    protected override Task UpdateBeforeSavingAsync(DefaultDbContext context, SessionDto entity,
-        Session dbObject, bool exists)
+    protected override Task UpdateBeforeSavingAsync(DefaultDbContext context, Session entity,
+        SessionDb dbObject, bool exists)
     {
-        dbObject.Id = entity.Id;
-        dbObject.CreatedAt = entity.CreatedAt;
+        dbObject.Id = Guid.Parse(entity.Id);
+        dbObject.CreatedAt = entity.CreatedAt.ToDateTime();
         dbObject.UpdatedAt = DateTime.UtcNow;
-        dbObject.DeletedAt = entity.DeletedAt;
+        dbObject.DeletedAt = entity.DeletedAt.ToDateTime();
         dbObject.PlayerId = entity.PlayerId;
-        dbObject.GameId = entity.GameId;
+        dbObject.GameId = Guid.Parse(entity.GameId);
         dbObject.IsActive = entity.IsActive;
 
         return Task.CompletedTask;
     }
 
-    protected override IQueryable<Session> BuildDbQuery(DefaultDbContext context,
-        IQueryable<Session> dbObjects, SessionsSearchParams searchParams)
+    protected override IQueryable<SessionDb> BuildDbQuery(DefaultDbContext context,
+        IQueryable<SessionDb> dbObjects, SessionsSearchParams searchParams)
     {
+        if (searchParams.HasPlayerId)
+        {
+            dbObjects = dbObjects.Where(item => item.PlayerId == searchParams.PlayerId);
+        }
+        if (searchParams.HasGameId)
+        {
+            dbObjects = dbObjects.Where(item => item.GameId == Guid.Parse(searchParams.GameId));
+        }
+        if (searchParams.HasIsActive)
+        {
+            dbObjects = dbObjects.Where(item => item.IsActive == searchParams.IsActive);
+        }
+
         return dbObjects;
     }
 
-    protected override async Task<IList<SessionDto>> BuildEntitiesListAsync(DefaultDbContext context,
-        IQueryable<Session> dbObjects, SessionsConvertParams? convertParams, bool isFull)
+    protected override async Task<IList<Session>> BuildEntitiesListAsync(DefaultDbContext context,
+        IQueryable<SessionDb> dbObjects, SessionsConvertParams? convertParams, bool isFull)
     {
-        dbObjects = dbObjects.Include(item => item.Game);
+        if (convertParams != null)
+        {
+            if (convertParams.HasIncludeGame && convertParams.IncludeGame)
+            {
+                dbObjects = dbObjects.Include(item => item.Game);
+            }
+        }
 
         return (await dbObjects.ToListAsync()).Select(ConvertDbObjectToEntity).ToList();
     }
 
-    protected override Expression<Func<Session, Guid>> GetIdByDbObjectExpression()
+    protected override Expression<Func<SessionDb, Guid>> GetIdByDbObjectExpression()
     {
         return item => item.Id;
     }
 
-    protected override Expression<Func<SessionDto, Guid>> GetIdByEntityExpression()
+    protected override Expression<Func<Session, Guid>> GetIdByEntityExpression()
     {
-        return item => item.Id;
+        return item => Guid.Parse(item.Id);
     }
 
-    internal static SessionDto ConvertDbObjectToEntity(Session dbObject)
+    internal static Session ConvertDbObjectToEntity(SessionDb dbObject)
     {
         if (dbObject == null) throw new ArgumentNullException(nameof(dbObject));
 
-        return new SessionDto(
-            dbObject.Id,
-            dbObject.CreatedAt,
-            dbObject.UpdatedAt,
-            dbObject.DeletedAt,
-            dbObject.PlayerId,
-            dbObject.GameId,
-            dbObject.IsActive
-            )
+        var session = new Session()
         {
+            Id = dbObject.Id.ToString(),
+            CreatedAt = dbObject.CreatedAt.ToTimestamp(),
+            UpdatedAt = dbObject.UpdatedAt.ToTimestamp(),
+            DeletedAt = dbObject.DeletedAt?.ToTimestamp(),
+            PlayerId = dbObject.PlayerId,
+            GameId = dbObject.GameId.ToString(),
+            IsActive = dbObject.IsActive,
+
             Game = dbObject.Game != null ? GamesDAL.ConvertDbObjectToEntity(dbObject.Game, false) : null
         };
+
+        return session;
     }
 }

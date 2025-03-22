@@ -2,6 +2,8 @@
 
 public static class PortsConstants
 {
+    public const int GamePlayServicePort = 7777;
+
     public const int APIGatewayHttpPort = 8080;
     public const int APIGatewayGrpcPort = 8081;
 

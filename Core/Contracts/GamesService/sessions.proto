@@ -1,0 +1,33 @@
+﻿syntax = "proto3";
+
+import "google/protobuf/empty.proto";
+import "GamesService/Models/entities.proto";
+import "GamesService/Models/Common/search_params.proto";
+import "GamesService/Models/Common/convert_params.proto";
+
+option csharp_namespace = "Sessions.Gen";
+
+service SessionsService {
+    rpc Get(GetSessionRequest) returns (Session);
+    rpc GetByFilter(GetSessionsRequest) returns (GetSessionsResponse);
+    rpc CreateOrUpdate(Session) returns (google.protobuf.Empty);
+    rpc Delete(DeleteSessionRequest) returns (google.protobuf.Empty);
+}
+
+message GetSessionRequest {
+    string id = 1;
+    optional SessionsConvertParams sessions_convert_params = 2;
+}
+
+message GetSessionsRequest {
+    SessionsSearchParams sessions_search_params = 1;
+    optional SessionsConvertParams sessions_convert_params = 2;
+}
+
+message GetSessionsResponse {
+    repeated Session sessions = 1;
+}
+
+message DeleteSessionRequest {
+    string id = 1;
+}

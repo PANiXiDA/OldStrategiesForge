@@ -1,0 +1,8 @@
+﻿syntax = "proto3";
+
+option csharp_namespace = "Games.Enums.Gen";
+
+enum GameType {
+    Duel = 0;
+    Team2x2 = 1;
+}

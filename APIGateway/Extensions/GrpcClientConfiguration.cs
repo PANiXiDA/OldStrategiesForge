@@ -20,6 +20,8 @@ using GameData.Competencies.Gen;
 using GameData.Skills.Gen;
 using GameData.Abilities.Gen;
 using GameData.Effects.Gen;
+using Games.Gen;
+using Sessions.Gen;
 
 namespace APIGateway.Extensions;
 
@@ -38,7 +40,14 @@ public static class GrpcClientConfiguration
 
         GrpcConfiguration.ConfigureGrpcClient<S3Images.S3ImagesClient>(services, ServiceNames.ImagesService);
         GrpcConfiguration.ConfigureGrpcClient<GlobalChat.GlobalChatClient>(services, ServiceNames.ChatsService);
+
+        #region GamesService
+
         GrpcConfiguration.ConfigureGrpcClient<GameMatchmaking.GameMatchmakingClient>(services, ServiceNames.GamesService);
+        GrpcConfiguration.ConfigureGrpcClient<GamesService.GamesServiceClient>(services, ServiceNames.GamesService);
+        GrpcConfiguration.ConfigureGrpcClient<SessionsService.SessionsServiceClient>(services, ServiceNames.GamesService);
+
+        #endregion
 
         #region GameDataService
 

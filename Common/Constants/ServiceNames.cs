@@ -2,6 +2,8 @@
 
 public static class ServiceNames
 {
+    public const string GamePlayService = "game-play-service";
+
     public const string Localhost = "localhost";
 
     public const string APIGateway = "api-gateway";

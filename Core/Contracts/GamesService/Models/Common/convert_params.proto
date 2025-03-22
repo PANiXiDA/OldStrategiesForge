@@ -1,0 +1,11 @@
+﻿syntax = "proto3";
+
+option csharp_namespace = "Games.ConvertParams.Gen";
+
+message GamesConvertParams {
+    optional bool include_sessions = 1;
+}
+
+message SessionsConvertParams {
+    optional bool include_game = 1;
+}

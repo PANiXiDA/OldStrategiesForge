@@ -22,10 +22,18 @@
 		<Protobuf Include="ProfileService\auth.proto" GrpcServices="Both" />
 		<Protobuf Include="ProfileService\avatars.proto" GrpcServices="Both" />
 		<Protobuf Include="ProfileService\frames.proto" GrpcServices="Both" />
-		<Protobuf Include="ProfileService\players.proto" GrpcServices="Both" />	
+		<Protobuf Include="ProfileService\players.proto" GrpcServices="Both" />
+		
 		<Protobuf Include="ImagesService\s3Images.proto" GrpcServices="Both" />	
-		<Protobuf Include="ChatsService\globalChat.proto" GrpcServices="Both" />	
+		<Protobuf Include="ChatsService\globalChat.proto" GrpcServices="Both" />
+
+		<Protobuf Include="GamesService\Models\entities.proto" GrpcServices="Both" />
+		<Protobuf Include="GamesService\Models\Common\enums.proto" GrpcServices="Both" />
+		<Protobuf Include="GamesService\Models\Common\search_params.proto" GrpcServices="Both" />
+		<Protobuf Include="GamesService\Models\Common\convert_params.proto" GrpcServices="Both" />
 		<Protobuf Include="GamesService\matchmaking.proto" GrpcServices="Both" />
+		<Protobuf Include="GamesService\games.proto" GrpcServices="Both" />
+		<Protobuf Include="GamesService\sessions.proto" GrpcServices="Both" />
 		
 		<Protobuf Include="GameDataService\Models\entities.proto" GrpcServices="Both" />
 		<Protobuf Include="GameDataService\Models\Common\enums.proto" GrpcServices="Both" />

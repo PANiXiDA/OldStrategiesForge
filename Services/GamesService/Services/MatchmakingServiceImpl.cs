@@ -1,18 +1,19 @@
 ﻿using GamesService.DAL.Interfaces;
-using GamesService.Dto;
 using GamesService.Dto.Entities;
 using Grpc.Core;
 using Matchmaking.Gen;
 using Profile.Players.Gen;
 using System.Collections.Concurrent;
-using Common.Enums;
 using ImageService.S3Images.Gen;
+using Games.Enums.Gen;
+using Games.Entities.Gen;
+using Google.Protobuf.WellKnownTypes;
 
 namespace GamesService.Services;
 
-public class GamesServiceImpl : GameMatchmaking.GameMatchmakingBase
+public class MatchmakingServiceImpl : GameMatchmaking.GameMatchmakingBase
 {
-    private readonly ILogger<GamesServiceImpl> _logger;
+    private readonly ILogger<MatchmakingServiceImpl> _logger;
     private readonly ProfilePlayers.ProfilePlayersClient _playersClient;
     private readonly S3Images.S3ImagesClient _s3ImagesClient;
     private readonly IServiceScopeFactory _scopeFactory;
@@ -27,8 +28,8 @@ public class GamesServiceImpl : GameMatchmaking.GameMatchmakingBase
 
     private const int _searchDelaySeconds = 10;
 
-    public GamesServiceImpl(
-        ILogger<GamesServiceImpl> logger,
+    public MatchmakingServiceImpl(
+        ILogger<MatchmakingServiceImpl> logger,
         ProfilePlayers.ProfilePlayersClient playersClient,
         S3Images.S3ImagesClient s3ImagesClient,
         IServiceScopeFactory scopeFactory)
@@ -188,9 +189,9 @@ public class GamesServiceImpl : GameMatchmaking.GameMatchmakingBase
             Frame = opponent.Frame
         };
 
-        if (_responseStreams.TryGetValue(playerId, out var responseStream1))
+        if (_responseStreams.TryGetValue(playerId, out var responseStream))
         {
-            await responseStream1.WriteAsync(response);
+            await responseStream.WriteAsync(response);
         }
     }
 
@@ -202,15 +203,19 @@ public class GamesServiceImpl : GameMatchmaking.GameMatchmakingBase
             using var scope = _scopeFactory.CreateScope();
             var gamesDAL = scope.ServiceProvider.GetRequiredService<IGamesDAL>();
 
-            var game = new GameDto(GameType.Duel);
-
-            while (await gamesDAL.ExistsAsync(game.Id))
+            var game = new Game()
             {
-                game = new GameDto(GameType.Duel);
-            }
+                Id = Guid.NewGuid().ToString(),
+                CreatedAt = Timestamp.FromDateTime(DateTime.UtcNow),
+                UpdatedAt = Timestamp.FromDateTime(DateTime.UtcNow),
+                DeletedAt = null,
+                GameType = GameType.Duel,
+                WinnerId = null
+            };
+
             await gamesDAL.AddOrUpdateAsync(game);
 
-            return game.Id;
+            return Guid.Parse(game.Id);
         }
         finally
         {
@@ -226,15 +231,20 @@ public class GamesServiceImpl : GameMatchmaking.GameMatchmakingBase
             using var scope = _scopeFactory.CreateScope();
             var sessionsDAL = scope.ServiceProvider.GetRequiredService<ISessionsDAL>();
 
-            var session = new SessionDto(playerId, gameId, true);
-
-            while (await sessionsDAL.ExistsAsync(session.Id))
+            var session = new Session()
             {
-                session = new SessionDto(playerId, gameId, true);
-            }
+                Id = Guid.NewGuid().ToString(),
+                CreatedAt = Timestamp.FromDateTime(DateTime.UtcNow),
+                UpdatedAt = Timestamp.FromDateTime(DateTime.UtcNow),
+                DeletedAt = null,
+                PlayerId = playerId,
+                GameId = gameId.ToString(),
+                IsActive = true,
+            };
+
             await sessionsDAL.AddOrUpdateAsync(session);
 
-            return session.Id;
+            return Guid.Parse(session.Id);
         }
         finally
         {

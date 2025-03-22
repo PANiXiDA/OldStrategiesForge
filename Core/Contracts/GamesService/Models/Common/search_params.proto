@@ -1,0 +1,16 @@
+﻿syntax = "proto3";
+
+import "GamesService/Models/Common/enums.proto";
+
+option csharp_namespace = "Games.SearchParams.Gen";
+
+message GamesSearchParams {
+    optional GameType game_type = 1;
+    optional int32 winner_id = 2;
+}
+
+message SessionsSearchParams {
+    optional int32 player_id = 1;
+    optional string game_id = 2;
+    optional bool is_active = 3;
+}

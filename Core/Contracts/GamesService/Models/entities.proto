@@ -1,0 +1,28 @@
+﻿syntax = "proto3";
+
+import "GamesService/Models/Common/enums.proto";
+import "google/protobuf/wrappers.proto";
+import "google/protobuf/timestamp.proto";
+
+option csharp_namespace = "Games.Entities.Gen";
+
+message Game {
+    string id = 1;
+    google.protobuf.Timestamp created_at = 2;
+    google.protobuf.Timestamp updated_at = 3;
+    google.protobuf.Timestamp deleted_at = 4;
+    GameType game_type = 5;
+    optional google.protobuf.Int32Value winner_id = 6;
+    repeated Session sessions = 7;
+}
+
+message Session {
+    string id = 1;
+    google.protobuf.Timestamp created_at = 2;
+    google.protobuf.Timestamp updated_at = 3;
+    google.protobuf.Timestamp deleted_at = 4;
+    int32 player_id = 5;
+    string game_id = 6;
+    bool is_active = 7;
+    optional Game game = 8;
+}
