@@ -16,6 +16,15 @@ message GetPlayerBuildRequest {
 }
 
 message GetPlayerBuildResponse {
-    Hero hero = 1;
-    repeated Unit units = 2;
+    Faction faction = 1;
+    Subfaction subfaction = 2;
+    ArtefactSet artefact_set = 3;
+    repeated Artefact artefacts = 4;
+    Hero hero = 5;
+    repeated UnitDto units = 6;
+}
+
+message UnitDto {
+    Unit unit = 1;
+    int32 count = 2;
 }
