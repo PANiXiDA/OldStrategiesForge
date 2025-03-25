@@ -15,6 +15,7 @@ public static class ServiceNames
     public const string ChatsService = "chats-service";
     public const string GamesService = "games-service";
     public const string GameDataService = "game-data-service";
+    public const string PlayerBuildsService = "player-builds-service";
 
     #endregion
 

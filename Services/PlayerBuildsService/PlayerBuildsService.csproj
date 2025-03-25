@@ -4,15 +4,12 @@
 		<TargetFramework>net8.0</TargetFramework>
 		<Nullable>enable</Nullable>
 		<ImplicitUsings>enable</ImplicitUsings>
-		<UserSecretsId>59fbf793-726f-4e6e-aea2-39da8691f890</UserSecretsId>
+		<UserSecretsId>c2da37fd-0943-493a-9bac-c153fd02f12c</UserSecretsId>
 		<DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
 		<DockerfileContext>..\..</DockerfileContext>
 	</PropertyGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\..\Common\Common.csproj" />
-		<ProjectReference Include="..\..\Core\BaseBL\BaseBL.csproj" />
-		<ProjectReference Include="..\..\Core\BaseDAL\BaseDAL.csproj" />
 		<ProjectReference Include="..\..\Core\Contracts\Contracts.csproj" />
 		<ProjectReference Include="..\..\Tools\Tools.csproj" />
 	</ItemGroup>

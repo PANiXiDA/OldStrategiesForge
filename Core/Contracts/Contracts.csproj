@@ -26,6 +26,7 @@
 		
 		<Protobuf Include="ImagesService\s3Images.proto" GrpcServices="Both" />	
 		<Protobuf Include="ChatsService\globalChat.proto" GrpcServices="Both" />
+		<Protobuf Include="PlayerBuildsService\playerBuilds.proto" GrpcServices="Both" />
 
 		<Protobuf Include="GamesService\Models\entities.proto" GrpcServices="Both" />
 		<Protobuf Include="GamesService\Models\Common\enums.proto" GrpcServices="Both" />

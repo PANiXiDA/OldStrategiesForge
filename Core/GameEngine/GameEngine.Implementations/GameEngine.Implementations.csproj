@@ -1,0 +1,13 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\GameEngine.Domains\GameEngine.Domains.csproj" />
+    <ProjectReference Include="..\GameEngine.DTO\GameEngine.DTO.csproj" />
+    <ProjectReference Include="..\GameEngine.Interfaces\GameEngine.Interfaces.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
+    <DockerfileContext>..\..</DockerfileContext>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.7.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Common\Common.csproj" />
+    <ProjectReference Include="..\..\Core\GameEngine\GameEngine.Domains\GameEngine.Domains.csproj" />
+    <ProjectReference Include="..\..\Core\GameEngine\GameEngine.DTO\GameEngine.DTO.csproj" />
+    <ProjectReference Include="..\..\Core\GameEngine\GameEngine.Interfaces\GameEngine.Interfaces.csproj" />
+    <ProjectReference Include="..\..\Core\GameEngine\GameEngineDotnetDI\GameEngineDotnetDI.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="BL\BL.Interfaces\" />
+  </ItemGroup>
+
+</Project>
