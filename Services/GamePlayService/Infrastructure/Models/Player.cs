@@ -6,17 +6,18 @@ namespace GamePlayService.Infrastructure.Models;
 public class Player
 {
     public int Id { get; set; }
-    public Guid SessionId { get; set; }
-    public Guid BuildId { get; set; }
-    public IPEndPoint IPEndPoint { get; set; }
+    public string SessionId { get; set; }
+    public string BuildId { get; set; }
     public int CountMissedMoves { get; set; }
     public Hero Hero { get; set; }
     public List<Unit> Units { get; set; }
 
+    public List<IPEndPoint> IPEndPoints { get; set; } = new List<IPEndPoint>();
+
     public Player(
         int id,
-        Guid sessionId,
-        Guid buildId,
+        string sessionId,
+        string buildId,
         IPEndPoint iPEndPoint,
         int countMissedMoves,
         Hero hero,
@@ -25,9 +26,9 @@ public class Player
         Id = id;
         SessionId = sessionId;
         BuildId = buildId;
-        IPEndPoint = iPEndPoint;
         CountMissedMoves = countMissedMoves;
         Hero = hero;
         Units = units;
+        IPEndPoints.Add(iPEndPoint);
     }
 }

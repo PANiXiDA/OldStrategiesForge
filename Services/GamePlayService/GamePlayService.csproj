@@ -20,8 +20,4 @@
     <ProjectReference Include="..\..\Core\GameEngine\GameEngineDotnetDI\GameEngineDotnetDI.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="BL\BL.Interfaces\" />
-  </ItemGroup>
-
 </Project>

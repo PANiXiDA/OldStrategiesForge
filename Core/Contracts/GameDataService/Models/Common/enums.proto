@@ -41,3 +41,7 @@ enum EffectType {
     GodDefence = 17;
     UnlimitResponce = 18;
 }
+
+enum AbilityType {
+    Test = 0;
+}

@@ -10,6 +10,8 @@ namespace GameEngine.Domains
         public int MinDamage { get; set; }
         public int MaxDamage { get; set; }
         public double Initiative { get; set; }
+        public int Morale { get; set; }
+        public int Luck { get; set; }
 
         public Hero(
             Guid id,
@@ -17,7 +19,9 @@ namespace GameEngine.Domains
             int defence,
             int minDamage,
             int maxDamage,
-            double initiative)
+            double initiative,
+            int morale,
+            int luck)
         {
             Id = id;
             Attack = attack;
@@ -25,6 +29,8 @@ namespace GameEngine.Domains
             MinDamage = minDamage;
             MaxDamage = maxDamage;
             Initiative = initiative;
+            Morale = morale;
+            Luck = luck;
         }
     }
 }

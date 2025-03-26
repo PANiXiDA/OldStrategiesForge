@@ -4,7 +4,7 @@ namespace GamePlayService.Infrastructure.Models;
 
 public class GameSession
 {
-    public Guid GameId { get; set; }
+    public string GameId { get; set; }
     public GameState GameState { get; set; }
     public GameType GameType { get; set; }
     public RoundState RoundState { get; set; }
@@ -12,7 +12,7 @@ public class GameSession
     public List<Player> Players { get; set; }
 
     public GameSession(
-        Guid gameId,
+        string gameId,
         GameState gameState,
         GameType gameType,
         RoundState roundState,

@@ -1,5 +1,6 @@
 ﻿using Common.Constants;
 using GameEngine.Domains;
+using GamePlayService.BL.BL.Interfaces;
 using GamePlayService.Extensions.Helpers;
 using GamePlayService.Infrastructure.Enums;
 using GamePlayService.Infrastructure.Models;
@@ -24,13 +25,16 @@ public class GamePlayServiceImpl : BackgroundService
     private readonly GamesService.GamesServiceClient _gamesService;
     private readonly SessionsService.SessionsServiceClient _sessionsService;
 
-    private static readonly ConcurrentDictionary<Guid, GameSession> _games = new();
+    private readonly IConnectionsBL _connectionBL;
+
+    private static readonly ConcurrentDictionary<string, GameSession> _games = new();
 
     public GamePlayServiceImpl(
         ILogger<GamePlayServiceImpl> logger,
         JwtHelper jwtHelper,
         GamesService.GamesServiceClient gamesService,
-        SessionsService.SessionsServiceClient sessionsService)
+        SessionsService.SessionsServiceClient sessionsService,
+        IConnectionsBL connectionBL)
     {
         _logger = logger;
 
@@ -39,6 +43,8 @@ public class GamePlayServiceImpl : BackgroundService
 
         _gamesService = gamesService;
         _sessionsService = sessionsService;
+
+        _connectionBL = connectionBL;
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -71,7 +77,15 @@ public class GamePlayServiceImpl : BackgroundService
             case MessageType.Connection:
                 if (JsonHelper.TryDeserialize<ConnectionMessage>(message.Message, out var connectionMessage) && connectionMessage != null)
                 {
-                    //await HandleConnection(connectionMessage, clientEndpoint);
+                    var session = await _connectionBL.GetUserSession(connectionMessage.AuthToken, connectionMessage.SessionId);
+                    if (session != null && _games.TryGetValue(session.GameId, out var gameSession))
+                    {
+                        await _connectionBL.HandleConnection(gameSession, session, clientEndpoint);
+                    }
+                    else
+                    {
+                        _logger.LogError($"Ошибка при нахождении игроков сессии: {session} по {connectionMessage.SessionId}");
+                    }
                 }
                 else
                 {
