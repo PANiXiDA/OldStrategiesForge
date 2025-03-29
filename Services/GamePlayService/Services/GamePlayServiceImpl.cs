@@ -1,10 +1,10 @@
 ﻿using Common.Constants;
-using GameEngine.Domains;
 using GamePlayService.BL.BL.Interfaces;
 using GamePlayService.Extensions.Helpers;
 using GamePlayService.Infrastructure.Enums;
 using GamePlayService.Infrastructure.Models;
 using GamePlayService.Infrastructure.Requests;
+using RedLockNet;
 using System.Collections.Concurrent;
 using System.Net;
 using System.Net.Sockets;
@@ -18,6 +18,7 @@ public class GamePlayServiceImpl : BackgroundService
     private ILogger<GamePlayServiceImpl> _logger;
 
     private readonly UdpClient _udpServer;
+    private readonly IDistributedLockFactory _distributedLockFactory;
 
     private readonly IConnectionsBL _connectionBL;
 
@@ -25,11 +26,13 @@ public class GamePlayServiceImpl : BackgroundService
 
     public GamePlayServiceImpl(
         ILogger<GamePlayServiceImpl> logger,
+        IDistributedLockFactory distributedLockFactory,
         IConnectionsBL connectionBL)
     {
         _logger = logger;
 
         _udpServer = new UdpClient(PortsConstants.GamePlayServicePort);
+        _distributedLockFactory = distributedLockFactory;
 
         _connectionBL = connectionBL;
     }
@@ -62,37 +65,15 @@ public class GamePlayServiceImpl : BackgroundService
         switch (message.MessageType)
         {
             case MessageType.Connection:
-                if (JsonHelper.TryDeserialize<ConnectionMessage>(message.Message, out var connectionMessage) && connectionMessage != null)
-                {
-                    var session = await _connectionBL.GetUserSession(message.AuthToken, connectionMessage.SessionId);
-                    if (session != null)
-                    {
-                        if (_games.TryGetValue(session.GameId, out var connectionGameSession))
-                        {
-                            await _connectionBL.HandleConnection(connectionGameSession, session, clientEndpoint);
-                            _connectionBL.UpdateGameState(connectionGameSession);
-                        }
-                        else
-                        {
-                            connectionGameSession = await _connectionBL.CreateGameSession(session, clientEndpoint);
-                            _games[session.GameId] = connectionGameSession;
-                        }
-                    }
-                    else
-                    {
-                        _logger.LogError($"Ошибка при нахождении игроков сессии: {session} по {connectionMessage.SessionId}");
-                    }
-                }
-                else
-                {
-                    _logger.LogError($"Ошибка десериализации JSON: {message}");
-                }
+                await HandleConnectionMessage(message, clientEndpoint);
                 break;
 
             case MessageType.Command:
+                // Обработка команды
                 break;
 
             case MessageType.Surrender:
+                // Обработка сдачи
                 break;
 
             default:
@@ -103,6 +84,71 @@ public class GamePlayServiceImpl : BackgroundService
         if (_games.TryGetValue(message.GameId, out var gameSession) && gameSession.GameState != GameState.GameInitialization)
         {
             await SendAllPlayersCurrentRoundState(gameSession);
+        }
+    }
+
+    private async Task HandleConnectionMessage(IncomingMessage message, IPEndPoint clientEndpoint)
+    {
+        if (JsonHelper.TryDeserialize<ConnectionMessage>(message.Message, out var connectionMessage) && connectionMessage != null)
+        {
+            var session = await _connectionBL.GetUserSession(message.AuthToken, connectionMessage.SessionId);
+            if (session != null)
+            {
+                var lockKey = $"lock:game:{session.GameId}";
+                int maxRetryAttempts = 3; // Максимальное число попыток
+                int attempt = 0;
+                bool lockAcquired = false;
+
+                while (attempt < maxRetryAttempts && !lockAcquired)
+                {
+                    attempt++;
+                    await using (var redLock = await _distributedLockFactory.CreateLockAsync(
+                            resource: lockKey,
+                            expiryTime: TimeSpan.FromSeconds(30),
+                            waitTime: TimeSpan.FromSeconds(10),
+                            retryTime: TimeSpan.FromMilliseconds(200) 
+                        ))
+                    {
+                        if (redLock.IsAcquired)
+                        {
+                            lockAcquired = true;
+                            if (_games.TryGetValue(session.GameId, out var connectionGameSession))
+                            {
+                                await _connectionBL.HandleConnection(connectionGameSession, session, clientEndpoint);
+                                _connectionBL.UpdateGameState(connectionGameSession);
+                            }
+                            else
+                            {
+                                connectionGameSession = await _connectionBL.CreateGameSession(session, clientEndpoint);
+                                _games[session.GameId] = connectionGameSession;
+                            }
+
+                            return;
+                        }
+                        else
+                        {
+                            _logger.LogWarning($"Попытка {attempt}: не удалось получить блокировку для игры {session.GameId}");
+                        }
+                    }
+
+                    if (!lockAcquired)
+                    {
+                        await Task.Delay(500);
+                    }
+                }
+                if (!lockAcquired)
+                {
+                    _logger.LogError($"Не удалось получить блокировку для игры {session.GameId} после {maxRetryAttempts} попыток.");
+                }
+            }
+            else
+            {
+                _logger.LogError($"Ошибка при нахождении игроков сессии: {session} по {connectionMessage.SessionId}");
+            }
+        }
+        else
+        {
+            _logger.LogError($"Ошибка десериализации JSON: {message}");
         }
     }
 
