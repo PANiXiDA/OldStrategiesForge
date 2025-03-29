@@ -15,15 +15,15 @@ namespace GameEngine.Implementations
             _random = new Random();
         }
 
-        public List<UnitPosition> SetStartingPosition(IEnumerable<UnitInitiative> unitInitiatives)
+        public List<GameEntity> SetStartingPosition(IEnumerable<GameEntityInitiative> gameEntityInitiatives)
         {
-            var startingPositions = new List<UnitPosition>();
+            var startingPositions = new List<GameEntity>();
 
-            foreach (var unit in unitInitiatives)
+            foreach (var unit in gameEntityInitiatives)
             {
-                startingPositions.Add(new UnitPosition
+                startingPositions.Add(new GameEntity
                 {
-                    UnitId = unit.UnitId,
+                    GameEntityId = unit.GameEntityId,
                     Position = _random.NextDouble() * 15
                 });
             }
@@ -31,9 +31,9 @@ namespace GameEngine.Implementations
             return startingPositions;
         }
 
-        public List<UnitPosition> ShiftATBPosition(ATBPositionShiftContext request)
+        public List<GameEntity> ShiftATBPosition(ATBPositionShiftContext request)
         {
-            var unitState = request.CurrentATBState.First(state => state.UnitId ==
+            var unitState = request.CurrentATBState.First(state => state.GameEntityId ==
                 request.UnitId);
             unitState.Position += unitState.Position * request.ShiftFactor;
 
@@ -57,10 +57,10 @@ namespace GameEngine.Implementations
 
         public List<Guid> PredictNextTurns(ATBCalculationContext context, int countTurns = 100)
         {
-            List<UnitPosition> simulatedATBState = context.CurrentATBState
-                .Select(state => new UnitPosition
+            List<GameEntity> simulatedATBState = context.CurrentATBState
+                .Select(state => new GameEntity
                 {
-                    UnitId = state.UnitId,
+                    GameEntityId = state.GameEntityId,
                     Position =
                     state.Position
                 })
@@ -82,21 +82,21 @@ namespace GameEngine.Implementations
         }
 
         private List<UnitFinishingTime> CalculateFinishingTimes(
-            List<UnitInitiative> unitInitiatives,
-            List<UnitPosition> currentStates)
+            List<GameEntityInitiative> gameEntityInitiatives,
+            List<GameEntity> currentStates)
         {
             var finishingTimes = new List<UnitFinishingTime>();
 
-            foreach (var unit in unitInitiatives)
+            foreach (var unit in gameEntityInitiatives)
             {
-                var state = currentStates.First(currentState => currentState.UnitId == unit.UnitId);
+                var state = currentStates.First(currentState => currentState.GameEntityId == unit.GameEntityId);
                 double time = unit.Initiative > 0 
                     ? (100 - state.Position) / unit.Initiative
                     : double.PositiveInfinity;
 
                 finishingTimes.Add(new UnitFinishingTime
                 {
-                    UnitId = unit.UnitId,
+                    UnitId = unit.GameEntityId,
                     FinishingTime = time
                 });
             }
@@ -105,21 +105,21 @@ namespace GameEngine.Implementations
         }
 
         private UnitFinishingTime ApplyTurnUpdate(
-            List<UnitInitiative> unitInitiatives,
-            List<UnitPosition> currentStates, 
+            List<GameEntityInitiative> gameEntityInitiatives,
+            List<GameEntity> currentStates, 
             List<UnitFinishingTime> finishingTimes)
         {
             var nextUnit = finishingTimes.OrderBy(finishingTime =>
                 finishingTime.FinishingTime).First();
             double minTime = nextUnit.FinishingTime;
 
-            foreach (var unit in unitInitiatives)
+            foreach (var unit in gameEntityInitiatives)
             {
-                var state = currentStates.First(currentState => currentState.UnitId == unit.UnitId);
+                var state = currentStates.First(currentState => currentState.GameEntityId == unit.GameEntityId);
                 state.Position += unit.Initiative * minTime;
             }
 
-            var nextUnitState = currentStates.First(state => state.UnitId == nextUnit.UnitId);
+            var nextUnitState = currentStates.First(state => state.GameEntityId == nextUnit.UnitId);
             nextUnitState.Position -= 100;
 
             return nextUnit;

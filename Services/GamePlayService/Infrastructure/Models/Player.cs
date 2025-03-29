@@ -1,4 +1,6 @@
 ﻿using GameEngine.Domains;
+using GameEngine.DTO.Enums;
+using GamePlayService.Infrastructure.Enums;
 using System.Net;
 
 namespace GamePlayService.Infrastructure.Models;
@@ -9,6 +11,7 @@ public class Player
     public string SessionId { get; set; }
     public string BuildId { get; set; }
     public int CountMissedMoves { get; set; }
+    public PlayerSide Side { get; set; }
     public Hero Hero { get; set; }
     public List<Unit> Units { get; set; }
 
@@ -20,6 +23,7 @@ public class Player
         string buildId,
         IPEndPoint iPEndPoint,
         int countMissedMoves,
+        PlayerSide side,
         Hero hero,
         List<Unit> units)
     {
@@ -27,6 +31,7 @@ public class Player
         SessionId = sessionId;
         BuildId = buildId;
         CountMissedMoves = countMissedMoves;
+        Side = side;
         Hero = hero;
         Units = units;
         IPEndPoints.Add(iPEndPoint);

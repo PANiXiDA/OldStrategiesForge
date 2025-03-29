@@ -1,10 +1,13 @@
-﻿namespace GameEngine.DTO.PathFinderCalculator
+﻿using System;
+
+namespace GameEngine.DTO.PathFinderCalculator
 {
     public class Tile
     {
         public int X { get; set; }
         public int Y { get; set; }
         public bool IsWalkable { get; set; }
+        public Guid? OccupiedUnitId { get; set; }
 
         public Tile(int x, int y, bool isWalkable)
         {

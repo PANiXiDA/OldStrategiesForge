@@ -1,10 +1,10 @@
-﻿using GamePlayService.Infrastructure.Enums;
+﻿using GameEngine.DTO.Enums;
+using GamePlayService.Infrastructure.Enums;
 
 namespace GamePlayService.Infrastructure.Models;
 
 public class GameSession
 {
-    public string GameId { get; set; }
     public GameState GameState { get; set; }
     public GameType GameType { get; set; }
     public RoundState RoundState { get; set; }
@@ -12,14 +12,12 @@ public class GameSession
     public List<Player> Players { get; set; }
 
     public GameSession(
-        string gameId,
         GameState gameState,
         GameType gameType,
         RoundState roundState,
         List<RoundState> gameHistory,
         List<Player> players)
     {
-        GameId = gameId;
         GameState = gameState;
         GameType = gameType;
         RoundState = roundState;

@@ -1,5 +1,10 @@
-﻿using GamePlayService.BL.BL.Interfaces;
+﻿using GameEngine.Domains;
+using GameEngine.DTO.ATBCalculator;
+using GameEngine.DTO.Enums;
+using GameEngine.Interfaces;
+using GamePlayService.BL.BL.Interfaces;
 using GamePlayService.Extensions.Helpers;
+using GamePlayService.Infrastructure.Enums;
 using GamePlayService.Infrastructure.Models;
 using Games.Entities.Gen;
 using Sessions.Gen;
@@ -17,16 +22,57 @@ public class ConnectionsBL : IConnectionsBL
 
     private readonly IPlayerBuildsFactory _playerBuildsFactory;
 
+    private readonly IGridGenerator _gridGenerator;
+    private readonly IATBCalculator _atBCalculator;
+
     public ConnectionsBL(
         ILogger<ConnectionsBL> logger,
         JwtHelper jwtHelper,
         SessionsService.SessionsServiceClient sessionsService,
-        IPlayerBuildsFactory playerBuildsFactory)
+        IPlayerBuildsFactory playerBuildsFactory,
+        IGridGenerator gridGenerator,
+        IATBCalculator atBCalculator)
     {
         _logger = logger;
         _jwtHelper = jwtHelper;
         _sessionsService = sessionsService;
         _playerBuildsFactory = playerBuildsFactory;
+        _gridGenerator = gridGenerator;
+        _atBCalculator = atBCalculator;
+    }
+
+    public async Task<GameSession> CreateGameSession(Session session, IPEndPoint clientEndpoint)
+    {
+        var (hero, units) = await _playerBuildsFactory.GetGameEntities(session.BuildId);
+
+        var player = new Player(
+            id: session.PlayerId,
+            sessionId: session.Id,
+            buildId: session.BuildId,
+            iPEndPoint: clientEndpoint,
+            countMissedMoves: 0,
+            side: PlayerSide.Left, // TODO потом нужно перенести на этап создания игры в базе
+            hero: hero,
+            units: units);
+
+        var gameType = (GameType)session.Game.GameType;
+        var grid = _gridGenerator.GenerateGrid(gameType);
+
+        var roundState = new RoundState(
+            grid: grid,
+            heroes: new List<Hero>() { hero },
+            units: units,
+            atb: new List<GameEntity>(),
+            lastCommand: null);
+
+        var gameSession = new GameSession(
+            gameState: GameState.WaitingForPlayers,
+            gameType: gameType,
+            roundState: roundState,
+            gameHistory: new List<RoundState>(),
+            players: new List<Player>() { player });
+
+        return gameSession;
     }
 
     public async Task HandleConnection(GameSession gameSession, Session session, IPEndPoint clientEndpoint)
@@ -46,10 +92,13 @@ public class ConnectionsBL : IConnectionsBL
                 buildId: session.BuildId,
                 iPEndPoint: clientEndpoint,
                 countMissedMoves: 0,
+                side: PlayerSide.Right, // TODO потом нужно перенести на этап создания игры в базе
                 hero: hero,
                 units: units);
 
             gameSession.Players.Add(player);
+            gameSession.RoundState.Heroes.Add(hero);
+            gameSession.RoundState.Units.AddRange(units);
         }
     }
 
@@ -76,5 +125,36 @@ public class ConnectionsBL : IConnectionsBL
         }
 
         return session;
+    }
+
+    public void UpdateGameState(GameSession gameSession)
+    {
+        switch (gameSession.GameType)
+        {
+            case GameType.Duel:
+                gameSession.GameState = gameSession.Players.Count == 2 ? GameState.Deployment : GameState.GameInitialization;
+                break;
+            case GameType.Random2x2:
+                break;
+            case GameType.Team2x2:
+                break;
+            default:
+                break;
+        }
+
+        if (gameSession.GameState == GameState.Deployment)
+        {
+            foreach (var player in gameSession.Players)
+            {
+                gameSession.RoundState.Grid = _gridGenerator.BaseDeploymentGrid(gameSession.RoundState.Grid, player.Units, player.Side);
+            }
+
+            var gameEntityInitiatives = gameSession.RoundState.Units
+                .Select(unit => new GameEntityInitiative(gameEntityId: unit.Id, initiative: unit.CurrentInitiative)).ToList();
+            gameEntityInitiatives.AddRange(gameSession.RoundState.Heroes
+                .Select(hero => new GameEntityInitiative(gameEntityId: hero.Id, initiative: hero.Initiative)));
+
+            gameSession.RoundState.ATB = _atBCalculator.SetStartingPosition(gameEntityInitiatives);
+        }
     }
 }

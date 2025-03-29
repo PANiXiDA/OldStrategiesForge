@@ -6,6 +6,6 @@ namespace GameEngine.DTO.ATBCalculator
     public class ATBNextTurnResult
     {
         public Guid NextUnitId { get; set; }
-        public List<UnitPosition> UpdatedATBState { get; set; }
+        public List<GameEntity> UpdatedATBState { get; set; }
     }
 }

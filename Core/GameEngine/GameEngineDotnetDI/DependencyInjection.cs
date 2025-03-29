@@ -11,6 +11,7 @@ namespace GameEngineDotnetDI
             services.AddScoped<IATBCalculator, ATBCalculator>();
             services.AddScoped<IDamageCalculator, DamageCalculator>();
             services.AddScoped<IPathFinderCalculator, PathFinderCalculator>();
+            services.AddScoped<IGridGenerator, GridGenerator>();
 
             return services;
         }

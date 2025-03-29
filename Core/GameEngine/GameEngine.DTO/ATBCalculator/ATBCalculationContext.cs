@@ -4,7 +4,7 @@ namespace GameEngine.DTO.ATBCalculator
 {
     public class ATBCalculationContext
     {
-        public List<UnitInitiative> UnitInitiatives { get; set; }
-        public List<UnitPosition> CurrentATBState { get; set; }
+        public List<GameEntityInitiative> UnitInitiatives { get; set; }
+        public List<GameEntity> CurrentATBState { get; set; }
     }
 }

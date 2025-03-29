@@ -5,13 +5,11 @@ using GamePlayService.Extensions.Helpers;
 using GamePlayService.Infrastructure.Enums;
 using GamePlayService.Infrastructure.Models;
 using GamePlayService.Infrastructure.Requests;
-using Games.Entities.Gen;
-using Games.Gen;
-using Sessions.Gen;
 using System.Collections.Concurrent;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
+using System.Text.Json;
 
 namespace GamePlayService.Services;
 
@@ -20,29 +18,18 @@ public class GamePlayServiceImpl : BackgroundService
     private ILogger<GamePlayServiceImpl> _logger;
 
     private readonly UdpClient _udpServer;
-    private readonly JwtHelper _jwtHelper;
-
-    private readonly GamesService.GamesServiceClient _gamesService;
-    private readonly SessionsService.SessionsServiceClient _sessionsService;
 
     private readonly IConnectionsBL _connectionBL;
 
-    private static readonly ConcurrentDictionary<string, GameSession> _games = new();
+    private static readonly ConcurrentDictionary<string, GameSession> _games = new(); // ключ - id игры
 
     public GamePlayServiceImpl(
         ILogger<GamePlayServiceImpl> logger,
-        JwtHelper jwtHelper,
-        GamesService.GamesServiceClient gamesService,
-        SessionsService.SessionsServiceClient sessionsService,
         IConnectionsBL connectionBL)
     {
         _logger = logger;
 
         _udpServer = new UdpClient(PortsConstants.GamePlayServicePort);
-        _jwtHelper = jwtHelper;
-
-        _gamesService = gamesService;
-        _sessionsService = sessionsService;
 
         _connectionBL = connectionBL;
     }
@@ -77,10 +64,19 @@ public class GamePlayServiceImpl : BackgroundService
             case MessageType.Connection:
                 if (JsonHelper.TryDeserialize<ConnectionMessage>(message.Message, out var connectionMessage) && connectionMessage != null)
                 {
-                    var session = await _connectionBL.GetUserSession(connectionMessage.AuthToken, connectionMessage.SessionId);
-                    if (session != null && _games.TryGetValue(session.GameId, out var gameSession))
+                    var session = await _connectionBL.GetUserSession(message.AuthToken, connectionMessage.SessionId);
+                    if (session != null)
                     {
-                        await _connectionBL.HandleConnection(gameSession, session, clientEndpoint);
+                        if (_games.TryGetValue(session.GameId, out var connectionGameSession))
+                        {
+                            await _connectionBL.HandleConnection(connectionGameSession, session, clientEndpoint);
+                            _connectionBL.UpdateGameState(connectionGameSession);
+                        }
+                        else
+                        {
+                            connectionGameSession = await _connectionBL.CreateGameSession(session, clientEndpoint);
+                            _games[session.GameId] = connectionGameSession;
+                        }
                     }
                     else
                     {
@@ -102,6 +98,24 @@ public class GamePlayServiceImpl : BackgroundService
             default:
                 _logger.LogWarning($"Неизвестный тип сообщения: {message.MessageType}");
                 break;
+        }
+
+        if (_games.TryGetValue(message.GameId, out var gameSession) && gameSession.GameState != GameState.GameInitialization)
+        {
+            await SendAllPlayersCurrentRoundState(gameSession);
+        }
+    }
+
+    private async Task SendAllPlayersCurrentRoundState(GameSession gameSession)
+    {
+        foreach (var player in gameSession.Players)
+        {
+            foreach (var clientEndpoint in player.IPEndPoints)
+            {
+                string json = JsonSerializer.Serialize(gameSession.RoundState);
+                byte[] responseData = Encoding.UTF8.GetBytes(json);
+                await _udpServer.SendAsync(responseData, responseData.Length, clientEndpoint);
+            }
         }
     }
 }

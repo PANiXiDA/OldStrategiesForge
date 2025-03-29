@@ -2,9 +2,9 @@
 
 namespace GameEngine.DTO.ATBCalculator
 {
-    public class UnitPosition
+    public class GameEntity
     {
-        public Guid UnitId { get; set; }
+        public Guid GameEntityId { get; set; }
         public double Position { get; set; }
     }
 }
