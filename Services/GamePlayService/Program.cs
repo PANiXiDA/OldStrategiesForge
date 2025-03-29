@@ -10,14 +10,20 @@ using RedLockNet;
 using RedLockNet.SERedis;
 using RedLockNet.SERedis.Configuration;
 using StackExchange.Redis;
+using Tools.RabbitMQ.Extensions;
+using Hangfire;
+using Hangfire.Redis.StackExchange;
 
 var builder = WebApplication.CreateBuilder(args);
+
+var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
 
 builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("JwtSettings"));
 builder.Services.AddSingleton(sp => sp.GetRequiredService<IOptions<JwtSettings>>().Value);
 builder.Services.AddSingleton<JwtHelper>();
 
 builder.Services.ConfigureGrpcClients();
+builder.Services.AddMessageBrokers(builder.Configuration, environment);
 builder.Services.ResolveDependencyInjection();
 builder.Services.AddBusinessLogicLayer();
 
@@ -45,8 +51,19 @@ builder.Services.AddSingleton<IDistributedLockFactory>(provider =>
     return RedLockFactory.Create(multiplexers);
 });
 
+builder.Services.AddHangfire(configuration => configuration
+    .SetDataCompatibilityLevel(CompatibilityLevel.Version_170)
+    .UseSimpleAssemblyNameTypeSerializer()
+    .UseRecommendedSerializerSettings()
+    .UseRedisStorage(builder.Configuration.GetConnectionString("Redis"), new RedisStorageOptions())
+);
+
+builder.Services.AddHangfireServer();
+
 builder.Services.AddHostedService<GamePlayServiceImpl>();
 
 var app = builder.Build();
+
+app.UseHangfireDashboard();
 
 app.Run();

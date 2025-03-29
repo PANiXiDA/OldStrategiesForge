@@ -91,4 +91,13 @@ public class GamesDAL : BaseDAL<DefaultDbContext, GameDb,
 
         return game;
     }
+
+    public async Task CloseAsync(Guid id)
+    {
+        var context = GetContext();
+        await context.Games
+            .Where(game => game.Id == id)
+            .SelectMany(game => game.Sessions)
+            .ExecuteUpdateAsync(session => session.SetProperty(session => session.IsActive, false));
+    }
 }

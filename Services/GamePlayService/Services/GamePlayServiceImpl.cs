@@ -4,12 +4,16 @@ using GamePlayService.Extensions.Helpers;
 using GamePlayService.Infrastructure.Enums;
 using GamePlayService.Infrastructure.Models;
 using GamePlayService.Infrastructure.Requests;
+using Games.Gen;
+using Hangfire;
 using RedLockNet;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Text.Json;
+using Tools.RabbitMQ;
 
 namespace GamePlayService.Services;
 
@@ -19,22 +23,31 @@ public class GamePlayServiceImpl : BackgroundService
 
     private readonly UdpClient _udpServer;
     private readonly IDistributedLockFactory _distributedLockFactory;
+    private readonly IServiceProvider _serviceProvider;
+    private readonly IRabbitMQClient _rabbitMQClient;
+    private readonly IBackgroundJobClient _backgroundJobClient;
 
-    private readonly IConnectionsBL _connectionBL;
+    private readonly GamesService.GamesServiceClient _gamesService;
 
     private static readonly ConcurrentDictionary<string, GameSession> _games = new(); // ключ - id игры
 
     public GamePlayServiceImpl(
         ILogger<GamePlayServiceImpl> logger,
         IDistributedLockFactory distributedLockFactory,
-        IConnectionsBL connectionBL)
+        IServiceProvider serviceProvider,
+        IRabbitMQClient rabbitMQClient,
+        IBackgroundJobClient backgroundJobClient,
+        GamesService.GamesServiceClient gamesService)
     {
         _logger = logger;
 
         _udpServer = new UdpClient(PortsConstants.GamePlayServicePort);
         _distributedLockFactory = distributedLockFactory;
+        _serviceProvider = serviceProvider;
+        _rabbitMQClient = rabbitMQClient;
+        _backgroundJobClient = backgroundJobClient;
 
-        _connectionBL = connectionBL;
+        _gamesService = gamesService;
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -89,66 +102,72 @@ public class GamePlayServiceImpl : BackgroundService
 
     private async Task HandleConnectionMessage(IncomingMessage message, IPEndPoint clientEndpoint)
     {
-        if (JsonHelper.TryDeserialize<ConnectionMessage>(message.Message, out var connectionMessage) && connectionMessage != null)
+        using (var scope = _serviceProvider.CreateScope())
         {
-            var session = await _connectionBL.GetUserSession(message.AuthToken, connectionMessage.SessionId);
-            if (session != null)
-            {
-                var lockKey = $"lock:game:{session.GameId}";
-                int maxRetryAttempts = 3; // Максимальное число попыток
-                int attempt = 0;
-                bool lockAcquired = false;
+            var connectionBL = scope.ServiceProvider.GetRequiredService<IConnectionsBL>();
 
-                while (attempt < maxRetryAttempts && !lockAcquired)
+            if (JsonHelper.TryDeserialize<ConnectionMessage>(message.Message, out var connectionMessage) && connectionMessage != null)
+            {
+                var session = await connectionBL.GetUserSession(message.AuthToken, connectionMessage.SessionId);
+                if (session != null)
                 {
-                    attempt++;
-                    await using (var redLock = await _distributedLockFactory.CreateLockAsync(
-                            resource: lockKey,
-                            expiryTime: TimeSpan.FromSeconds(30),
-                            waitTime: TimeSpan.FromSeconds(10),
-                            retryTime: TimeSpan.FromMilliseconds(200) 
-                        ))
+                    var lockKey = $"lock:game:{session.GameId}";
+                    int maxRetryAttempts = 3;
+                    int attempt = 0;
+                    bool lockAcquired = false;
+
+                    while (attempt < maxRetryAttempts && !lockAcquired)
                     {
-                        if (redLock.IsAcquired)
+                        attempt++;
+                        await using (var redLock = await _distributedLockFactory.CreateLockAsync(
+                                resource: lockKey,
+                                expiryTime: TimeSpan.FromSeconds(30),
+                                waitTime: TimeSpan.FromSeconds(10),
+                                retryTime: TimeSpan.FromMilliseconds(200)))
                         {
-                            lockAcquired = true;
-                            if (_games.TryGetValue(session.GameId, out var connectionGameSession))
+                            if (redLock.IsAcquired)
                             {
-                                await _connectionBL.HandleConnection(connectionGameSession, session, clientEndpoint);
-                                _connectionBL.UpdateGameState(connectionGameSession);
+                                lockAcquired = true;
+                                if (_games.TryGetValue(session.GameId, out var connectionGameSession))
+                                {
+                                    await connectionBL.HandleConnection(connectionGameSession, session, clientEndpoint);
+                                    connectionBL.UpdateGameState(connectionGameSession);
+                                }
+                                else
+                                {
+                                    connectionGameSession = await connectionBL.CreateGameSession(session, clientEndpoint);
+                                    _games[session.GameId] = connectionGameSession;
+                                    _backgroundJobClient.Schedule(() => CloseGameSession(session.GameId), TimeSpan.FromMinutes(2));
+
+                                }
+
+                                return;
                             }
                             else
                             {
-                                connectionGameSession = await _connectionBL.CreateGameSession(session, clientEndpoint);
-                                _games[session.GameId] = connectionGameSession;
+                                _logger.LogWarning($"Попытка {attempt}: не удалось получить блокировку для игры {session.GameId}");
                             }
-
-                            return;
                         }
-                        else
+
+                        if (!lockAcquired)
                         {
-                            _logger.LogWarning($"Попытка {attempt}: не удалось получить блокировку для игры {session.GameId}");
+                            await Task.Delay(500);
                         }
                     }
-
                     if (!lockAcquired)
                     {
-                        await Task.Delay(500);
+                        _logger.LogError($"Не удалось получить блокировку для игры {session.GameId} после {maxRetryAttempts} попыток.");
                     }
                 }
-                if (!lockAcquired)
+                else
                 {
-                    _logger.LogError($"Не удалось получить блокировку для игры {session.GameId} после {maxRetryAttempts} попыток.");
+                    _logger.LogError($"Ошибка при нахождении игроков сессии: {session} по {connectionMessage.SessionId}");
                 }
             }
             else
             {
-                _logger.LogError($"Ошибка при нахождении игроков сессии: {session} по {connectionMessage.SessionId}");
+                _logger.LogError($"Ошибка десериализации JSON: {message}");
             }
-        }
-        else
-        {
-            _logger.LogError($"Ошибка десериализации JSON: {message}");
         }
     }
 
@@ -162,6 +181,15 @@ public class GamePlayServiceImpl : BackgroundService
                 byte[] responseData = Encoding.UTF8.GetBytes(json);
                 await _udpServer.SendAsync(responseData, responseData.Length, clientEndpoint);
             }
+        }
+    }
+
+    private async Task CloseGameSession(string gameId)
+    {
+        if (_games.TryGetValue(gameId, out var gameSession))
+        {
+            await _gamesService.CloseAsync(new CloseGameRequest() { Id = gameId });
+            _games.TryRemove(gameId, out gameSession);
         }
     }
 }

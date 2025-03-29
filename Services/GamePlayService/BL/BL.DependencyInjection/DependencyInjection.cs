@@ -8,6 +8,7 @@ public static class DependencyInjection
     public static IServiceCollection AddBusinessLogicLayer(this IServiceCollection services)
     {
         services.AddScoped<IConnectionsBL, ConnectionsBL>();
+        services.AddScoped<IPlayerBuildsFactory, PlayerBuildsFactory>();
 
         return services;
     }

@@ -12,6 +12,7 @@ service GamesService {
     rpc GetByFilter(GetGamesRequest) returns (GetGamesResponse);
     rpc CreateOrUpdate(Game) returns (google.protobuf.Empty);
     rpc Delete(DeleteGameRequest) returns (google.protobuf.Empty);
+    rpc Close(CloseGameRequest) returns (google.protobuf.Empty);
 }
 
 message GetGameRequest {
@@ -29,5 +30,9 @@ message GetGamesResponse {
 }
 
 message DeleteGameRequest {
+    string id = 1;
+}
+
+message CloseGameRequest {
     string id = 1;
 }
