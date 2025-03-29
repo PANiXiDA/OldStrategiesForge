@@ -7,18 +7,19 @@ using GamePlayService.Infrastructure.Requests;
 using Games.Gen;
 using Hangfire;
 using RedLockNet;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Text.Json;
 using Tools.RabbitMQ;
+using Tools.Redis;
 
 namespace GamePlayService.Services;
 
 public class GamePlayServiceImpl : BackgroundService
 {
+    private const string GameSessionKeyPrefix = "game";
+
     private ILogger<GamePlayServiceImpl> _logger;
 
     private readonly UdpClient _udpServer;
@@ -26,10 +27,9 @@ public class GamePlayServiceImpl : BackgroundService
     private readonly IServiceProvider _serviceProvider;
     private readonly IRabbitMQClient _rabbitMQClient;
     private readonly IBackgroundJobClient _backgroundJobClient;
+    private readonly IRedisCache _redisCache;
 
     private readonly GamesService.GamesServiceClient _gamesService;
-
-    private static readonly ConcurrentDictionary<string, GameSession> _games = new(); // ключ - id игры
 
     public GamePlayServiceImpl(
         ILogger<GamePlayServiceImpl> logger,
@@ -37,6 +37,7 @@ public class GamePlayServiceImpl : BackgroundService
         IServiceProvider serviceProvider,
         IRabbitMQClient rabbitMQClient,
         IBackgroundJobClient backgroundJobClient,
+        IRedisCache redisCache,
         GamesService.GamesServiceClient gamesService)
     {
         _logger = logger;
@@ -46,6 +47,7 @@ public class GamePlayServiceImpl : BackgroundService
         _serviceProvider = serviceProvider;
         _rabbitMQClient = rabbitMQClient;
         _backgroundJobClient = backgroundJobClient;
+        _redisCache = redisCache;
 
         _gamesService = gamesService;
     }
@@ -94,7 +96,8 @@ public class GamePlayServiceImpl : BackgroundService
                 break;
         }
 
-        if (_games.TryGetValue(message.GameId, out var gameSession) && gameSession.GameState != GameState.GameInitialization)
+        var (found, gameSession) = await _redisCache.TryGetAsync<GameSession>($"{GameSessionKeyPrefix}:{message.GameId}");
+        if (found && gameSession!.GameState != GameState.WaitingForPlayers)
         {
             await SendAllPlayersCurrentRoundState(gameSession);
         }
@@ -128,18 +131,20 @@ public class GamePlayServiceImpl : BackgroundService
                             if (redLock.IsAcquired)
                             {
                                 lockAcquired = true;
-                                if (_games.TryGetValue(session.GameId, out var connectionGameSession))
+                                var (found, gameSession) = await _redisCache.TryGetAsync<GameSession>($"{GameSessionKeyPrefix}:{session.GameId}");
+                                if (found)
                                 {
-                                    await connectionBL.HandleConnection(connectionGameSession, session, clientEndpoint);
-                                    connectionBL.UpdateGameState(connectionGameSession);
+                                    await connectionBL.HandleConnection(gameSession!, session, clientEndpoint);
+                                    connectionBL.UpdateGameState(gameSession!);
                                 }
                                 else
                                 {
-                                    connectionGameSession = await connectionBL.CreateGameSession(session, clientEndpoint);
-                                    _games[session.GameId] = connectionGameSession;
+                                    gameSession = await connectionBL.CreateGameSession(session, clientEndpoint);
                                     _backgroundJobClient.Schedule(() => CloseGameSession(session.GameId), TimeSpan.FromMinutes(2));
 
                                 }
+
+                                await _redisCache.SetAsync($"{GameSessionKeyPrefix}:{message.GameId}", gameSession);
 
                                 return;
                             }
@@ -186,10 +191,11 @@ public class GamePlayServiceImpl : BackgroundService
 
     private async Task CloseGameSession(string gameId)
     {
-        if (_games.TryGetValue(gameId, out var gameSession))
+        var (found, gameSession) = await _redisCache.TryGetAsync<GameSession>($"{GameSessionKeyPrefix}:{gameId}");
+        if (found && gameSession!.GameState == GameState.WaitingForPlayers)
         {
             await _gamesService.CloseAsync(new CloseGameRequest() { Id = gameId });
-            _games.TryRemove(gameId, out gameSession);
+            await _redisCache.RemoveAsync($"{GameSessionKeyPrefix}:{gameId}");
         }
     }
 }

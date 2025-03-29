@@ -132,11 +132,13 @@ public class ConnectionsBL : IConnectionsBL
         switch (gameSession.GameType)
         {
             case GameType.Duel:
-                gameSession.GameState = gameSession.Players.Count == 2 ? GameState.Deployment : GameState.GameInitialization;
+                gameSession.GameState = gameSession.Players.Count == 2 ? GameState.Deployment : GameState.WaitingForPlayers;
                 break;
             case GameType.Random2x2:
+                gameSession.GameState = gameSession.Players.Count == 4 ? GameState.Deployment : GameState.WaitingForPlayers;
                 break;
             case GameType.Team2x2:
+                gameSession.GameState = gameSession.Players.Count == 4 ? GameState.Deployment : GameState.WaitingForPlayers;
                 break;
             default:
                 break;
