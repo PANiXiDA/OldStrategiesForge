@@ -21,6 +21,9 @@ namespace GamePlayService.Services;
 public class GamePlayServiceImpl : BackgroundService
 {
     private const string GameSessionKeyPrefix = "game";
+    private const string ClientMessageAckKeyPrefix = "client_ack";
+    private const string ServerMessageAckKeyPrefix = "server_ack";
+    private const string ProcessedMessageKeyPrefix = "processed_message";
 
     private ILogger<GamePlayServiceImpl> _logger;
 
@@ -82,6 +85,26 @@ public class GamePlayServiceImpl : BackgroundService
         }
     }
 
+    public async Task ClientMessageAck(Guid messageId)
+    {
+        var (found, clientEndpoint) = await _redisCache.TryGetAsync<IPEndPoint>($"{ClientMessageAckKeyPrefix}:{messageId}");
+        if (found && clientEndpoint != null)
+        {
+            await SendClientMessageAck(clientEndpoint, messageId);
+        }
+    }
+
+    public async Task CheckServerMessageAck(Guid messageId, OutgoingMessageType messageType, IPEndPoint clientEndpoint, int waitingSeconds)
+    {
+        var (found, message) = await _redisCache.TryGetAsync<string>($"{ServerMessageAckKeyPrefix}:{messageId}");
+        if (found && message != null)
+        {
+            await SendRepeatMessage(clientEndpoint, messageType, messageId, message);
+            int newWaitingSeconds = waitingSeconds + 5;
+            _backgroundJobClient.Schedule(() => CheckServerMessageAck(messageId, messageType, clientEndpoint, newWaitingSeconds), TimeSpan.FromSeconds(newWaitingSeconds));
+        }
+    }
+
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         while (!stoppingToken.IsCancellationRequested)
@@ -109,6 +132,26 @@ public class GamePlayServiceImpl : BackgroundService
             return;
         }
 
+        var (found, processedMessage) = await _redisCache.TryGetAsync<IncomingMessage>($"{ProcessedMessageKeyPrefix}:{message.MessageId}");
+        if (found)
+        {
+            await SendClientMessageAck(clientEndpoint, message.MessageId);
+            return;
+        }
+
+        if (message.NeedAck)
+        {
+            await _redisCache.SetAsync($"{ClientMessageAckKeyPrefix}:{message.MessageId}", clientEndpoint, TimeSpan.FromMinutes(1));
+            _backgroundJobClient.Schedule(() => ClientMessageAck(message.MessageId), TimeSpan.FromSeconds(3));
+        }
+
+        if (message.AckMessageId.HasValue)
+        {
+            await _redisCache.RemoveAsync($"{ServerMessageAckKeyPrefix}:{message.AckMessageId.Value}");
+        }
+
+        await _redisCache.SetAsync($"{ProcessedMessageKeyPrefix}:{message.MessageId}", message);
+
         await ChooseHandleStategy(message, clientEndpoint);
     }
 
@@ -121,7 +164,7 @@ public class GamePlayServiceImpl : BackgroundService
                 break;
 
             case IncomingMessageType.Deployment:
-                await HandleDeploymentMessage(message);
+                await HandleDeploymentMessage(message, clientEndpoint);
                 break;
 
             case IncomingMessageType.Command:
@@ -129,7 +172,10 @@ public class GamePlayServiceImpl : BackgroundService
                 break;
 
             case IncomingMessageType.Surrender:
-                await HandleSurrenderMessage(message);
+                await HandleSurrenderMessage(message, clientEndpoint);
+                break;
+
+            case IncomingMessageType.MessageAck:
                 break;
 
             default:
@@ -184,12 +230,13 @@ public class GamePlayServiceImpl : BackgroundService
                         _backgroundJobClient.Schedule(() => CloseGameSession(session.GameId), TimeSpan.FromMinutes(2));
                     }
 
-                    await SendConnectionConfirmed(clientEndpoint);
+                    await SendConnectionConfirmed(clientEndpoint, message.MessageId);
 
                     if (gameSession!.GameState == GameState.Deployment)
                     {
-                        gameSession.GameState = GameState.InProgress; // TODO убрать когда появится расстановка на клиенте и перенести ниже сохранения в редисе
-                        await SendDeploymentStart(gameSession);
+                        gameSession.GameState = GameState.InProgress;
+                        await SendGameStart(gameSession); // TODO убрать когда появится расстановка на клиенте и перенести ниже сохранения в редисе
+                        await SendDeploymentStart(gameSession); // Сейчас игнорируется
                         _backgroundJobClient.Schedule(() => EndDeployment(session.GameId), TimeSpan.FromMinutes(2));
                     }
 
@@ -209,7 +256,7 @@ public class GamePlayServiceImpl : BackgroundService
         }
     }
 
-    private async Task HandleDeploymentMessage(IncomingMessage message)
+    private async Task HandleDeploymentMessage(IncomingMessage message, IPEndPoint clientEndpoint)
     {
         using var scope = _serviceProvider.CreateScope();
         var deploymentBL = scope.ServiceProvider.GetRequiredService<IDeploymentBL>();
@@ -240,10 +287,17 @@ public class GamePlayServiceImpl : BackgroundService
             await SendGameStart(gameSession);
         }
 
+        if (message.NeedAck)
+        {
+            await _redisCache.SetAsync($"{ClientMessageAckKeyPrefix}:{message.MessageId}", clientEndpoint, TimeSpan.FromMinutes(1));
+            await SendClientMessageAck(clientEndpoint, message.MessageId);
+            _backgroundJobClient.Schedule(() => ClientMessageAck(message.MessageId), TimeSpan.FromSeconds(3));
+        }
+
         await _redisCache.SetAsync($"{GameSessionKeyPrefix}:{message.GameId}", gameSession);
     }
 
-    private async Task HandleSurrenderMessage(IncomingMessage message)
+    private async Task HandleSurrenderMessage(IncomingMessage message, IPEndPoint clientEndpoint)
     {
         var (found, gameSession) = await _redisCache.TryGetAsync<GameSession>($"{GameSessionKeyPrefix}:{message.GameId}");
         if (!found || gameSession!.GameState != GameState.InProgress)
@@ -284,17 +338,29 @@ public class GamePlayServiceImpl : BackgroundService
             WinnerId = winnerId
         });
         await _redisCache.RemoveAsync($"{GameSessionKeyPrefix}:{message.GameId}");
+
+        if (message.NeedAck)
+        {
+            await _redisCache.SetAsync($"{ClientMessageAckKeyPrefix}:{message.MessageId}", clientEndpoint, TimeSpan.FromMinutes(1));
+            await SendClientMessageAck(clientEndpoint, message.MessageId);
+            _backgroundJobClient.Schedule(() => ClientMessageAck(message.MessageId), TimeSpan.FromSeconds(3));
+        }
     }
 
-    private async Task SendConnectionConfirmed(IPEndPoint clientEndpoint)
+    private async Task SendConnectionConfirmed(IPEndPoint clientEndpoint, Guid? messageId)
     {
         var message = new OutgoingMessage<string>(
+            messageId: Guid.NewGuid(),
+            needAck: false,
+            ackMessageId: messageId,
             messageType: OutgoingMessageType.ConnectionConfirmed,
             message: string.Empty);
 
         string json = JsonSerializer.Serialize(message);
         byte[] responseData = Encoding.UTF8.GetBytes(json);
         await _udpServer.SendAsync(responseData, responseData.Length, clientEndpoint);
+
+        await _redisCache.RemoveAsync($"{ClientMessageAckKeyPrefix}:{messageId}");
     }
 
     private async Task SendDeploymentStart(GameSession gameSession)
@@ -304,7 +370,10 @@ public class GamePlayServiceImpl : BackgroundService
             foreach (var clientEndpoint in player.IPEndPoints)
             {
                 var message = new OutgoingMessage<DeploymentStartMessage>(
-                    messageType: OutgoingMessageType.GameClosed,
+                    messageId: Guid.NewGuid(),
+                    needAck: true,
+                    ackMessageId: null,
+                    messageType: OutgoingMessageType.DeploymentStart,
                     message: new DeploymentStartMessage(
                         grid: gameSession.RoundState.Grid,
                         units: player.Units));
@@ -313,6 +382,10 @@ public class GamePlayServiceImpl : BackgroundService
                 byte[] responseData = Encoding.UTF8.GetBytes(json);
 
                 await _udpServer.SendAsync(responseData, responseData.Length, clientEndpoint);
+
+                await _redisCache.SetAsync($"{ServerMessageAckKeyPrefix}:{message.MessageId}", message, TimeSpan.FromMinutes(1));
+                int waitingSeconds = 5;
+                _backgroundJobClient.Schedule(() => CheckServerMessageAck(message.MessageId, message.MessageType, clientEndpoint, waitingSeconds), TimeSpan.FromSeconds(waitingSeconds));
             }
         }
     }
@@ -324,6 +397,9 @@ public class GamePlayServiceImpl : BackgroundService
             foreach (var clientEndpoint in player.IPEndPoints)
             {
                 var message = new OutgoingMessage<RoundState>(
+                    messageId: Guid.NewGuid(),
+                    needAck: true,
+                    ackMessageId: null,
                     messageType: OutgoingMessageType.GameStart,
                     message: gameSession.RoundState);
 
@@ -331,6 +407,10 @@ public class GamePlayServiceImpl : BackgroundService
                 byte[] responseData = Encoding.UTF8.GetBytes(json);
 
                 await _udpServer.SendAsync(responseData, responseData.Length, clientEndpoint);
+
+                await _redisCache.SetAsync($"{ServerMessageAckKeyPrefix}:{message.MessageId}", message, TimeSpan.FromMinutes(1));
+                int waitingSeconds = 5;
+                _backgroundJobClient.Schedule(() => CheckServerMessageAck(message.MessageId, message.MessageType, clientEndpoint, waitingSeconds), TimeSpan.FromSeconds(waitingSeconds));
             }
         }
     }
@@ -342,6 +422,9 @@ public class GamePlayServiceImpl : BackgroundService
             foreach (var clientEndpoint in player.IPEndPoints)
             {
                 var message = new OutgoingMessage<GameEndMessage>(
+                    messageId: Guid.NewGuid(),
+                    needAck: true,
+                    ackMessageId: null,
                     messageType: OutgoingMessageType.GameStart,
                     message: new GameEndMessage(gameResults: gameResults));
 
@@ -349,6 +432,10 @@ public class GamePlayServiceImpl : BackgroundService
                 byte[] responseData = Encoding.UTF8.GetBytes(json);
 
                 await _udpServer.SendAsync(responseData, responseData.Length, clientEndpoint);
+
+                await _redisCache.SetAsync($"{ServerMessageAckKeyPrefix}:{message.MessageId}", message, TimeSpan.FromMinutes(1));
+                int waitingSeconds = 5;
+                _backgroundJobClient.Schedule(() => CheckServerMessageAck(message.MessageId, message.MessageType, clientEndpoint, waitingSeconds), TimeSpan.FromSeconds(waitingSeconds));
             }
         }
     }
@@ -356,6 +443,9 @@ public class GamePlayServiceImpl : BackgroundService
     private async Task SendGameClosed(GameSession gameSession)
     {
         var message = new OutgoingMessage<string>(
+            messageId: Guid.NewGuid(),
+            needAck: true,
+            ackMessageId: null,
             messageType: OutgoingMessageType.GameClosed,
             message: string.Empty);
 
@@ -367,7 +457,41 @@ public class GamePlayServiceImpl : BackgroundService
             foreach (var clientEndpoint in player.IPEndPoints)
             {
                 await _udpServer.SendAsync(responseData, responseData.Length, clientEndpoint);
+
+                await _redisCache.SetAsync($"{ServerMessageAckKeyPrefix}:{message.MessageId}", message, TimeSpan.FromMinutes(1));
+                int waitingSeconds = 5;
+                _backgroundJobClient.Schedule(() => CheckServerMessageAck(message.MessageId, message.MessageType, clientEndpoint, waitingSeconds), TimeSpan.FromSeconds(waitingSeconds));
             }
         }
+    }
+
+    private async Task SendClientMessageAck(IPEndPoint clientEndpoint, Guid messageId)
+    {
+        var message = new OutgoingMessage<string>(
+            messageId: Guid.NewGuid(),
+            needAck: false,
+            ackMessageId: messageId,
+            messageType: OutgoingMessageType.MessageAck,
+            message: string.Empty);
+
+        string json = JsonSerializer.Serialize(message);
+        byte[] responseData = Encoding.UTF8.GetBytes(json);
+        await _udpServer.SendAsync(responseData, responseData.Length, clientEndpoint);
+
+        await _redisCache.RemoveAsync($"{ClientMessageAckKeyPrefix}:{messageId}");
+    }
+
+    private async Task SendRepeatMessage(IPEndPoint clientEndpoint, OutgoingMessageType messageType, Guid messageId, string repeatMessage)
+    {
+        var message = new OutgoingMessage<string>(
+            messageId: messageId,
+            needAck: true,
+            ackMessageId: null,
+            messageType: messageType,
+            message: repeatMessage);
+
+        string json = JsonSerializer.Serialize(message);
+        byte[] responseData = Encoding.UTF8.GetBytes(json);
+        await _udpServer.SendAsync(responseData, responseData.Length, clientEndpoint);
     }
 }

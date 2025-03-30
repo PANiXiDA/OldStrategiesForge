@@ -5,5 +5,6 @@ public enum IncomingMessageType
     Connection = 0,
     Deployment = 1,
     Command = 2,
-    Surrender = 3
+    Surrender = 3,
+    MessageAck = 4
 }

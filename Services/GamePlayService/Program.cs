@@ -58,7 +58,10 @@ builder.Services.AddHangfire(configuration => configuration
     .UseRedisStorage(builder.Configuration.GetConnectionString("Redis"), new RedisStorageOptions())
 );
 
-builder.Services.AddHangfireServer();
+builder.Services.AddHangfireServer(options =>
+{
+    options.SchedulePollingInterval = TimeSpan.FromSeconds(5);
+});
 
 builder.Services.AddHostedService<GamePlayServiceImpl>();
 

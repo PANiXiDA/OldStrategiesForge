@@ -7,4 +7,5 @@ public enum OutgoingMessageType
     GameStart = 2,
     GameEnd = 3,
     GameClosed = 4,
+    MessageAck = 5
 }
