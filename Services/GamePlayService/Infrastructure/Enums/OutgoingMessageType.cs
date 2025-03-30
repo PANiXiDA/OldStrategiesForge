@@ -3,6 +3,8 @@
 public enum OutgoingMessageType
 {
     ConnectionConfirmed = 0,
-    GameClosed = 1,
-    GameEnd = 2
+    DeploymentStart = 1,
+    GameStart = 2,
+    GameEnd = 3,
+    GameClosed = 4,
 }

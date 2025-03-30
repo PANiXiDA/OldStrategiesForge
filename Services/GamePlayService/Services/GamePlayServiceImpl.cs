@@ -4,6 +4,7 @@ using GamePlayService.BL.BL.Interfaces;
 using GamePlayService.Infrastructure.Enums;
 using GamePlayService.Infrastructure.Models;
 using GamePlayService.Infrastructure.Requests;
+using GamePlayService.Infrastructure.Responses;
 using GamePlayService.Infrastructure.Responses.Core;
 using Games.Gen;
 using Hangfire;
@@ -32,6 +33,7 @@ public class GamePlayServiceImpl : BackgroundService
 
     public GamePlayServiceImpl(
         ILogger<GamePlayServiceImpl> logger,
+        UdpClient udpClient,
         IDistributedLockFactory distributedLockFactory,
         IServiceProvider serviceProvider,
         IBackgroundJobClient backgroundJobClient,
@@ -40,13 +42,35 @@ public class GamePlayServiceImpl : BackgroundService
     {
         _logger = logger;
 
-        _udpServer = new UdpClient(PortsConstants.GamePlayServicePort);
+        _udpServer = udpClient;
         _distributedLockFactory = distributedLockFactory;
         _serviceProvider = serviceProvider;
         _backgroundJobClient = backgroundJobClient;
         _redisCache = redisCache;
 
         _gamesService = gamesService;
+    }
+
+    public async Task CloseGameSession(string gameId)
+    {
+        var (found, gameSession) = await _redisCache.TryGetAsync<GameSession>($"{GameSessionKeyPrefix}:{gameId}");
+        if (found && gameSession!.GameState == GameState.WaitingForPlayers)
+        {
+            await SendGameClosed(gameSession);
+            await _gamesService.CloseAsync(new CloseGameRequest() { Id = gameId });
+            await _redisCache.RemoveAsync($"{GameSessionKeyPrefix}:{gameId}");
+        }
+    }
+
+    public async Task EndDeployment(string gameId)
+    {
+        var (found, gameSession) = await _redisCache.TryGetAsync<GameSession>($"{GameSessionKeyPrefix}:{gameId}");
+        if (found && gameSession!.GameState == GameState.Deployment)
+        {
+            gameSession.GameState = GameState.InProgress;
+            await SendGameStart(gameSession);
+            await _redisCache.SetAsync($"{GameSessionKeyPrefix}:{gameId}", gameSession);
+        }
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -103,133 +127,111 @@ public class GamePlayServiceImpl : BackgroundService
                 _logger.LogWarning($"Неизвестный тип сообщения: {message.MessageType}");
                 break;
         }
-
-        var (found, gameSession) = await _redisCache.TryGetAsync<GameSession>($"{GameSessionKeyPrefix}:{message.GameId}");
-        if (found && gameSession!.GameState != GameState.WaitingForPlayers)
-        {
-            await SendAllPlayersCurrentRoundState(gameSession); // TODO возможно стоит убрать
-        }
     }
 
     private async Task HandleConnectionMessage(IncomingMessage message, IPEndPoint clientEndpoint)
     {
-        using (var scope = _serviceProvider.CreateScope())
+        using var scope = _serviceProvider.CreateScope();
+        var connectionBL = scope.ServiceProvider.GetRequiredService<IConnectionsBL>();
+
+        if (!JsonHelper.TryDeserialize<ConnectionMessage>(message.Message, out var connectionMessage) || connectionMessage == null)
         {
-            var connectionBL = scope.ServiceProvider.GetRequiredService<IConnectionsBL>();
+            _logger.LogError("Ошибка десериализации JSON: {Message}", message.Message);
+            return;
+        }
 
-            if (JsonHelper.TryDeserialize<ConnectionMessage>(message.Message, out var connectionMessage) && connectionMessage != null)
+        var session = await connectionBL.GetUserSession(message.AuthToken, connectionMessage.SessionId);
+        if (session == null)
+        {
+            _logger.LogError("Сессия не найдена по {SessionId}", connectionMessage.SessionId);
+            return;
+        }
+
+        var lockKey = $"lock:{GameSessionKeyPrefix}:{session.GameId}";
+        const int maxRetryAttempts = 3;
+        bool lockAcquired = false;
+
+        for (int attempt = 1; attempt <= maxRetryAttempts; attempt++)
+        {
+            await using (var redLock = await _distributedLockFactory.CreateLockAsync(
+                                    resource: lockKey,
+                                    expiryTime: TimeSpan.FromSeconds(30),
+                                    waitTime: TimeSpan.FromSeconds(10),
+                                    retryTime: TimeSpan.FromMilliseconds(200)))
             {
-                var session = await connectionBL.GetUserSession(message.AuthToken, connectionMessage.SessionId);
-                if (session != null)
+                if (redLock.IsAcquired)
                 {
-                    var lockKey = $"lock:{GameSessionKeyPrefix}:{session.GameId}";
-                    int maxRetryAttempts = 3;
-                    int attempt = 0;
-                    bool lockAcquired = false;
+                    lockAcquired = true;
 
-                    while (attempt < maxRetryAttempts && !lockAcquired)
+                    var (found, gameSession) = await _redisCache.TryGetAsync<GameSession>($"{GameSessionKeyPrefix}:{session.GameId}");
+                    if (found)
                     {
-                        attempt++;
-                        await using (var redLock = await _distributedLockFactory.CreateLockAsync(
-                                resource: lockKey,
-                                expiryTime: TimeSpan.FromSeconds(30),
-                                waitTime: TimeSpan.FromSeconds(10),
-                                retryTime: TimeSpan.FromMilliseconds(200)))
-                        {
-                            if (redLock.IsAcquired)
-                            {
-                                lockAcquired = true;
-                                var (found, gameSession) = await _redisCache.TryGetAsync<GameSession>($"{GameSessionKeyPrefix}:{session.GameId}");
-                                if (found)
-                                {
-                                    if (gameSession!.GameState == GameState.WaitingForPlayers)
-                                    {
-                                        await connectionBL.HandleConnection(gameSession!, session, clientEndpoint);
-                                        connectionBL.UpdateGameState(gameSession!);
-                                    }
-                                    else
-                                    {
-                                        _logger.LogError($"Игра с id: {session.GameId} не находится в состоянии WaitingForPlayers: {gameSession}");
-                                    }
-                                }
-                                else
-                                {
-                                    gameSession = await connectionBL.CreateGameSession(session, clientEndpoint);
-                                    _backgroundJobClient.Schedule(() => CloseGameSession(session.GameId), TimeSpan.FromMinutes(2));
-                                }
-
-                                await _redisCache.SetAsync($"{GameSessionKeyPrefix}:{message.GameId}", gameSession);
-
-                                if (gameSession!.GameState == GameState.Deployment)
-                                {
-                                    gameSession.GameState = GameState.InProgress; // TODO убрать, когда на клиенте появится расстановка.
-                                    _backgroundJobClient.Schedule(() => EndDeployment(session.GameId), TimeSpan.FromMinutes(2));
-                                }
-
-                                await SendConnectionConfirmed(clientEndpoint);
-
-                                return;
-                            }
-                            else
-                            {
-                                _logger.LogWarning($"Попытка {attempt}: не удалось получить блокировку для игры {session.GameId}");
-                            }
-                        }
-
-                        if (!lockAcquired)
-                        {
-                            await Task.Delay(500);
-                        }
+                        await connectionBL.HandleConnection(gameSession!, session, clientEndpoint);
+                        connectionBL.UpdateGameState(gameSession!);
                     }
-                    if (!lockAcquired)
+                    else
                     {
-                        _logger.LogError($"Не удалось получить блокировку для игры {session.GameId} после {maxRetryAttempts} попыток.");
+                        gameSession = await connectionBL.CreateGameSession(session, clientEndpoint);
+                        _backgroundJobClient.Schedule(() => CloseGameSession(session.GameId), TimeSpan.FromMinutes(2));
                     }
-                }
-                else
-                {
-                    _logger.LogError($"Ошибка при нахождении игроков сессии: {session} по {connectionMessage.SessionId}");
+
+                    await SendConnectionConfirmed(clientEndpoint);
+
+                    if (gameSession!.GameState == GameState.Deployment)
+                    {
+                        gameSession.GameState = GameState.InProgress; // TODO убрать когда появится расстановка на клиенте и перенести ниже сохранения в редисе
+                        await SendDeploymentStart(gameSession);
+                        _backgroundJobClient.Schedule(() => EndDeployment(session.GameId), TimeSpan.FromMinutes(2));
+                    }
+
+                    await _redisCache.SetAsync($"{GameSessionKeyPrefix}:{message.GameId}", gameSession, TimeSpan.FromDays(1));
+
+                    return;
                 }
             }
-            else
-            {
-                _logger.LogError($"Ошибка десериализации JSON: {message}");
-            }
+
+            _logger.LogWarning("Попытка {Attempt}: не удалось получить блокировку для игры {GameId}", attempt, session.GameId);
+            await Task.Delay(500);
+        }
+
+        if (!lockAcquired)
+        {
+            _logger.LogError("Не удалось получить блокировку для игры {GameId} после {MaxRetryAttempts} попыток.", session.GameId, maxRetryAttempts);
         }
     }
 
     private async Task HandleDeploymentMessage(IncomingMessage message)
     {
-        using (var scope = _serviceProvider.CreateScope())
-        {
-            var deploymentBL = scope.ServiceProvider.GetRequiredService<IDeploymentBL>();
+        using var scope = _serviceProvider.CreateScope();
+        var deploymentBL = scope.ServiceProvider.GetRequiredService<IDeploymentBL>();
 
-            if (JsonHelper.TryDeserialize<DeploymentMessage>(message.Message, out var deploymentMessage) && deploymentMessage != null)
-            {
-                var (found, gameSession) = await _redisCache.TryGetAsync<GameSession>($"{GameSessionKeyPrefix}:{message.GameId}");
-                if (found && gameSession!.GameState == GameState.Deployment)
-                {
-                    if (deploymentBL.ValidateDeployment(gameSession, message.AuthToken, deploymentMessage.Deployment))
-                    {
-                        deploymentBL.ApplyDeployment(gameSession.RoundState.Grid, deploymentMessage.Deployment);
-                        await _redisCache.SetAsync($"{GameSessionKeyPrefix}:{message.GameId}", gameSession);
-                        //TODO добавить подтверждение игроком расстановки и запуск задачи по уведомлению игроков о запуске боя
-                    }
-                    else
-                    {
-                        _logger.LogError($"Ошибка при валидации следующей расстановки: {deploymentMessage.Deployment}");
-                    }
-                }
-                else
-                {
-                    _logger.LogError($"Игра по id: {message.GameId} не найдена в пуле текущих игр или она не в статусе расстановки: {gameSession}");
-                }
-            }
-            else
-            {
-                _logger.LogError($"Ошибка десериализации JSON: {message}");
-            }
+        if (!JsonHelper.TryDeserialize<DeploymentMessage>(message.Message, out var deploymentMessage) || deploymentMessage == null)
+        {
+            _logger.LogError("Ошибка десериализации JSON: {Message}", message.Message);
+            return;
         }
+
+        var (found, gameSession) = await _redisCache.TryGetAsync<GameSession>($"{GameSessionKeyPrefix}:{message.GameId}");
+        if (!found || gameSession!.GameState != GameState.Deployment)
+        {
+            _logger.LogError("Игра по id: {GameId} не найдена в пуле текущих игр или не находится в статусе Deployment: {GameSession}", message.GameId, gameSession);
+            return;
+        }
+
+        if (!deploymentBL.ValidateDeployment(gameSession, message.AuthToken, deploymentMessage.Deployment))
+        {
+            _logger.LogError("Ошибка при валидации следующей расстановки: {Deployment}", deploymentMessage.Deployment);
+            return;
+        }
+
+        deploymentBL.ApplyDeployment(gameSession.RoundState.Grid, deploymentMessage.Deployment); // TODO: добавить подтверждение игроком расстановки
+
+        if (gameSession.Players.All(player => player.ConfirmedDeployment))
+        {
+            await SendGameStart(gameSession);
+        }
+
+        await _redisCache.SetAsync($"{GameSessionKeyPrefix}:{message.GameId}", gameSession);
     }
 
     private async Task SendConnectionConfirmed(IPEndPoint clientEndpoint)
@@ -243,38 +245,59 @@ public class GamePlayServiceImpl : BackgroundService
         await _udpServer.SendAsync(responseData, responseData.Length, clientEndpoint);
     }
 
-    private async Task SendAllPlayersCurrentRoundState(GameSession gameSession)
+    private async Task SendDeploymentStart(GameSession gameSession)
     {
         foreach (var player in gameSession.Players)
         {
             foreach (var clientEndpoint in player.IPEndPoints)
             {
-                string json = JsonSerializer.Serialize(gameSession.RoundState);
+                var message = new OutgoingMessage<DeploymentStartMessage>(
+                    messageType: OutgoingMessageType.GameClosed,
+                    message: new DeploymentStartMessage(
+                        grid: gameSession.RoundState.Grid,
+                        units: player.Units));
+
+                string json = JsonSerializer.Serialize(message);
                 byte[] responseData = Encoding.UTF8.GetBytes(json);
+
                 await _udpServer.SendAsync(responseData, responseData.Length, clientEndpoint);
             }
         }
     }
 
-    public async Task CloseGameSession(string gameId)
+    private async Task SendGameStart(GameSession gameSession)
     {
-        var (found, gameSession) = await _redisCache.TryGetAsync<GameSession>($"{GameSessionKeyPrefix}:{gameId}");
-        if (found && gameSession!.GameState == GameState.WaitingForPlayers)
+        foreach (var player in gameSession.Players)
         {
-            await _gamesService.CloseAsync(new CloseGameRequest() { Id = gameId });
-            await _redisCache.RemoveAsync($"{GameSessionKeyPrefix}:{gameId}");
+            foreach (var clientEndpoint in player.IPEndPoints)
+            {
+                var message = new OutgoingMessage<RoundState>(
+                    messageType: OutgoingMessageType.GameStart,
+                    message: gameSession.RoundState);
+
+                string json = JsonSerializer.Serialize(message);
+                byte[] responseData = Encoding.UTF8.GetBytes(json);
+
+                await _udpServer.SendAsync(responseData, responseData.Length, clientEndpoint);
+            }
         }
     }
 
-    public async Task EndDeployment(string gameId)
+    private async Task SendGameClosed(GameSession gameSession)
     {
-        var (found, gameSession) = await _redisCache.TryGetAsync<GameSession>($"{GameSessionKeyPrefix}:{gameId}");
-        if (found && gameSession!.GameState == GameState.Deployment)
-        {
-            gameSession.GameState = GameState.InProgress;
-            await _redisCache.SetAsync($"{GameSessionKeyPrefix}:{gameId}", gameSession);
+        var message = new OutgoingMessage<string>(
+            messageType: OutgoingMessageType.GameClosed,
+            message: string.Empty);
 
-            await SendAllPlayersCurrentRoundState(gameSession!);
+        string json = JsonSerializer.Serialize(message);
+        byte[] responseData = Encoding.UTF8.GetBytes(json);
+
+        foreach (var player in gameSession.Players)
+        {
+            foreach (var clientEndpoint in player.IPEndPoints)
+            {
+                await _udpServer.SendAsync(responseData, responseData.Length, clientEndpoint);
+            }
         }
     }
 }

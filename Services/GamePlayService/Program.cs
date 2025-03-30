@@ -12,12 +12,16 @@ using RedLockNet.SERedis.Configuration;
 using StackExchange.Redis;
 using Hangfire;
 using Hangfire.Redis.StackExchange;
+using Common.Constants;
+using System.Net.Sockets;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("JwtSettings"));
 builder.Services.AddSingleton(sp => sp.GetRequiredService<IOptions<JwtSettings>>().Value);
 builder.Services.AddSingleton<JwtHelper>();
+
+builder.Services.AddSingleton(new UdpClient(PortsConstants.GamePlayServicePort));
 
 builder.Services.ConfigureGrpcClients();
 builder.Services.ResolveDependencyInjection();

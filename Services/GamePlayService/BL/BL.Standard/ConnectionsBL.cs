@@ -90,7 +90,7 @@ public class ConnectionsBL : IConnectionsBL
         }
         else
         {
-            var (hero, units) = await _playerBuildsFactory.GetGameEntities(session.BuildId);
+            var (hero, units) = await _playerBuildsFactory.GetGameEntities(session.BuildId); //TODO в сессии на самом деле сейчас нет билда. Нужно добавить в базу.
 
             player = new Player(
                 id: session.PlayerId,
