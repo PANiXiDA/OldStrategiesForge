@@ -1,6 +1,7 @@
-﻿using System.Text.Json;
+﻿using Common.Converters;
+using System.Text.Json;
 
-namespace GamePlayService.Extensions.Helpers;
+namespace Common.Helpers;
 
 public static class JsonHelper
 {
@@ -8,6 +9,11 @@ public static class JsonHelper
     {
         PropertyNameCaseInsensitive = true
     };
+
+    static JsonHelper()
+    {
+        _options.Converters.Add(new IPEndPointJsonConverter());
+    }
 
     public static bool TryDeserialize<T>(string json, out T? result)
     {
@@ -26,5 +32,10 @@ public static class JsonHelper
         {
             return false;
         }
+    }
+
+    public static string Serialize<T>(T value)
+    {
+        return JsonSerializer.Serialize(value, _options);
     }
 }

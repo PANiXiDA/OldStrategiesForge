@@ -6,6 +6,7 @@ using GamePlayService.BL.BL.Interfaces;
 using GamePlayService.Extensions.Helpers;
 using GamePlayService.Infrastructure.Enums;
 using GamePlayService.Infrastructure.Models;
+using Games.ConvertParams.Gen;
 using Games.Entities.Gen;
 using Sessions.Gen;
 using System.Net;
@@ -49,11 +50,13 @@ public class ConnectionsBL : IConnectionsBL
             id: session.PlayerId,
             sessionId: session.Id,
             buildId: session.BuildId,
-            iPEndPoint: clientEndpoint,
             countMissedMoves: 0,
             side: PlayerSide.Left, // TODO потом нужно перенести на этап создания игры в базе
+            columnsToDeployment: 2, // TODO позже проверять на наличие нужных навыков/артефактов
+            confirmedDeployment: false,
             hero: hero,
-            units: units);
+            units: units,
+            iPEndPoints: new List<IPEndPoint>() { clientEndpoint });
 
         var gameType = (GameType)session.Game.GameType;
         var grid = _gridGenerator.GenerateGrid(gameType);
@@ -80,7 +83,10 @@ public class ConnectionsBL : IConnectionsBL
         var player = gameSession.Players.FirstOrDefault(player => player.Id == session.PlayerId);
         if (player != null)
         {
-            player.IPEndPoints.Add(clientEndpoint);
+            if (!player.IPEndPoints.Contains(clientEndpoint))
+            {
+                player.IPEndPoints.Add(clientEndpoint);
+            }
         }
         else
         {
@@ -89,12 +95,14 @@ public class ConnectionsBL : IConnectionsBL
             player = new Player(
                 id: session.PlayerId,
                 sessionId: session.Id,
-                buildId: session.BuildId,
-                iPEndPoint: clientEndpoint,
+                buildId: session.BuildId,               
                 countMissedMoves: 0,
+                confirmedDeployment: false,
                 side: PlayerSide.Right, // TODO потом нужно перенести на этап создания игры в базе
+                columnsToDeployment: 2, // TODO позже проверять на наличие нужных навыков/артефактов
                 hero: hero,
-                units: units);
+                units: units,
+                iPEndPoints: new List<IPEndPoint>() { clientEndpoint });
 
             gameSession.Players.Add(player);
             gameSession.RoundState.Heroes.Add(hero);
@@ -111,7 +119,12 @@ public class ConnectionsBL : IConnectionsBL
             return null;
         }
 
-        var session = await _sessionsService.GetAsync(new GetSessionRequest() { Id = sessionId });
+        var session = await _sessionsService.GetAsync(
+            new GetSessionRequest() 
+            { 
+                Id = sessionId,
+                SessionsConvertParams = new SessionsConvertParams { IncludeGame = true }
+            });
 
         if (session.IsActive == false)
         {
@@ -148,7 +161,7 @@ public class ConnectionsBL : IConnectionsBL
         {
             foreach (var player in gameSession.Players)
             {
-                gameSession.RoundState.Grid = _gridGenerator.BaseDeploymentGrid(gameSession.RoundState.Grid, player.Units, player.Side);
+                gameSession.RoundState.Grid = _gridGenerator.BaseDeploymentGrid(gameSession.RoundState.Grid, player.Units, player.Side, player.ColumnsToDeployment);
             }
 
             var gameEntityInitiatives = gameSession.RoundState.Units

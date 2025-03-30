@@ -55,7 +55,7 @@ namespace GameEngine.Implementations
             return grid;
         }
 
-        public List<Tile> BaseDeploymentGrid(List<Tile> grid, List<Unit> units, PlayerSide side, int columns = 2)
+        public List<Tile> BaseDeploymentGrid(List<Tile> grid, List<Unit> units, PlayerSide side, int columns)
         {
             var minX = grid.Min(tile => tile.X);
             var maxX = grid.Max(tile => tile.X);
@@ -89,7 +89,7 @@ namespace GameEngine.Implementations
         /// для стороны Right – с правого нижнего (maxX, minY) и движется снизу вверх.
         /// Количество колонок задается параметром columns.
         /// </summary>
-        private List<(int x, int y)> GetDeploymentCoordinates(int minX, int maxX, int minY, int maxY, PlayerSide side, int columns)
+        public List<(int x, int y)> GetDeploymentCoordinates(int minX, int maxX, int minY, int maxY, PlayerSide side, int columns)
         {
             var coordinates = new List<(int x, int y)>();
 
