@@ -9,6 +9,7 @@ service ProfilePlayers {
 	rpc Get (GetPlayerRequest) returns (GetPlayerResponse);
 	rpc UpdateAvatar (UpdateAvatarRequest) returns (google.protobuf.Empty);
 	rpc UpdateFrame (UpdateFrameRequest) returns (google.protobuf.Empty);
+	rpc UpdatePlayersStatisticAfterGame (UpdatePlayersStatisticAfterGameRequest) returns (UpdatePlayersStatisticAfterGameResponse);
 }
 
 message GetPlayerRequest {
@@ -61,4 +62,18 @@ message UpdateAvatarRequest{
 message UpdateFrameRequest{
 	int32 frame_id = 1;
 	int32 player_id = 2;
+}
+
+message UpdatePlayersStatisticAfterGameRequest{
+	repeated int32 player_ids = 1;
+	int32 winner_id = 2;
+}
+
+message UpdatePlayersStatisticAfterGameResponse{
+	repeated UpdatePlayersStatisticAfterGameResult update_players_statistic_result = 1;
+}
+
+message UpdatePlayersStatisticAfterGameResult{
+	string nickname = 1;
+	int32 mmr_changes = 2;
 }

@@ -10,4 +10,5 @@ namespace GamesService.DAL.Interfaces;
 public interface IGamesDAL : IBaseDal<DefaultDbContext, GameDb, Game, Guid, GamesSearchParams, GamesConvertParams>
 {
     Task CloseAsync(Guid id);
+    Task EndAsync(Guid gameId, int winnerId);
 }

@@ -62,6 +62,10 @@ internal class PlayersDAL : BaseDAL<DefaultDbContext, Player,
         {
             dbObjects = dbObjects.Where(item => item.Nickname.ToLower() == searchParams.Nickname.ToLower());
         }
+        if (searchParams.Ids.Any())
+        {
+            dbObjects = dbObjects.Where(item => searchParams.Ids.Contains(item.Id));
+        }
 
         return dbObjects;
     }
@@ -136,7 +140,7 @@ internal class PlayersDAL : BaseDAL<DefaultDbContext, Player,
         var data = GetContext();
         try
         {
-            await data.Set<Player>()
+            await data.Players
                 .Where(player => player.Id == id)
                 .ExecuteUpdateAsync(update => update.SetProperty(p => p.LastLogin, DateTime.UtcNow));
         }

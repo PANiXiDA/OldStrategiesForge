@@ -8,6 +8,7 @@ using Games.SearchParams.Gen;
 using Games.Entities.Gen;
 using Games.ConvertParams.Gen;
 using Google.Protobuf.WellKnownTypes;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace GamesService.DAL.Implementations;
 
@@ -94,10 +95,44 @@ public class GamesDAL : BaseDAL<DefaultDbContext, GameDb,
 
     public async Task CloseAsync(Guid id)
     {
-        var context = GetContext();
-        await context.Games
-            .Where(game => game.Id == id)
-            .SelectMany(game => game.Sessions)
-            .ExecuteUpdateAsync(session => session.SetProperty(session => session.IsActive, false));
+        var data = GetContext();
+        try
+        {
+            await data.Games
+                .Where(game => game.Id == id)
+                .SelectMany(game => game.Sessions)
+                .ExecuteUpdateAsync(session => session.SetProperty(session => session.IsActive, false));
+        }
+        finally
+        {
+            await DisposeContextAsync(data);
+        }
+    }
+
+    public async Task EndAsync(Guid gameId, int winnerId)
+    {
+        using var data = GetContext();
+        using var transaction = await data.Database.BeginTransactionAsync();
+        try
+        {
+            await data.Games
+                .Where(game => game.Id == gameId)
+                .ExecuteUpdateAsync(game => game.SetProperty(game => game.WinnerId, winnerId));
+
+            await data.Sessions
+                .Where(session => session.GameId == gameId)
+                .ExecuteUpdateAsync(session => session.SetProperty(session => session.IsActive, false));
+
+            await transaction.CommitAsync();
+        }
+        catch
+        {
+            await transaction.RollbackAsync();
+            throw;
+        }
+        finally
+        {
+            await DisposeContextAsync(data);
+        }
     }
 }

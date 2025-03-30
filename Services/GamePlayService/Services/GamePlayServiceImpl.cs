@@ -1,6 +1,6 @@
-﻿using Common.Constants;
-using Common.Helpers;
+﻿using Common.Helpers;
 using GamePlayService.BL.BL.Interfaces;
+using GamePlayService.Extensions.Helpers;
 using GamePlayService.Infrastructure.Enums;
 using GamePlayService.Infrastructure.Models;
 using GamePlayService.Infrastructure.Requests;
@@ -8,6 +8,7 @@ using GamePlayService.Infrastructure.Responses;
 using GamePlayService.Infrastructure.Responses.Core;
 using Games.Gen;
 using Hangfire;
+using Profile.Players.Gen;
 using RedLockNet;
 using System.Net;
 using System.Net.Sockets;
@@ -24,31 +25,39 @@ public class GamePlayServiceImpl : BackgroundService
     private ILogger<GamePlayServiceImpl> _logger;
 
     private readonly UdpClient _udpServer;
+    private readonly JwtHelper _jwtHelper;
+
     private readonly IDistributedLockFactory _distributedLockFactory;
     private readonly IServiceProvider _serviceProvider;
     private readonly IBackgroundJobClient _backgroundJobClient;
     private readonly IRedisCache _redisCache;
 
     private readonly GamesService.GamesServiceClient _gamesService;
+    private readonly ProfilePlayers.ProfilePlayersClient _profilePlayers;
 
     public GamePlayServiceImpl(
         ILogger<GamePlayServiceImpl> logger,
         UdpClient udpClient,
+        JwtHelper jwtHelper,
         IDistributedLockFactory distributedLockFactory,
         IServiceProvider serviceProvider,
         IBackgroundJobClient backgroundJobClient,
         IRedisCache redisCache,
-        GamesService.GamesServiceClient gamesService)
+        GamesService.GamesServiceClient gamesService,
+        ProfilePlayers.ProfilePlayersClient profilePlayers)
     {
         _logger = logger;
 
         _udpServer = udpClient;
+        _jwtHelper = jwtHelper;
+
         _distributedLockFactory = distributedLockFactory;
         _serviceProvider = serviceProvider;
         _backgroundJobClient = backgroundJobClient;
         _redisCache = redisCache;
 
         _gamesService = gamesService;
+        _profilePlayers = profilePlayers;
     }
 
     public async Task CloseGameSession(string gameId)
@@ -120,7 +129,7 @@ public class GamePlayServiceImpl : BackgroundService
                 break;
 
             case IncomingMessageType.Surrender:
-                // Обработка сдачи
+                await HandleSurrenderMessage(message);
                 break;
 
             default:
@@ -234,6 +243,49 @@ public class GamePlayServiceImpl : BackgroundService
         await _redisCache.SetAsync($"{GameSessionKeyPrefix}:{message.GameId}", gameSession);
     }
 
+    private async Task HandleSurrenderMessage(IncomingMessage message)
+    {
+        var (found, gameSession) = await _redisCache.TryGetAsync<GameSession>($"{GameSessionKeyPrefix}:{message.GameId}");
+        if (!found || gameSession!.GameState != GameState.InProgress)
+        {
+            _logger.LogError("Игра по id: {GameId} не найдена в пуле текущих игр или не находится в статусе InProgress: {GameSession}", message.GameId, gameSession);
+            return;
+        }
+
+        var playerId = _jwtHelper.ValidateToken(message.AuthToken);
+        if (!playerId.HasValue)
+        {
+            _logger.LogError($"Ошибка во время валидации следующего токена: {message.AuthToken}");
+            return;
+        }
+        var winnerId = gameSession!.Players.FirstOrDefault(player => player.Id != playerId)?.Id ?? playerId.Value; // TODO переписать на список, когда добавятся команды и больше 1 победителя.
+
+        var updatePlayersStatisticAfterGameRequest = new UpdatePlayersStatisticAfterGameRequest()
+        {
+            WinnerId = winnerId
+        };
+        updatePlayersStatisticAfterGameRequest.PlayerIds.AddRange(gameSession!.Players.Select(player => player.Id));
+        var updatePlayersStatisticAfterGameResponse = (await _profilePlayers.UpdatePlayersStatisticAfterGameAsync(updatePlayersStatisticAfterGameRequest)).UpdatePlayersStatisticResult;
+
+        var gameResults = new List<GameResult>();
+        foreach(var result in updatePlayersStatisticAfterGameResponse)
+        {
+            var gameResult = new GameResult(
+                nickName: result.Nickname,
+                mmrChanges: result.MmrChanges);
+            gameResults.Add(gameResult);
+        }
+
+        await SendGameEnd(gameSession!, gameResults);
+
+        await _gamesService.EndAsync(new EndGameRequest() 
+        { 
+            GameId = message.GameId,
+            WinnerId = winnerId
+        });
+        await _redisCache.RemoveAsync($"{GameSessionKeyPrefix}:{message.GameId}");
+    }
+
     private async Task SendConnectionConfirmed(IPEndPoint clientEndpoint)
     {
         var message = new OutgoingMessage<string>(
@@ -274,6 +326,24 @@ public class GamePlayServiceImpl : BackgroundService
                 var message = new OutgoingMessage<RoundState>(
                     messageType: OutgoingMessageType.GameStart,
                     message: gameSession.RoundState);
+
+                string json = JsonSerializer.Serialize(message);
+                byte[] responseData = Encoding.UTF8.GetBytes(json);
+
+                await _udpServer.SendAsync(responseData, responseData.Length, clientEndpoint);
+            }
+        }
+    }
+
+    private async Task SendGameEnd(GameSession gameSession, List<GameResult> gameResults)
+    {
+        foreach (var player in gameSession.Players)
+        {
+            foreach (var clientEndpoint in player.IPEndPoints)
+            {
+                var message = new OutgoingMessage<GameEndMessage>(
+                    messageType: OutgoingMessageType.GameStart,
+                    message: new GameEndMessage(gameResults: gameResults));
 
                 string json = JsonSerializer.Serialize(message);
                 byte[] responseData = Encoding.UTF8.GetBytes(json);
