@@ -14,6 +14,8 @@ using Hangfire;
 using Hangfire.Redis.StackExchange;
 using Common.Constants;
 using System.Net.Sockets;
+using Common.Converters;
+using Newtonsoft.Json;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -51,11 +53,15 @@ builder.Services.AddSingleton<IDistributedLockFactory>(provider =>
     return RedLockFactory.Create(multiplexers);
 });
 
+var jsonSettings = new JsonSerializerSettings();
+jsonSettings.Converters.Add(new IPEndPointNewtonsoftConverter()); // TODO найти альтернативу для сериализации IpEndpoint в HangFire через System.Text.Json и выпилить это
+
 builder.Services.AddHangfire(configuration => configuration
     .SetDataCompatibilityLevel(CompatibilityLevel.Version_170)
     .UseSimpleAssemblyNameTypeSerializer()
     .UseRecommendedSerializerSettings()
     .UseRedisStorage(builder.Configuration.GetConnectionString("Redis"), new RedisStorageOptions())
+    .UseSerializerSettings(jsonSettings)
 );
 
 builder.Services.AddHangfireServer(options =>

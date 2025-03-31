@@ -383,7 +383,9 @@ public class GamePlayServiceImpl : BackgroundService
 
                 await _udpServer.SendAsync(responseData, responseData.Length, clientEndpoint);
 
-                await _redisCache.SetAsync($"{ServerMessageAckKeyPrefix}:{message.MessageId}", message, TimeSpan.FromMinutes(1));
+                var jsonMessage = JsonSerializer.Serialize(message);
+                await _redisCache.SetAsync($"{ServerMessageAckKeyPrefix}:{message.MessageId}", jsonMessage, TimeSpan.FromMinutes(1));
+
                 int waitingSeconds = 5;
                 _backgroundJobClient.Schedule(() => CheckServerMessageAck(message.MessageId, message.MessageType, clientEndpoint, waitingSeconds), TimeSpan.FromSeconds(waitingSeconds));
             }
@@ -408,7 +410,9 @@ public class GamePlayServiceImpl : BackgroundService
 
                 await _udpServer.SendAsync(responseData, responseData.Length, clientEndpoint);
 
-                await _redisCache.SetAsync($"{ServerMessageAckKeyPrefix}:{message.MessageId}", message, TimeSpan.FromMinutes(1));
+                var jsonMessage = JsonSerializer.Serialize(message);
+                await _redisCache.SetAsync($"{ServerMessageAckKeyPrefix}:{message.MessageId}", jsonMessage, TimeSpan.FromMinutes(1));
+
                 int waitingSeconds = 5;
                 _backgroundJobClient.Schedule(() => CheckServerMessageAck(message.MessageId, message.MessageType, clientEndpoint, waitingSeconds), TimeSpan.FromSeconds(waitingSeconds));
             }
@@ -433,7 +437,9 @@ public class GamePlayServiceImpl : BackgroundService
 
                 await _udpServer.SendAsync(responseData, responseData.Length, clientEndpoint);
 
-                await _redisCache.SetAsync($"{ServerMessageAckKeyPrefix}:{message.MessageId}", message, TimeSpan.FromMinutes(1));
+                var jsonMessage = JsonSerializer.Serialize(message);
+                await _redisCache.SetAsync($"{ServerMessageAckKeyPrefix}:{message.MessageId}", jsonMessage, TimeSpan.FromMinutes(1));
+
                 int waitingSeconds = 5;
                 _backgroundJobClient.Schedule(() => CheckServerMessageAck(message.MessageId, message.MessageType, clientEndpoint, waitingSeconds), TimeSpan.FromSeconds(waitingSeconds));
             }
@@ -458,7 +464,9 @@ public class GamePlayServiceImpl : BackgroundService
             {
                 await _udpServer.SendAsync(responseData, responseData.Length, clientEndpoint);
 
-                await _redisCache.SetAsync($"{ServerMessageAckKeyPrefix}:{message.MessageId}", message, TimeSpan.FromMinutes(1));
+                var jsonMessage = JsonSerializer.Serialize(message);
+                await _redisCache.SetAsync($"{ServerMessageAckKeyPrefix}:{message.MessageId}", jsonMessage, TimeSpan.FromMinutes(1));
+
                 int waitingSeconds = 5;
                 _backgroundJobClient.Schedule(() => CheckServerMessageAck(message.MessageId, message.MessageType, clientEndpoint, waitingSeconds), TimeSpan.FromSeconds(waitingSeconds));
             }
