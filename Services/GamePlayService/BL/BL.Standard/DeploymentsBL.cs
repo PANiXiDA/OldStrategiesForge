@@ -6,33 +6,22 @@ using GamePlayService.Infrastructure.Models;
 
 namespace GamePlayService.BL.BL.Standard;
 
-public class DeploymentBL : IDeploymentBL
+public class DeploymentsBL : IDeploymentsBL
 {
-    private ILogger<DeploymentBL> _logger;
-
-    private readonly JwtHelper _jwtHelper;
+    private ILogger<DeploymentsBL> _logger;
 
     private readonly IGridGenerator _gridGenerator;
 
-    public DeploymentBL(
-        ILogger<DeploymentBL> logger,
-        JwtHelper jwtHelper,
+    public DeploymentsBL(
+        ILogger<DeploymentsBL> logger,
         IGridGenerator gridGenerator)
     {
         _logger = logger;
-        _jwtHelper = jwtHelper;
         _gridGenerator = gridGenerator;
     }
 
-    public bool ValidateDeployment(GameSession gameSession, string authToken, List<Tile> deployment)
+    public bool ValidateDeployment(GameSession gameSession, int playerId, List<Tile> deployment)
     {
-        var playerId = _jwtHelper.ValidateToken(authToken);
-        if (!playerId.HasValue)
-        {
-            _logger.LogError($"Ошибка во время валидации следующего токена: {authToken}");
-            return false;
-        }
-
         var player = gameSession.Players.FirstOrDefault(player => player.Id == playerId);
         if (player == null)
         {

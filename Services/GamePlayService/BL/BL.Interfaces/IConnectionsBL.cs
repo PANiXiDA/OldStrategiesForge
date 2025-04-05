@@ -8,6 +8,6 @@ public interface IConnectionsBL
 {
     Task<GameSession> CreateGameSession(Session session, IPEndPoint clientEndpoint);
     Task HandleConnection(GameSession gameSession, Session session, IPEndPoint clientEndpoint);
-    Task<Session?> GetUserSession(string authToken, string sessionId);
+    Task<Session?> GetUserSession(int playerId, string sessionId);
     void UpdateGameState(GameSession gameSession);
 }

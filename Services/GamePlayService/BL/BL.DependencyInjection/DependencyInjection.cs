@@ -9,7 +9,8 @@ public static class DependencyInjection
     {
         services.AddScoped<IConnectionsBL, ConnectionsBL>();
         services.AddScoped<IPlayerBuildsFactory, PlayerBuildsFactory>();
-        services.AddScoped<IDeploymentBL, DeploymentBL>();
+        services.AddScoped<IDeploymentsBL, DeploymentsBL>();
+        services.AddScoped<ICommandsBL, CommandsBL>();
 
         return services;
     }

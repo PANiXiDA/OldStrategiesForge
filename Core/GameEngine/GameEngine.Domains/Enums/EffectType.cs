@@ -2,6 +2,7 @@
 {
     public enum EffectType
     {
-        Bleeding = 0,
+        Defence = 0,
+        Bleeding = 1,
     }
 }

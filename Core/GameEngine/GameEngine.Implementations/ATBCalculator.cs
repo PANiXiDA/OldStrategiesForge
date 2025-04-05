@@ -42,15 +42,15 @@ namespace GameEngine.Implementations
 
         public ATBNextTurnResult GetNextTurn(ATBCalculationContext context)
         {
-            var finishingTimes = CalculateFinishingTimes(context.UnitInitiatives, context.CurrentATBState);
+            var finishingTimes = CalculateFinishingTimes(context.GameEntitiesInitiatives, context.CurrentATBState);
             var nextUnit = ApplyTurnUpdate(
-                context.UnitInitiatives,
+                context.GameEntitiesInitiatives,
                 context.CurrentATBState,
                 finishingTimes);
 
             return new ATBNextTurnResult
             {
-                NextUnitId = nextUnit.UnitId,
+                NextGameObjectId = nextUnit.UnitId,
                 UpdatedATBState = context.CurrentATBState
             };
         }
@@ -70,9 +70,9 @@ namespace GameEngine.Implementations
 
             for (int i = 0; i < countTurns; i++)
             {
-                var finishingTimes = CalculateFinishingTimes(context.UnitInitiatives, simulatedATBState);
+                var finishingTimes = CalculateFinishingTimes(context.GameEntitiesInitiatives, simulatedATBState);
                 var nextUnit = ApplyTurnUpdate(
-                    context.UnitInitiatives,
+                    context.GameEntitiesInitiatives,
                     simulatedATBState,
                     finishingTimes);
                 turnOrder.Add(nextUnit.UnitId);

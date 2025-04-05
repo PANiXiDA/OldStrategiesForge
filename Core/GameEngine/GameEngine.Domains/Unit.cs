@@ -1,19 +1,17 @@
-﻿using System;
+﻿using GameEngine.Domains.Core;
+using System;
 using System.Collections.Generic;
 
 namespace GameEngine.Domains
 {
-    public class Unit
+    public class Unit : GameObject
     {
-        public Guid Id { get; set; }
-        public int Attack { get; set; }
-        public int Defence { get; set; }
-        public int MinDamage { get; set; }
-        public int MaxDamage { get; set; }
-        public double BaseInitiative { get; set; }
+        public int FullHealth { get; set; }
+        public int CurrentHealth { get; set; }
         public double CurrentInitiative { get; set; }
-        public int Morale { get; set; }
-        public int Luck { get; set; }
+        public int Speed { get; set; }
+        public int? Range { get; set; }
+        public int? Arrows { get; set; }
         public int Count { get; set; }
 
         public List<Ability> Abilities { get; set; }
@@ -23,24 +21,25 @@ namespace GameEngine.Domains
             Guid id,
             int attack,
             int defence,
+            int fullHealth,
             int minDamage,
             int maxDamage,
-            double baseInitiative,
+            double initiative,
+            int speed,
+            int? range,
+            int? arrows,
             int morale,
             int luck,
             int count,
             List<Ability> abilities,
-            List<Effect> effects)
+            List<Effect> effects) : base(id, attack, defence, minDamage, maxDamage, initiative, morale, luck)
         {
-            Id = id;
-            Attack = attack;
-            Defence = defence;
-            MinDamage = minDamage;
-            MaxDamage = maxDamage;
-            BaseInitiative = baseInitiative;
-            Morale = morale;
-            Luck = luck;
-            CurrentInitiative = baseInitiative;
+            CurrentInitiative = initiative;
+            FullHealth = fullHealth;
+            CurrentHealth = fullHealth;
+            Speed = speed;
+            Range = range;
+            Arrows = arrows;
             Count = count;
             Abilities = abilities;
             Effects = effects;

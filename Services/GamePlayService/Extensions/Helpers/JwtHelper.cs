@@ -6,16 +6,16 @@ using System.Text;
 
 namespace GamePlayService.Extensions.Helpers;
 
-public class JwtHelper
+public static class JwtHelper
 {
-    private readonly JwtSettings _jwtSettings;
+    private static JwtSettings _jwtSettings = new JwtSettings();
 
-    public JwtHelper(JwtSettings jwtSettings)
+    public static void Configure(JwtSettings settings)
     {
-        _jwtSettings = jwtSettings;
+        _jwtSettings = settings;
     }
 
-    public int? ValidateToken(string token)
+    public static int GetPlayerIdFromToken(string token)
     {
         try
         {
@@ -36,11 +36,17 @@ public class JwtHelper
             var principal = tokenHandler.ValidateToken(token, parameters, out _);
             var userId = principal.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
-            return userId != null ? int.Parse(userId) : null;
+            if (userId == null)
+            {
+                throw new Exception("Token validation failed: UserId claim not found.");
+            }
+
+            return int.Parse(userId);
         }
-        catch
+        catch (Exception ex)
         {
-            return null;
+            throw new Exception("Token validation error", ex);
         }
+
     }
 }

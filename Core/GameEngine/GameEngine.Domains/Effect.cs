@@ -1,13 +1,12 @@
 ﻿using GameEngine.Domains.Enums;
-using System;
 
 namespace GameEngine.Domains
 {
     public class Effect
     {
         public EffectType EffectType { get; set; }
-        public Double Value { get; set; }
-        public Double Duration { get; set; }
+        public double Value { get; set; }
+        public double Duration { get; set; }
         public string Parameters { get; set; }
 
         public Effect(

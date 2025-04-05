@@ -3,7 +3,6 @@ using GameEngine.DTO.ATBCalculator;
 using GameEngine.DTO.Enums;
 using GameEngine.Interfaces;
 using GamePlayService.BL.BL.Interfaces;
-using GamePlayService.Extensions.Helpers;
 using GamePlayService.Infrastructure.Enums;
 using GamePlayService.Infrastructure.Models;
 using Games.ConvertParams.Gen;
@@ -17,29 +16,25 @@ public class ConnectionsBL : IConnectionsBL
 {
     private ILogger<ConnectionsBL> _logger;
 
-    private readonly JwtHelper _jwtHelper;
-
     private readonly SessionsService.SessionsServiceClient _sessionsService;
 
     private readonly IPlayerBuildsFactory _playerBuildsFactory;
 
     private readonly IGridGenerator _gridGenerator;
-    private readonly IATBCalculator _atBCalculator;
+    private readonly IATBCalculator _atbCalculator;
 
     public ConnectionsBL(
         ILogger<ConnectionsBL> logger,
-        JwtHelper jwtHelper,
         SessionsService.SessionsServiceClient sessionsService,
         IPlayerBuildsFactory playerBuildsFactory,
         IGridGenerator gridGenerator,
         IATBCalculator atBCalculator)
     {
         _logger = logger;
-        _jwtHelper = jwtHelper;
         _sessionsService = sessionsService;
         _playerBuildsFactory = playerBuildsFactory;
         _gridGenerator = gridGenerator;
-        _atBCalculator = atBCalculator;
+        _atbCalculator = atBCalculator;
     }
 
     public async Task<GameSession> CreateGameSession(Session session, IPEndPoint clientEndpoint)
@@ -110,15 +105,8 @@ public class ConnectionsBL : IConnectionsBL
         }
     }
 
-    public async Task<Session?> GetUserSession(string authToken, string sessionId)
+    public async Task<Session?> GetUserSession(int playerId, string sessionId)
     {
-        var playerId = _jwtHelper.ValidateToken(authToken);
-        if (!playerId.HasValue)
-        {
-            _logger.LogError($"Ошибка во время валидации следующего токена: {authToken}");
-            return null;
-        }
-
         var session = await _sessionsService.GetAsync(
             new GetSessionRequest() 
             { 
@@ -169,7 +157,7 @@ public class ConnectionsBL : IConnectionsBL
             gameEntityInitiatives.AddRange(gameSession.RoundState.Heroes
                 .Select(hero => new GameEntityInitiative(gameEntityId: hero.Id, initiative: hero.Initiative)));
 
-            gameSession.RoundState.ATB = _atBCalculator.SetStartingPosition(gameEntityInitiatives);
+            gameSession.RoundState.ATB = _atbCalculator.SetStartingPosition(gameEntityInitiatives);
         }
     }
 }

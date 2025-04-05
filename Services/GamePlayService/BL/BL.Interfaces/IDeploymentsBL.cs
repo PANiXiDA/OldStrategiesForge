@@ -3,8 +3,8 @@ using GamePlayService.Infrastructure.Models;
 
 namespace GamePlayService.BL.BL.Interfaces;
 
-public interface IDeploymentBL
+public interface IDeploymentsBL
 {
-    bool ValidateDeployment(GameSession gameSession, string authToken, List<Tile> deployment);
+    bool ValidateDeployment(GameSession gameSession, int playerId, List<Tile> deployment);
     void ApplyDeployment(List<Tile> grid, List<Tile> deployment);
 }
