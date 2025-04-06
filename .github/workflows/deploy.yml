@@ -205,6 +205,9 @@ jobs:
             echo "Pulling actual branch..."
             cd OldStrategiesForge
             git pull https://${{ secrets.TOKEN }}@github.com/PANiXiDA/OldStrategiesForge.git develop
+            
+            echo "Logging into GitHub Container Registry..."
+            docker login ghcr.io -u PANiXiDA -p ${{ secrets.TOKEN }}
           
             echo "Pulling updated images and starting containers..."
             docker-compose pull
