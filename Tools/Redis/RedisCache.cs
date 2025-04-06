@@ -1,4 +1,4 @@
-﻿using System.Text.Json;
+﻿using Common.Helpers;
 using StackExchange.Redis;
 
 namespace Tools.Redis;
@@ -19,7 +19,7 @@ public class RedisCache : IRedisCache
 
     public async Task SetAsync<T>(string key, T value, TimeSpan? expiry = null)
     {
-        var serializedValue = JsonSerializer.Serialize(value);
+        var serializedValue = JsonHelper.Serialize(value);
         await _database.StringSetAsync(key, serializedValue, expiry);
     }
 
@@ -31,7 +31,14 @@ public class RedisCache : IRedisCache
             throw new KeyNotFoundException($"Key '{key}' was not found in Redis.");
         }
 
-        return JsonSerializer.Deserialize<T>(value.ToString()!)!;
+        if (JsonHelper.TryDeserialize<T>(value.ToString()!, out var result))
+        {
+            return result!;
+        }
+        else
+        {
+            throw new Exception("Deserialization failed.");
+        }
     }
 
     public async Task<(bool Found, T? Value)> TryGetAsync<T>(string key)
@@ -42,7 +49,7 @@ public class RedisCache : IRedisCache
             return (false, default);
         }
 
-        return (true, JsonSerializer.Deserialize<T>(value.ToString()!)!);
+        return (JsonHelper.TryDeserialize<T>(value.ToString()!, out var result), result);
     }
 
     public async Task RemoveAsync(string key)

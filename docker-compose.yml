@@ -8,8 +8,20 @@ services:
     restart: unless-stopped
     ports:
       - "8080:8080"
-    depends_on:
-      - profile-service
+    networks:
+      - app-network
+
+# GamePlay
+  game-play-service:
+    container_name: game-play-service
+    build:
+      context: .
+      dockerfile: Services/GamePlayService/Dockerfile
+    restart: unless-stopped
+    ports:
+      - "7777:7777"
+    environment:
+      ASPNETCORE_ENVIRONMENT: production
     networks:
       - app-network
 
@@ -335,6 +347,18 @@ services:
                                   --startup-project Services/GameDataService/GameDataService.csproj
     depends_on:
       - game_data_db     
+    networks:
+      - app-network
+
+# Билды игроков
+  player-builds-service:
+    container_name: player-builds-service
+    build:
+      context: .
+      dockerfile: Services/PlayerBuildsService/Dockerfile
+    restart: unless-stopped
+    environment:
+      ASPNETCORE_ENVIRONMENT: production
     networks:
       - app-network
 

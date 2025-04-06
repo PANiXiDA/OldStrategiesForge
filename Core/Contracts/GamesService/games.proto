@@ -8,10 +8,12 @@ import "GamesService/Models/Common/convert_params.proto";
 option csharp_namespace = "Games.Gen";
 
 service GamesService {
-    rpc Get(GetGameRequest) returns (Game);
-    rpc GetByFilter(GetGamesRequest) returns (GetGamesResponse);
-    rpc CreateOrUpdate(Game) returns (google.protobuf.Empty);
-    rpc Delete(DeleteGameRequest) returns (google.protobuf.Empty);
+    rpc Get (GetGameRequest) returns (Game);
+    rpc GetByFilter (GetGamesRequest) returns (GetGamesResponse);
+    rpc CreateOrUpdate (Game) returns (google.protobuf.Empty);
+    rpc Delete (DeleteGameRequest) returns (google.protobuf.Empty);
+    rpc Close (CloseGameRequest) returns (google.protobuf.Empty);
+    rpc End (EndGameRequest) returns (google.protobuf.Empty);
 }
 
 message GetGameRequest {
@@ -30,4 +32,13 @@ message GetGamesResponse {
 
 message DeleteGameRequest {
     string id = 1;
+}
+
+message CloseGameRequest {
+    string id = 1;
+}
+
+message EndGameRequest{
+    string game_id = 1;
+    int32 winner_id = 2;
 }

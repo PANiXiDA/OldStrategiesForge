@@ -23,6 +23,7 @@ message Session {
     google.protobuf.Timestamp deleted_at = 4;
     int32 player_id = 5;
     string game_id = 6;
-    bool is_active = 7;
-    optional Game game = 8;
+    string build_id = 7;
+    bool is_active = 8;
+    optional Game game = 9;
 }

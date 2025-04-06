@@ -10,6 +10,7 @@ public static class ServicePorts
         { ServiceNames.ChatsService, (PortsConstants.ChatsServiceHttpPort, PortsConstants.ChatsServiceGrpcPort) },
         { ServiceNames.GamesService, (PortsConstants.GamesServiceHttpPort, PortsConstants.GamesServiceGrpcPort) },
         { ServiceNames.GameDataService, (PortsConstants.GameDataServiceHttpPort, PortsConstants.GameDataServiceGrpcPort) },
+        { ServiceNames.PlayerBuildsService, (PortsConstants.PlayerBuildsServiceHttpPort, PortsConstants.PlayerBuildsServiceGrpcPort) },
         { ServiceNames.FrontendService, (PortsConstants.FrontendServiceHttpPort, 0) }
     };
 

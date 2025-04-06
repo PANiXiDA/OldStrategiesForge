@@ -22,5 +22,8 @@ public static class PortsConstants
     public const int GameDataServiceHttpPort = 8008;
     public const int GameDataServiceGrpcPort = 8009;
 
+    public const int PlayerBuildsServiceHttpPort = 8010;
+    public const int PlayerBuildsServiceGrpcPort = 8011;
+
     public const int FrontendServiceHttpPort = 9080;
 }

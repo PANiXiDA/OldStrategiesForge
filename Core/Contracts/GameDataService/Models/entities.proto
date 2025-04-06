@@ -160,7 +160,8 @@ message Ability {
     int32 id = 1;
     string name = 2;
     string description = 3;
-    repeated Effect effects = 4; 
+    AbilityType ability_type = 4;
+    repeated Effect effects = 5; 
 }
 
 message Effect {

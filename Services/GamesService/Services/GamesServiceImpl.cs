@@ -47,4 +47,17 @@ public class GamesServiceImpl : Games.Gen.GamesService.GamesServiceBase
 
         return new Empty();
     }
+
+    public override async Task<Empty> Close(CloseGameRequest request, ServerCallContext context)
+    {
+        await _gamesDAL.CloseAsync(Guid.Parse(request.Id));
+
+        return new Empty();
+    }
+
+    public override async Task<Empty> End(EndGameRequest request, ServerCallContext context)
+    {
+        await _gamesDAL.EndAsync(Guid.Parse(request.GameId), request.WinnerId);
+        return new Empty();
+    }
 }

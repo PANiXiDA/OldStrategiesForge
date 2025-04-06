@@ -1,0 +1,30 @@
+﻿syntax = "proto3";
+
+import "google/protobuf/empty.proto";
+import "GameDataService/Models/entities.proto";
+import "GameDataService/Models/Common/search_params.proto";
+import "GameDataService/Models/Common/convert_params.proto";
+
+option csharp_namespace = "PlayerBuilds.Gen";
+
+service PlayerBuildsService {
+    rpc Get(GetPlayerBuildRequest) returns (GetPlayerBuildResponse);
+}
+
+message GetPlayerBuildRequest {
+    string id = 1;
+}
+
+message GetPlayerBuildResponse {
+    Faction faction = 1;
+    Subfaction subfaction = 2;
+    ArtefactSet artefact_set = 3;
+    repeated Artefact artefacts = 4;
+    Hero hero = 5;
+    repeated UnitDto units = 6;
+}
+
+message UnitDto {
+    Unit unit = 1;
+    int32 count = 2;
+}

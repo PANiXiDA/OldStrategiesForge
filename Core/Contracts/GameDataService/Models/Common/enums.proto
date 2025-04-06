@@ -24,4 +24,24 @@ enum EffectType {
     FLY1 = 0;
     DOUBLE_DAMAGE1 = 1;
     VAMPIRISME1 = 2;
+    Archer = 3;
+    NoPenaltyInMelee = 4;
+    DiscardingBlow = 5;
+    IgnoringDefence = 6;
+    AttackFirst = 7;
+    Sniper = 8;
+    FieryBreath = 9;
+    Undead = 10;
+    AreaRangeAttack = 11;
+    BigShield = 12;
+    NoResponseAttack = 13;
+    KnightRunUp = 14;
+    LineAttack = 15;
+    DoubleRangeAttack = 16;
+    GodDefence = 17;
+    UnlimitResponce = 18;
+}
+
+enum AbilityType {
+    Test = 0;
 }

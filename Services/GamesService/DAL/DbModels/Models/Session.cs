@@ -18,5 +18,9 @@ public class Session : BaseDbModel<Guid>
     [Required]
     public bool IsActive { get; set; }
 
+    //[Column("build_id")]
+    //[Required]
+    //public Guid BuildId { get; set; }
+
     public virtual Game? Game { get; set; }
 }
