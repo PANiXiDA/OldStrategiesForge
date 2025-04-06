@@ -103,7 +103,7 @@ jobs:
         with:
           registry: ghcr.io
           username: PANiXiDA
-          password: ${{ secrets.GITHUB_TOKEN }}
+          password: ${{ secrets.TOKEN  }}
 
       - name: Load and push API Gateway image
         run: |
