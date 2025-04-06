@@ -80,7 +80,7 @@ jobs:
         run: tar czf images.tar.gz *.tar
 
       - name: Upload images artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v2
         with:
           name: images
           path: images.tar.gz
@@ -91,7 +91,7 @@ jobs:
     needs: build
     steps:
       - name: Download images artifact
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v2
         with:
           name: images
 
