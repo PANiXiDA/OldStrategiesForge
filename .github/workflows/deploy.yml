@@ -80,7 +80,7 @@ jobs:
         run: tar czf images.tar.gz *.tar
 
       - name: Upload images artifact
-        uses: actions/upload-artifact@v2.3.1
+        uses: actions/upload-artifact@v3
         with:
           name: images
           path: images.tar.gz
@@ -91,7 +91,7 @@ jobs:
     needs: build
     steps:
       - name: Download images artifact
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: images
 
@@ -204,7 +204,7 @@ jobs:
           script: |
             echo "Pulling actual branch..."
             cd OldStrategiesForge
-            git pull https://${{ secrets.TOKEN }}@github.com/PANiXiDA/OldStrategiesForge.git develop          
+            git pull https://${{ secrets.TOKEN }}@github.com/PANiXiDA/OldStrategiesForge.git develop
           
             echo "Pulling updated images and starting containers..."
             docker-compose pull
