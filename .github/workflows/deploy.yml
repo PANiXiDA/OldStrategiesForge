@@ -80,7 +80,7 @@ jobs:
         run: tar czf images.tar.gz *.tar
 
       - name: Upload images artifact
-        uses: actions/upload-artifact@b9aa1843aacfbd0c3d5019d6cc1a59f0a509f3be
+        uses: actions/upload-artifact@v4
         with:
           name: images
           path: images.tar.gz
