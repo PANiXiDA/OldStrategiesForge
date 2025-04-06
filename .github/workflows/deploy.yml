@@ -1,4 +1,4 @@
-name: Deploy
+name: Build, Push, Clean, and Deploy
 
 on:
   push:
@@ -6,13 +6,161 @@ on:
       - develop
 
 jobs:
-  deploy:
+  build:
+    name: Build Docker Images
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
 
-      - name: Deploy over SSH
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      # Собираем API Gateway
+      - name: Build API Gateway image
+        run: |
+          docker build -t ghcr.io/panixida/api-gateway:latest -f APIGateway/Dockerfile .
+          docker save ghcr.io/panixida/api-gateway:latest -o api-gateway.tar
+
+      # Собираем GamePlay Service
+      - name: Build GamePlay Service image
+        run: |
+          docker build -t ghcr.io/panixida/game-play-service:latest -f Services/GamePlayService/Dockerfile .
+          docker save ghcr.io/panixida/game-play-service:latest -o game-play-service.tar
+
+      # Собираем Profile Service
+      - name: Build Profile Service image
+        run: |
+          docker build -t ghcr.io/panixida/profile-service:latest -f Services/ProfileService/Dockerfile .
+          docker save ghcr.io/panixida/profile-service:latest -o profile-service.tar
+
+      # Собираем Images Service
+      - name: Build Images Service image
+        run: |
+          docker build -t ghcr.io/panixida/images-service:latest -f Services/ImagesService/Dockerfile .
+          docker save ghcr.io/panixida/images-service:latest -o images-service.tar
+
+      # Собираем Email Service
+      - name: Build Email Service image
+        run: |
+          docker build -t ghcr.io/panixida/email-service:latest -f Services/EmailService/Dockerfile .
+          docker save ghcr.io/panixida/email-service:latest -o email-service.tar
+
+      # Собираем Chats Service
+      - name: Build Chats Service image
+        run: |
+          docker build -t ghcr.io/panixida/chats-service:latest -f Services/ChatsService/Dockerfile .
+          docker save ghcr.io/panixida/chats-service:latest -o chats-service.tar
+
+      # Собираем Games Service
+      - name: Build Games Service image
+        run: |
+          docker build -t ghcr.io/panixida/games-service:latest -f Services/GamesService/Dockerfile .
+          docker save ghcr.io/panixida/games-service:latest -o games-service.tar
+
+      # Собираем Game Data Service
+      - name: Build Game Data Service image
+        run: |
+          docker build -t ghcr.io/panixida/game-data-service:latest -f Services/GameDataService/Dockerfile .
+          docker save ghcr.io/panixida/game-data-service:latest -o game-data-service.tar
+
+      # Собираем Player Builds Service
+      - name: Build Player Builds Service image
+        run: |
+          docker build -t ghcr.io/panixida/player-builds-service:latest -f Services/PlayerBuildsService/Dockerfile .
+          docker save ghcr.io/panixida/player-builds-service:latest -o player-builds-service.tar
+
+      # Собираем Frontend Service
+      - name: Build Frontend Service image
+        run: |
+          docker build -t ghcr.io/panixida/frontend-service:latest -f FrontendService/Dockerfile .
+          docker save ghcr.io/panixida/frontend-service:latest -o frontend-service.tar
+
+      - name: Archive built images
+        run: tar czf images.tar.gz *.tar
+
+      - name: Upload images artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: images
+          path: images.tar.gz
+
+  push:
+    name: Push Docker Images to GHCR
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Download images artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: images
+
+      - name: Extract images archive
+        run: tar xzf images.tar.gz
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: PANiXiDA
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Load and push API Gateway image
+        run: |
+          docker load -i api-gateway.tar
+          docker push ghcr.io/panixida/api-gateway:latest
+
+      - name: Load and push GamePlay Service image
+        run: |
+          docker load -i game-play-service.tar
+          docker push ghcr.io/panixida/game-play-service:latest
+
+      - name: Load and push Profile Service image
+        run: |
+          docker load -i profile-service.tar
+          docker push ghcr.io/panixida/profile-service:latest
+
+      - name: Load and push Images Service image
+        run: |
+          docker load -i images-service.tar
+          docker push ghcr.io/panixida/images-service:latest
+
+      - name: Load and push Email Service image
+        run: |
+          docker load -i email-service.tar
+          docker push ghcr.io/panixida/email-service:latest
+
+      - name: Load and push Chats Service image
+        run: |
+          docker load -i chats-service.tar
+          docker push ghcr.io/panixida/chats-service:latest
+
+      - name: Load and push Games Service image
+        run: |
+          docker load -i games-service.tar
+          docker push ghcr.io/panixida/games-service:latest
+
+      - name: Load and push Game Data Service image
+        run: |
+          docker load -i game-data-service.tar
+          docker push ghcr.io/panixida/game-data-service:latest
+
+      - name: Load and push Player Builds Service image
+        run: |
+          docker load -i player-builds-service.tar
+          docker push ghcr.io/panixida/player-builds-service:latest
+
+      - name: Load and push Frontend Service image
+        run: |
+          docker load -i frontend-service.tar
+          docker push ghcr.io/panixida/frontend-service:latest
+
+  clean:
+    name: Clean Server
+    runs-on: ubuntu-latest
+    needs: push
+    steps:
+      - name: Clean server and stop containers
         uses: appleboy/ssh-action@v0.1.7
         with:
           host: ${{ secrets.SERVER_HOST }}
@@ -20,36 +168,44 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           passphrase: ${{ secrets.SSH_PASSPHRASE }}
           script: |
-            cd OldStrategiesForge
-            git pull https://${{ secrets.TOKEN }}@github.com/PANiXiDA/OldStrategiesForge.git develop
-
-            # Очистка логов сервера
-            echo "Cleaning up server logs..."
+            echo "Cleaning server logs..."
             sudo journalctl --vacuum-size=100M
             sudo find /var/log -name "*.gz" -type f -delete
             sudo find /var/log -type f -exec truncate -s 0 {} \;
 
-            # Очистка логов Docker-контейнеров
-            echo "Cleaning up Docker container logs..."
+            echo "Cleaning Docker container logs..."
             sudo find /var/lib/docker/containers/ -name "*.log" -type f -exec truncate -s 0 {} \;
 
-            # Очистка кэша APT
-            echo "Cleaning up APT cache..."
+            echo "Cleaning APT cache..."
             sudo apt clean
 
-            # Остановка контейнеров без удаления данных из базы
             echo "Stopping containers..."
             docker-compose down --remove-orphans
 
-            # Очистка неиспользуемых Docker-ресурсов (контейнеров, образов, сетей и томов)
-            echo "Cleaning up Docker resources..."
+            echo "Pruning Docker resources..."
             docker system prune -f --volumes
             docker image prune -a -f
             docker builder prune -f
             docker volume prune -f
             docker network prune -f
 
-            # Перезапуск контейнеров с пересборкой
+  deploy:
+    name: Deploy Containers
+    runs-on: ubuntu-latest
+    needs: clean
+    steps:
+      - name: Deploy updated containers
+        uses: appleboy/ssh-action@v0.1.7
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          passphrase: ${{ secrets.SSH_PASSPHRASE }}
+          script: |
+            echo "Pulling actual branch..."
+            cd OldStrategiesForge
+            git pull https://${{ secrets.TOKEN }}@github.com/PANiXiDA/OldStrategiesForge.git develop          
+          
             echo "Pulling updated images and starting containers..."
             docker-compose pull
             docker-compose up -d
