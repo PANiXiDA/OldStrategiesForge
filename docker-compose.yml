@@ -2,9 +2,7 @@ services:
 # API Gateway
   api-gateway:
     container_name: api-gateway
-    build:
-      context: .
-      dockerfile: APIGateway/Dockerfile
+    image: ghcr.io/PANiXiDA/api-gateway:latest
     restart: unless-stopped
     ports:
       - "8080:8080"
@@ -14,9 +12,7 @@ services:
 # GamePlay
   game-play-service:
     container_name: game-play-service
-    build:
-      context: .
-      dockerfile: Services/GamePlayService/Dockerfile
+    image: ghcr.io/PANiXiDA/game-play-service:latest
     restart: unless-stopped
     ports:
       - "7777:7777"
@@ -28,9 +24,7 @@ services:
 # Profile     
   profile-service:
     container_name: profile-service
-    build:
-      context: .
-      dockerfile: Services/ProfileService/Dockerfile
+    image: ghcr.io/PANiXiDA/profile-service:latest
     restart: unless-stopped
     environment:
       DB_HOST: profile_db
@@ -92,9 +86,7 @@ services:
 # Images
   images-service:
     container_name: images-service
-    build:
-      context: .
-      dockerfile: Services/ImagesService/Dockerfile
+    image: ghcr.io/PANiXiDA/images-service:latest
     restart: unless-stopped
     environment:
       ASPNETCORE_ENVIRONMENT: production
@@ -104,9 +96,7 @@ services:
 # Email
   email-service:
     container_name: email-service
-    build:
-      context: .
-      dockerfile: Services/EmailService/Dockerfile
+    image: ghcr.io/PANiXiDA/email-service:latest
     restart: unless-stopped
     environment:
       ASPNETCORE_ENVIRONMENT: Production
@@ -167,9 +157,7 @@ services:
 # Chats     
   chats-service:
     container_name: chats-service
-    build:
-      context: .
-      dockerfile: Services/ChatsService/Dockerfile
+    image: ghcr.io/PANiXiDA/chats-service:latest
     restart: unless-stopped
     environment:
       DB_HOST: chats_db
@@ -229,9 +217,7 @@ services:
 # Games     
   games-service:
     container_name: games-service
-    build:
-      context: .
-      dockerfile: Services/GamesService/Dockerfile
+    image: ghcr.io/PANiXiDA/games-service:latest
     restart: unless-stopped
     environment:
       DB_HOST: games_db
@@ -291,9 +277,7 @@ services:
 # Игровые данные 
   game-data-service:
     container_name: game-data-service
-    build:
-      context: .
-      dockerfile: Services/GameDataService/Dockerfile
+    image: ghcr.io/PANiXiDA/game-data-service:latest
     restart: unless-stopped
     environment:
       DB_HOST: game_data_db
@@ -353,9 +337,7 @@ services:
 # Билды игроков
   player-builds-service:
     container_name: player-builds-service
-    build:
-      context: .
-      dockerfile: Services/PlayerBuildsService/Dockerfile
+    image: ghcr.io/PANiXiDA/player-builds-service:latest
     restart: unless-stopped
     environment:
       ASPNETCORE_ENVIRONMENT: production
@@ -365,9 +347,7 @@ services:
 # UI      
   frontend-service:
     container_name: frontend-service
-    build:
-      context: .
-      dockerfile: FrontendService/Dockerfile
+    image: ghcr.io/PANiXiDA/frontend-service:latest
     restart: unless-stopped
     ports:
       - "9080:9080"

@@ -50,5 +50,6 @@ jobs:
             docker network prune -f
 
             # Перезапуск контейнеров с пересборкой
-            echo "Rebuilding and starting containers..."
-            docker-compose up --build -d
+            echo "Pulling updated images and starting containers..."
+            docker-compose pull
+            docker-compose up -d
