@@ -23,17 +23,12 @@ public class GamePlayServiceImpl : BackgroundService
     private readonly IBackgroundJobClient _backgroundJobClient;
     private readonly IRedisCache _redisCache;
 
-    private readonly IMessageSender _messageSender;
-    private readonly IMessageTasks _messageTasks;
-
     public GamePlayServiceImpl(
         ILogger<GamePlayServiceImpl> logger,
         UdpClient udpClient,
         IServiceProvider serviceProvider,
         IBackgroundJobClient backgroundJobClient,
-        IRedisCache redisCache,
-        IMessageSender messageSender,
-        IMessageTasks messageTasks)
+        IRedisCache redisCache)
     {
         _logger = logger;
 
@@ -42,9 +37,6 @@ public class GamePlayServiceImpl : BackgroundService
 
         _backgroundJobClient = backgroundJobClient;
         _redisCache = redisCache;
-
-        _messageSender = messageSender;
-        _messageTasks = messageTasks;
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -68,6 +60,8 @@ public class GamePlayServiceImpl : BackgroundService
 
     private async Task HandleIncomingMessage(string incomingMessage, IPEndPoint clientEndpoint)
     {
+        using var scope = _serviceProvider.CreateScope();
+
         if (!JsonHelper.TryDeserialize<IncomingMessage>(incomingMessage, out var message) || message == null)
         {
             _logger.LogError($"Ошибка десериализации JSON: {incomingMessage}");
@@ -77,14 +71,14 @@ public class GamePlayServiceImpl : BackgroundService
         var (found, processedMessage) = await _redisCache.TryGetAsync<IncomingMessage>($"{Constants.ProcessedMessageKeyPrefix}:{message.MessageId}");
         if (found)
         {
-            await _messageSender.SendClientMessageAck(clientEndpoint, message.MessageId);
+            await scope.ServiceProvider.GetRequiredService<IMessageSender>().SendClientMessageAckAsync(clientEndpoint, message.MessageId);
             return;
         }
 
         if (message.NeedAck)
         {
             await _redisCache.SetAsync($"{Constants.ClientMessageAckKeyPrefix}:{message.MessageId}", clientEndpoint, TimeSpan.FromMinutes(1));
-            _backgroundJobClient.Schedule(() => _messageTasks.CheckClientMessageAck(message.MessageId), TimeSpan.FromSeconds(3));
+            _backgroundJobClient.Schedule(() => scope.ServiceProvider.GetRequiredService<IMessageTasks>().CheckClientMessageAck(message.MessageId), TimeSpan.FromSeconds(3));
         }
 
         if (message.AckMessageId.HasValue)

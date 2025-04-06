@@ -36,6 +36,6 @@ public class SurrenderHandler : ISurrenderHandler
     public async Task Handle(IncomingMessage message, IPEndPoint clientEndpoint)
     {
         _backgroundJobClient.Schedule(() => _messageTasks.GameEnd(message.GameId, message.PlayerId), TimeSpan.FromSeconds(1));
-        await _messageSender.SendClientMessageAck(clientEndpoint, message.MessageId);
+        await _messageSender.SendClientMessageAckAsync(clientEndpoint, message.MessageId);
     }
 }

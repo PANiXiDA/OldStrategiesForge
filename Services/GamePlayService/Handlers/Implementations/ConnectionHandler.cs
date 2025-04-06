@@ -92,12 +92,12 @@ public class ConnectionHandler : IConnectionHandler
                         _backgroundJobClient.Schedule(() => _messageTasks.CloseGameSession(message.GameId), TimeSpan.FromMinutes(2));
                     }
 
-                    await _messageSender.SendConnectionConfirmed(clientEndpoint, message.MessageId);
+                    await _messageSender.SendConnectionConfirmedAsync(clientEndpoint, message.MessageId);
 
                     if (gameSession!.GameState == GameState.Deployment)
                     {
                         gameSession.GameState = GameState.InProgress;
-                        await _messageSender.SendDeploymentStart(gameSession);
+                        await _messageSender.SendDeploymentStartAsync(gameSession);
                         _backgroundJobClient.Schedule(() => _messageTasks.EndDeployment(message.GameId), TimeSpan.FromMinutes(2));
                     }
 

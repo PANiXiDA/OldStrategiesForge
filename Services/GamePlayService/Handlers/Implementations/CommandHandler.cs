@@ -73,7 +73,7 @@ public class CommandHandler : ICommandHandler
         handlingCommand();
 
         _backgroundJobClient.Schedule(() => _messageTasks.EndTurn(message.GameId, gameSession.RoundState.ATB.First().GameEntityId), TimeSpan.FromSeconds(30));
-        await _messageSender.SendCommandDone(gameSession, clientEndpoint, message.MessageId);
+        await _messageSender.SendCommandDoneAsync(gameSession, clientEndpoint, message.MessageId);
 
         ResetPlayerMissedMoves(gameSession, message.PlayerId);
         ValidateGameEnd(gameSession, message.GameId);

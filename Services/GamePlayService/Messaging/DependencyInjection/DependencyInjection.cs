@@ -10,6 +10,9 @@ public static class DependencyInjection
         services.AddScoped<IMessageTasks, MessageTasks>();
         services.AddScoped<IMessageSender, MessageSender>();
 
+        services.AddScoped(provider => new Lazy<IMessageTasks>(() => provider.GetRequiredService<IMessageTasks>()));
+        services.AddScoped(provider => new Lazy<IMessageSender>(() => provider.GetRequiredService<IMessageSender>()));
+
         return services;
     }
 }

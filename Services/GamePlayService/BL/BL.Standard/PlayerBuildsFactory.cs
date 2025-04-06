@@ -75,9 +75,13 @@ public class PlayerBuildsFactory : IPlayerBuildsFactory
             id: Guid.NewGuid(),
             attack: unit.Unit.Attack,
             defence: unit.Unit.Defence,
+            fullHealth: unit.Unit.Health,
             minDamage: unit.Unit.MinDamage,
             maxDamage: unit.Unit.MaxDamage,
-            baseInitiative: unit.Unit.Initiative,
+            initiative: unit.Unit.Initiative,
+            speed: unit.Unit.Speed,
+            range: unit.Unit.Range,
+            arrows: unit.Unit.Arrows,
             morale: unit.Unit.Morale,
             luck: unit.Unit.Luck,
             count: unit.Count,
@@ -135,7 +139,7 @@ public class PlayerBuildsFactory : IPlayerBuildsFactory
         unit.Defence += hero.Defence;
         unit.MinDamage += hero.MinDamage;
         unit.MaxDamage += hero.MaxDamage;
-        unit.BaseInitiative += hero.Initiative;
+        unit.Initiative += hero.Initiative;
         unit.CurrentInitiative += hero.Initiative;
         unit.Morale += hero.Morale;
         unit.Luck += hero.Luck;

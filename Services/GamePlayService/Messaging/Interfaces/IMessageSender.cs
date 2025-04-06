@@ -7,14 +7,14 @@ namespace GamePlayService.Messaging.Interfaces;
 
 public interface IMessageSender
 {
-    Task SendConnectionConfirmed(IPEndPoint clientEndpoint, Guid? messageId);
-    Task SendDeploymentStart(GameSession gameSession);
-    Task SendCurrentRoundState(GameSession gameSession);
-    Task SendGameStart(GameSession gameSession);
-    Task SendCommandDone(GameSession gameSession, IPEndPoint ackMessageClientEndpoint, Guid ackMessageId);
-    Task SendGameEnd(GameSession gameSession, List<GameResult> gameResults);
-    Task SendGameClosed(GameSession gameSession);
-    Task SendClientMessageAck(IPEndPoint clientEndpoint, Guid messageId);
-    Task SendRepeatMessage(IPEndPoint clientEndpoint, OutgoingMessageType messageType, Guid messageId, string repeatMessage);
+    Task SendClientMessageAckAsync(IPEndPoint clientEndpoint, Guid messageId);
+    Task SendRepeatMessageAsync(IPEndPoint clientEndpoint, OutgoingMessageType messageType, Guid messageId, string repeatMessage);
+    Task SendConnectionConfirmedAsync(IPEndPoint clientEndpoint, Guid? messageId);
+    Task SendDeploymentStartAsync(GameSession gameSession);
+    Task SendCurrentRoundStateAsync(GameSession gameSession);
+    Task SendGameStartAsync(GameSession gameSession);
+    Task SendCommandDoneAsync(GameSession gameSession, IPEndPoint ackMessageClientEndpoint, Guid ackMessageId);
+    Task SendGameEndAsync(GameSession gameSession, List<GameResult> gameResults);
+    Task SendGameClosedAsync(GameSession gameSession);
 }
 

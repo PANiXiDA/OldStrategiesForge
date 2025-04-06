@@ -61,10 +61,10 @@ public class DeploymentHandler : IDeploymentHandler
 
         if (gameSession.Players.All(player => player.ConfirmedDeployment))
         {
-            await _messageSender.SendGameStart(gameSession);
+            await _messageSender.SendGameStartAsync(gameSession);
         }
 
-        await _messageSender.SendClientMessageAck(clientEndpoint, message.MessageId);
+        await _messageSender.SendClientMessageAckAsync(clientEndpoint, message.MessageId);
 
         await _redisCache.SetAsync($"{Constants.GameSessionKeyPrefix}:{message.GameId}", gameSession);
     }

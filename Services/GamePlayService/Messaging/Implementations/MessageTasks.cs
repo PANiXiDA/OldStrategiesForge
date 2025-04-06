@@ -23,7 +23,7 @@ public class MessageTasks : IMessageTasks
     private readonly IRedisCache _redisCache;
     private readonly IBackgroundJobClient _backgroundJobClient;
 
-    private readonly IMessageSender _messageSender;
+    private readonly Lazy<IMessageSender> _messageSender; // TODO: подумать, как избавиться от Lazy и централизовать логику в MessageTasks
     private readonly ICommandsBL _commandsBL; // TODO: подумать, как избаваться от этой зависимости в будущем
 
     private readonly GamesService.GamesServiceClient _gamesService;
@@ -33,7 +33,7 @@ public class MessageTasks : IMessageTasks
         ILogger<MessageTasks> logger,
         IRedisCache redisCache,
         IBackgroundJobClient backgroundJobClient,
-        IMessageSender messageSender,
+        Lazy<IMessageSender> messageSender,
         ICommandsBL commandsBL,
         GamesService.GamesServiceClient gamesService,
         ProfilePlayers.ProfilePlayersClient profilePlayers)
@@ -82,7 +82,7 @@ public class MessageTasks : IMessageTasks
         if (found && clientEndpoint != null)
         {
             _logger.LogInformation("Sending client ack for message {MessageId} to endpoint {Endpoint}", messageId, clientEndpoint);
-            await _messageSender.SendClientMessageAck(clientEndpoint, messageId);
+            await _messageSender.Value.SendClientMessageAckAsync(clientEndpoint, messageId);
         }
     }
 
@@ -93,7 +93,7 @@ public class MessageTasks : IMessageTasks
         if (found && message != null)
         {
             _logger.LogInformation("Resending message {MessageId} after {WaitingSeconds} seconds", messageId, waitingSeconds);
-            await _messageSender.SendRepeatMessage(clientEndpoint, messageType, messageId, message);
+            await _messageSender.Value.SendRepeatMessageAsync(clientEndpoint, messageType, messageId, message);
             int newWaitingSeconds = waitingSeconds + AckDelayIncrement;
             _backgroundJobClient.Schedule(() => CheckServerMessageAck(messageId, messageType, clientEndpoint, newWaitingSeconds),
                 TimeSpan.FromSeconds(newWaitingSeconds));
@@ -106,7 +106,7 @@ public class MessageTasks : IMessageTasks
         if (session != null && session.GameState == GameState.WaitingForPlayers)
         {
             _logger.LogInformation("Closing game session for gameId: {GameId}", gameId);
-            await _messageSender.SendGameClosed(session);
+            await _messageSender.Value.SendGameClosedAsync(session);
             await _gamesService.CloseAsync(new CloseGameRequest { Id = gameId });
             await _redisCache.RemoveAsync(GetGameSessionKey(gameId));
         }
@@ -119,7 +119,7 @@ public class MessageTasks : IMessageTasks
         {
             _logger.LogInformation("Ending deployment phase for gameId: {GameId}", gameId);
             session.GameState = GameState.InProgress;
-            await _messageSender.SendGameStart(session);
+            await _messageSender.Value.SendGameStartAsync(session);
             await _redisCache.SetAsync(GetGameSessionKey(gameId), session);
         }
     }
@@ -146,7 +146,7 @@ public class MessageTasks : IMessageTasks
             }
 
             _commandsBL.Wait(new WaitCommand(gameObjectId), session, player.Id);
-            await _messageSender.SendCurrentRoundState(session);
+            await _messageSender.Value.SendCurrentRoundStateAsync(session);
             await _redisCache.SetAsync(GetGameSessionKey(gameId), session);
         }
     }
@@ -172,7 +172,7 @@ public class MessageTasks : IMessageTasks
             var gameResults = updateResponse.Select(result =>
                 new GameResult(result.Nickname, result.MmrChanges)).ToList();
 
-            await _messageSender.SendGameEnd(session, gameResults);
+            await _messageSender.Value.SendGameEndAsync(session, gameResults);
             await _gamesService.EndAsync(new EndGameRequest { GameId = gameId, WinnerId = winnerId });
             await _redisCache.RemoveAsync(GetGameSessionKey(gameId));
         }

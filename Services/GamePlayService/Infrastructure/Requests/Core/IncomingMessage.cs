@@ -6,7 +6,8 @@ namespace GamePlayService.Infrastructure.Requests;
 
 public class IncomingMessage : BaseMessage
 {
-    public IncomingMessageType MessageType { get; }
+    public IncomingMessageType MessageType { get; set; }
+    public string AuthToken { get; set; }
     public int PlayerId { get; }
     public string GameId { get; set; } = string.Empty; // TODO подумать над безопасной передачей
     public string Message { get; set; } = string.Empty;
@@ -21,6 +22,7 @@ public class IncomingMessage : BaseMessage
         string message) : base(messageId, needAck, ackMessageId)
     {
         MessageType = messageType;
+        AuthToken = authToken;
         GameId = gameId;
         Message = message;
 
