@@ -120,7 +120,7 @@ public class MessageTasks : IMessageTasks
             _logger.LogInformation("Ending deployment phase for gameId: {GameId}", gameId);
             session.GameState = GameState.InProgress;
             await _messageSender.Value.SendGameStartAsync(session);
-            await _redisCache.SetAsync(GetGameSessionKey(gameId), session);
+            await _redisCache.SetAsync(GetGameSessionKey(gameId), session, TimeSpan.FromDays(1));
         }
     }
 
@@ -147,7 +147,7 @@ public class MessageTasks : IMessageTasks
 
             _commandsBL.Wait(new WaitCommand(gameObjectId), session, player.Id);
             await _messageSender.Value.SendCurrentRoundStateAsync(session);
-            await _redisCache.SetAsync(GetGameSessionKey(gameId), session);
+            await _redisCache.SetAsync(GetGameSessionKey(gameId), session, TimeSpan.FromDays(1));
         }
     }
 

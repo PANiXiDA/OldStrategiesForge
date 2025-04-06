@@ -86,7 +86,7 @@ public class GamePlayServiceImpl : BackgroundService
             await _redisCache.RemoveAsync($"{Constants.ServerMessageAckKeyPrefix}:{message.AckMessageId.Value}");
         }
 
-        await _redisCache.SetAsync($"{Constants.ProcessedMessageKeyPrefix}:{message.MessageId}", message);
+        await _redisCache.SetAsync($"{Constants.ProcessedMessageKeyPrefix}:{message.MessageId}", message, TimeSpan.FromDays(1));
 
         await ChooseHandleStrategy(message, clientEndpoint);
     }

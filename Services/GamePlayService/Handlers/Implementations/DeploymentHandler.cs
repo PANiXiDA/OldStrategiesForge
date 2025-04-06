@@ -66,6 +66,6 @@ public class DeploymentHandler : IDeploymentHandler
 
         await _messageSender.SendClientMessageAckAsync(clientEndpoint, message.MessageId);
 
-        await _redisCache.SetAsync($"{Constants.GameSessionKeyPrefix}:{message.GameId}", gameSession);
+        await _redisCache.SetAsync($"{Constants.GameSessionKeyPrefix}:{message.GameId}", gameSession, TimeSpan.FromDays(1));
     }
 }

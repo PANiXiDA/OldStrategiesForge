@@ -77,7 +77,7 @@ public class CommandHandler : ICommandHandler
 
         ResetPlayerMissedMoves(gameSession, message.PlayerId);
         ValidateGameEnd(gameSession, message.GameId);
-        await _redisCache.SetAsync($"{Constants.GameSessionKeyPrefix}:{message.GameId}", gameSession);
+        await _redisCache.SetAsync($"{Constants.GameSessionKeyPrefix}:{message.GameId}", gameSession, TimeSpan.FromDays(1));
     }
 
     private void HandleMove(CommandMessage commandMessage, GameSession gameSession, int playerId)

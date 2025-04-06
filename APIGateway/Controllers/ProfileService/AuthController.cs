@@ -92,6 +92,7 @@ public class AuthController : ControllerBase
     [Route("confirm")]
     public async Task<IActionResult> СonfirmAccount([FromQuery] string token)
     {
+        // TODO: убрать из редиса, добавить время жизни в сам токен
         var (found, value) = await _redisCache.TryGetAsync<bool>($"confirm:{token}");
         if (!found || value == false)
         {
@@ -126,6 +127,7 @@ public class AuthController : ControllerBase
     [Route("recovery")]
     public async Task<IActionResult> RecoveryPassword([FromQuery] string token)
     {
+        // TODO: убрать из редиса, добавить время жизни в сам токен
         var (found, value) = await _redisCache.TryGetAsync<bool>($"recovery:{token}");
         if (!found || value == false)
         {

@@ -68,7 +68,7 @@ builder.Services.AddHangfire(configuration => configuration
 
 builder.Services.AddHangfireServer(options =>
 {
-    options.SchedulePollingInterval = TimeSpan.FromSeconds(5);
+    options.SchedulePollingInterval = TimeSpan.FromSeconds(1);
 });
 
 builder.Services.AddHostedService<GamePlayServiceImpl>();
