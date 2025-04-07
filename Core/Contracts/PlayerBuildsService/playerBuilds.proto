@@ -1,9 +1,6 @@
 ﻿syntax = "proto3";
 
-import "google/protobuf/empty.proto";
 import "GameDataService/Models/entities.proto";
-import "GameDataService/Models/Common/search_params.proto";
-import "GameDataService/Models/Common/convert_params.proto";
 
 option csharp_namespace = "PlayerBuilds.Gen";
 

@@ -5,8 +5,13 @@ using EmailService.DAL.Extensions;
 using Common.Configurations;
 using Tools.Encryption;
 using Tools.Redis;
+using Common.Constants;
+using Serilog;
+using LoggerConfiguration = Tools.ElasticSearch.LoggerConfiguration;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Host.UseSerilog(LoggerConfiguration.ConfigureLogger(ServiceNames.EmailService, builder.Configuration));
 
 var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
 

@@ -15,8 +15,12 @@ using APIGateway.Filters;
 using Microsoft.AspNetCore.Mvc;
 using System.Text.Encodings.Web;
 using Common.Constants;
+using Serilog;
+using LoggerConfiguration = Tools.ElasticSearch.LoggerConfiguration;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Host.UseSerilog(LoggerConfiguration.ConfigureLogger(ServiceNames.APIGateway, builder.Configuration));
 
 builder.WebHost.ConfigureKestrel(options =>
 {

@@ -2,8 +2,12 @@ using Common.Configurations;
 using Common.Constants;
 using GameDataService.DAL.Implementations.Extensions;
 using GameDataService.Extensions;
+using Serilog;
+using LoggerConfiguration = Tools.ElasticSearch.LoggerConfiguration;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Host.UseSerilog(LoggerConfiguration.ConfigureLogger(ServiceNames.GameDataService, builder.Configuration));
 
 builder.WebHost.ConfigureKestrel(options =>
 {

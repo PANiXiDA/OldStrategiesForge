@@ -2,8 +2,12 @@ using Common.Configurations;
 using Common.Constants;
 using ImagesService.Extensions;
 using Tools.AWS3.Extensions;
+using Serilog;
+using LoggerConfiguration = Tools.ElasticSearch.LoggerConfiguration;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Host.UseSerilog(LoggerConfiguration.ConfigureLogger(ServiceNames.ImagesService, builder.Configuration));
 
 builder.WebHost.ConfigureKestrel(options =>
 {

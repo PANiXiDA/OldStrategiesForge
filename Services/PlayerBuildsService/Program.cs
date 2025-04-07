@@ -1,8 +1,12 @@
 using Common.Configurations;
 using Common.Constants;
 using PlayerBuildsService.Extensions;
+using Serilog;
+using LoggerConfiguration = Tools.ElasticSearch.LoggerConfiguration;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Host.UseSerilog(LoggerConfiguration.ConfigureLogger(ServiceNames.PlayerBuildsService, builder.Configuration));
 
 builder.WebHost.ConfigureKestrel(options =>
 {

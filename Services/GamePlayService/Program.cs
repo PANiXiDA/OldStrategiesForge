@@ -17,8 +17,12 @@ using Common.Converters;
 using Newtonsoft.Json;
 using GamePlayService.Messaging.DependencyInjection;
 using GamePlayService.Handlers.DependencyInjection;
+using Serilog;
+using LoggerConfiguration = Tools.ElasticSearch.LoggerConfiguration;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Host.UseSerilog(LoggerConfiguration.ConfigureLogger(ServiceNames.GamePlayService, builder.Configuration));
 
 var jwtSettings = builder.Configuration.GetSection("JwtSettings").Get<JwtSettings>();
 JwtHelper.Configure(jwtSettings!);

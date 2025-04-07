@@ -2,8 +2,12 @@ using ChatsService.DAL.Implementations.Extensions;
 using ChatsService.Extensions;
 using Common.Configurations;
 using Common.Constants;
+using Serilog;
+using LoggerConfiguration = Tools.ElasticSearch.LoggerConfiguration;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Host.UseSerilog(LoggerConfiguration.ConfigureLogger(ServiceNames.ChatsService, builder.Configuration));
 
 builder.WebHost.ConfigureKestrel(options =>
 {

@@ -5,8 +5,12 @@ using Tools.RabbitMQ.Extensions;
 using Tools.AWS3.Extensions;
 using Tools.Redis;
 using Common.Constants;
+using Serilog;
+using LoggerConfiguration = Tools.ElasticSearch.LoggerConfiguration;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Host.UseSerilog(LoggerConfiguration.ConfigureLogger(ServiceNames.ProfileService, builder.Configuration));
 
 builder.WebHost.ConfigureKestrel(options =>
 {
