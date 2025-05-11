@@ -395,8 +395,6 @@ services:
       - redis-server
       - --appendonly
       - "yes"
-      - --replicaof
-      - "no one"
     volumes:
       - redis_data:/data
           

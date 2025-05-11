@@ -67,7 +67,7 @@ internal class SendEmailProcessingService : BackgroundService
                     });
                 }
                 ),
-                [Common.Constants.RabbitMqQueues.ChangePassword] = (typeof(SendEmailRequest), async(message, props, channel) =>
+                [Constants.RabbitMqQueues.ChangePassword] = (typeof(SendEmailRequest), async(message, props, channel) =>
                 {
                     var typedMessage = (SendEmailRequest)message;
                     await ProcessMessageAsync(typedMessage, props, channel!, async (msg, provider) =>
