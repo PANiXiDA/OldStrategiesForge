@@ -30,7 +30,7 @@ public class MatchmakingController : ControllerBase
     [Authorize]
     public async Task Matchmaking()
     {
-        await WebSocketHelper.EnsureWebSocketRequestAsync(HttpContext);
+        WebSocketHelper.EnsureWebSocketRequestAsync(HttpContext);
         var userId = UserHelper.EnsureAuthorizedUser(HttpContext);
 
         using var webSocket = await HttpContext.WebSockets.AcceptWebSocketAsync();
