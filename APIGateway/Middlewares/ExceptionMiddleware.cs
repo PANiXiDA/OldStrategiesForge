@@ -54,11 +54,13 @@ public class ExceptionMiddleware
         }
         catch (JsonException jsonEx)
         {
+            if (context.Response.HasStarted) return;
             await HandleJsonExceptionAsync(context, jsonEx);
         }
         catch (ValidationConflictException conflictEx)
         {
             _logger.LogWarning(conflictEx, "Конфликт проверки для свойства {Property}", conflictEx.Property);
+            if (context.Response.HasStarted) return;
             await HandleConflictExceptionAsync(context, conflictEx);
         }
         catch (RpcException rpcEx)
@@ -82,21 +84,25 @@ public class ExceptionMiddleware
                     rpcEx.Status.Detail);
             }
 
+            if (context.Response.HasStarted) return;
             await HandleGrpcExceptionAsync(context, rpcEx);
         }
         catch (InvalidOperationException ex)
         {
             _logger.LogWarning(ex, "Неправильная операция: {Message}", ex.Message);
+            if (context.Response.HasStarted) return;
             await HandleInvalidOperationExceptionAsync(context, ex);
         }
         catch (UnauthorizedAccessException ex)
         {
             _logger.LogWarning(ex, "Неавторизованный доступ: {Message}", ex.Message);
+            if (context.Response.HasStarted) return;
             await HandleUnauthorizedAccessExceptionAsync(context, ex);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Необработанное исключение.");
+            if (context.Response.HasStarted) return;
             await HandleGeneralExceptionAsync(context, ex);
         }
     }

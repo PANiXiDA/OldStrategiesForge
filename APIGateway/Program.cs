@@ -148,12 +148,14 @@ builder.Services.AddSwaggerGen(c =>
 
 var app = builder.Build();
 
+app.UseWebSockets();
+
 app.UseMiddleware<ExceptionMiddleware>();
+
+app.UseRouting();
 
 app.UseSwagger();
 app.UseSwaggerUI();
-
-app.UseWebSockets();
 
 app.UseAuthentication();
 app.UseAuthorization();
