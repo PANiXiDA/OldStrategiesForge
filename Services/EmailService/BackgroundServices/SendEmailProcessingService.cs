@@ -15,18 +15,15 @@ internal class SendEmailProcessingService : BackgroundService
     private readonly ILogger<SendEmailProcessingService> _logger;
     private readonly IRabbitMQClient _rabbitMQClient;
     private readonly IServiceProvider _serviceProvider;
-    private readonly IMediator _mediator;
 
     public SendEmailProcessingService(
     ILogger<SendEmailProcessingService> logger,
     IRabbitMQClient rabbitMQClient,
-    IServiceProvider serviceProvider,
-    IMediator mediator)
+    IServiceProvider serviceProvider)
     {
         _logger = logger;
         _rabbitMQClient = rabbitMQClient;
         _serviceProvider = serviceProvider;
-        _mediator = mediator;
     }
 
     protected override Task ExecuteAsync(CancellationToken stoppingToken)

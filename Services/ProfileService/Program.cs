@@ -7,6 +7,10 @@ using Tools.Redis;
 using Common.Constants;
 using Serilog;
 using LoggerConfiguration = Tools.ElasticSearch.LoggerConfiguration;
+using StackExchange.Redis;
+using RedLockNet;
+using RedLockNet.SERedis.Configuration;
+using RedLockNet.SERedis;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -38,13 +42,27 @@ builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("JwtSet
 
 var redisConfiguration = builder.Configuration.GetConnectionString("Redis")
                         ?? throw new InvalidOperationException("Redis connection string is missing.");
-RedisConnectionFactory.Initialize(redisConfiguration);
-builder.Services.AddSingleton<IRedisCache>(provider =>
+
+builder.Services.AddSingleton<IConnectionMultiplexer>(provider =>
 {
-    var redisConnection = RedisConnectionFactory.GetConnection();
-    return new RedisCache(redisConnection);
+    return ConnectionMultiplexer.Connect(redisConfiguration);
 });
 
+builder.Services.AddSingleton<IRedisCache>(provider =>
+{
+    var multiplexer = provider.GetRequiredService<IConnectionMultiplexer>();
+    return new RedisCache(multiplexer);
+});
+
+builder.Services.AddSingleton<IDistributedLockFactory>(provider =>
+{
+    var multiplexer = provider.GetRequiredService<IConnectionMultiplexer>();
+    var multiplexers = new List<RedLockMultiplexer>
+    {
+        new RedLockMultiplexer(multiplexer)
+    };
+    return RedLockFactory.Create(multiplexers);
+});
 
 var app = builder.Build();
 
