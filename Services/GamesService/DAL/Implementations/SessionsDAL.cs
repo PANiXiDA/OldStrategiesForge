@@ -24,7 +24,7 @@ public class SessionsDAL : BaseDAL<DefaultDbContext, SessionDb,
         dbObject.Id = Guid.Parse(entity.Id);
         dbObject.CreatedAt = entity.CreatedAt.ToDateTime();
         dbObject.UpdatedAt = DateTime.UtcNow;
-        dbObject.DeletedAt = entity.DeletedAt.ToDateTime();
+        dbObject.DeletedAt = entity.DeletedAt?.ToDateTime();
         dbObject.PlayerId = entity.PlayerId;
         dbObject.GameId = Guid.Parse(entity.GameId);
         dbObject.IsActive = entity.IsActive;
