@@ -25,7 +25,7 @@ public class GamesDAL : BaseDAL<DefaultDbContext, GameDb,
         dbObject.Id = Guid.Parse(entity.Id);
         dbObject.CreatedAt = entity.CreatedAt.ToDateTime();
         dbObject.UpdatedAt = DateTime.UtcNow;
-        dbObject.DeletedAt = entity.DeletedAt.ToDateTime();
+        dbObject.DeletedAt = entity.DeletedAt?.ToDateTime();
         dbObject.GameType = entity.GameType;
         dbObject.WinnerId = entity.WinnerId;
 
