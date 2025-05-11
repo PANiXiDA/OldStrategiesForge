@@ -2,6 +2,7 @@
 using APIGateway.Infrastructure.Core;
 using Common.Constants;
 using Grpc.Core;
+using System.Net.WebSockets;
 using System.Text.Json;
 
 namespace APIGateway.Middlewares;
@@ -28,21 +29,26 @@ public class ExceptionMiddleware
             catch (OperationCanceledException canceledEx)
             {
                 _logger.LogInformation(
-                    "WebSocket соединение прервано (OperationCanceledException): путь={Path}, причина={Message}",
+                    "WS: клиент закрыл соединение: {Path} ({Message})",
                     context.Request.Path,
-                    canceledEx.Message
-                );
+                    canceledEx.Message);
             }
-            catch (RpcException rpcEx) when (rpcEx.StatusCode == StatusCode.Cancelled)
+            catch (RpcException rpcEx)
             {
                 _logger.LogInformation(
-                    "WebSocket соединение прервано (gRPC Cancelled): путь={Path}",
-                    context.Request.Path
-                );
+                    "WS: gRPC завершился с кодом {StatusCode}: {Detail}",
+                    rpcEx.StatusCode,
+                    rpcEx.Status.Detail);
+            }
+            catch (WebSocketException wsex)
+            {
+                _logger.LogInformation(
+                    "WS: WebSocketException (обычное закрытие канала): {Message}",
+                    wsex.Message);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Ошибка при установке WebSocket-соединения");
+                _logger.LogError(ex, "WS: неожиданная ошибка при установке соединения");
                 context.Abort();
             }
             return;
