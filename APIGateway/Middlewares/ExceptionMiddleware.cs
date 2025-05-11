@@ -19,6 +19,20 @@ public class ExceptionMiddleware
 
     public async Task Invoke(HttpContext context)
     {
+        if (context.WebSockets.IsWebSocketRequest)
+        {
+            try
+            {
+                await _next(context);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Ошибка при установке WebSocket-соединения");
+                context.Abort();
+            }
+            return;
+        }
+
         try
         {
             await _next(context);

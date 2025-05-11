@@ -151,9 +151,9 @@ var app = builder.Build();
 app.UseSwagger();
 app.UseSwaggerUI();
 
-app.UseWebSockets();
-
 app.UseMiddleware<ExceptionMiddleware>();
+
+app.UseWebSockets();
 
 app.UseAuthentication();
 app.UseAuthorization();
