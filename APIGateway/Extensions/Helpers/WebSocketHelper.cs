@@ -10,12 +10,11 @@ namespace APIGateway.Extensions.Helpers;
 
 public static class WebSocketHelper
 {
-    public static async Task EnsureWebSocketRequestAsync(HttpContext context)
+    public static void EnsureWebSocketRequestAsync(HttpContext context)
     {
         if (!context.WebSockets.IsWebSocketRequest)
         {
             context.Response.StatusCode = StatusCodes.Status400BadRequest;
-            await context.Response.WriteAsync(ErrorMessages.WebSocketConnection);
             throw new InvalidOperationException(ErrorMessages.WebSocketConnection);
         }
     }
@@ -76,7 +75,76 @@ public static class WebSocketHelper
                 _ => throw new InvalidOperationException($"Unsupported message type: {typeof(TRequest).Name}")
             };
 
-            await grpcRequestStream.WriteAsync(grpcMessage);
+            try
+            {
+                await grpcRequestStream.WriteAsync(grpcMessage);
+            }
+            catch (RpcException ex) when (ex.StatusCode == StatusCode.Cancelled)
+            {
+                return;
+            }
+        }
+    }
+
+    public static async Task BroadcastMessagesToAllClients<TResponse>(
+        IAsyncStreamReader<TResponse> grpcResponseStream,
+        List<WebSocket> activeClients,
+        HttpContext context,
+        Func<TResponse, object> responseConverter)
+    {
+        try
+        {
+            while (await grpcResponseStream.MoveNext(context.RequestAborted))
+            {
+                var responseDto = responseConverter(grpcResponseStream.Current);
+                var responseJson = JsonSerializer.Serialize(responseDto);
+                var messageBuffer = Encoding.UTF8.GetBytes(responseJson);
+
+                var sendTasks = new List<Task>();
+                lock (activeClients)
+                {
+                    foreach (var client in activeClients.ToList())
+                    {
+                        if (client.State == WebSocketState.Open)
+                            sendTasks.Add(SendMessageToClient(client, messageBuffer));
+                    }
+                }
+                await Task.WhenAll(sendTasks);
+            }
+        }
+        catch (RpcException ex) when (ex.StatusCode == StatusCode.Cancelled)
+        {
+            return;
+        }
+    }
+
+    public static async Task SendPersonalizedMessages<TResponse>(
+        IAsyncStreamReader<TResponse> grpcResponseStream,
+        WebSocket webSocket,
+        HttpContext context,
+        Func<TResponse, object> responseConverter)
+    {
+        try
+        {
+            while (await grpcResponseStream.MoveNext(context.RequestAborted))
+            {
+                var responseDto = responseConverter(grpcResponseStream.Current);
+                var responseJson = JsonSerializer.Serialize(responseDto);
+                var messageBuffer = Encoding.UTF8.GetBytes(responseJson);
+
+                if (webSocket.State == WebSocketState.Open)
+                    await webSocket.SendAsync(
+                        messageBuffer, WebSocketMessageType.Text, true, CancellationToken.None);
+            }
+        }
+        catch (RpcException ex) when (ex.StatusCode == StatusCode.Cancelled)
+        {
+            return;
+        }
+
+        if (webSocket.State == WebSocketState.Open)
+        {
+            await webSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Closed by server.", CancellationToken.None);
         }
     }
 
@@ -94,58 +162,5 @@ public static class WebSocketHelper
             SenderId = userId,
             Content = chatRequestDto.Content
         };
-    }
-
-    public static async Task BroadcastMessagesToAllClients<TResponse>(
-        IAsyncStreamReader<TResponse> grpcResponseStream,
-        List<WebSocket> activeClients,
-        HttpContext context,
-        Func<TResponse, object> responseConverter)
-    {
-        while (await grpcResponseStream.MoveNext(context.RequestAborted))
-        {
-            var responseDto = responseConverter(grpcResponseStream.Current);
-            var responseJson = JsonSerializer.Serialize(responseDto);
-            var messageBuffer = Encoding.UTF8.GetBytes(responseJson);
-
-            var sendTasks = new List<Task>();
-            lock (activeClients)
-            {
-                foreach (var client in activeClients.ToList())
-                {
-                    if (client.State == WebSocketState.Open)
-                    {
-                        sendTasks.Add(SendMessageToClient(client, messageBuffer));
-                    }
-                }
-            }
-            await Task.WhenAll(sendTasks);
-        }
-    }
-
-    public static async Task SendPersonalizedMessages<TResponse>(
-        IAsyncStreamReader<TResponse> grpcResponseStream,
-        WebSocket webSocket,
-        HttpContext context,
-        Func<TResponse, object> responseConverter)
-    {
-        while (await grpcResponseStream.MoveNext(context.RequestAborted))
-        {
-            var responseDto = responseConverter(grpcResponseStream.Current);
-            var responseJson = JsonSerializer.Serialize(responseDto);
-            var messageBuffer = Encoding.UTF8.GetBytes(responseJson);
-
-            if (webSocket.State == WebSocketState.Open)
-            {
-                await webSocket.SendAsync(messageBuffer, WebSocketMessageType.Text, true, CancellationToken.None);
-            }
-        }
-        if (webSocket.State == WebSocketState.Open)
-        {
-            await webSocket.CloseAsync(
-                WebSocketCloseStatus.NormalClosure,
-                "Closed by server.",
-                CancellationToken.None);
-        }
     }
 }

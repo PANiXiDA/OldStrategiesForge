@@ -47,7 +47,7 @@ public class ChatsController : ControllerBase
     [Route("global")]
     public async Task WebSocketGlobalChatStream()
     {
-        await WebSocketHelper.EnsureWebSocketRequestAsync(HttpContext);
+        WebSocketHelper.EnsureWebSocketRequestAsync(HttpContext);
         var userId = UserHelper.EnsureAuthorizedUser(HttpContext);
 
         using var webSocket = await HttpContext.WebSockets.AcceptWebSocketAsync();

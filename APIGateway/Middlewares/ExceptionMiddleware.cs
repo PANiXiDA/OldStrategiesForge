@@ -97,6 +97,7 @@ public class ExceptionMiddleware
 
         return context.Response.WriteAsJsonAsync(response);
     }
+
     private Task HandleGrpcExceptionAsync(HttpContext context, RpcException ex)
     {
         context.Response.StatusCode = ex.StatusCode switch
