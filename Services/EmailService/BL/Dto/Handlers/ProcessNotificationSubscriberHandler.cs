@@ -1,4 +1,5 @@
-﻿using EmailService.BL.BL.Interfaces;
+﻿using Common.SearchParams.EmailService;
+using EmailService.BL.BL.Interfaces;
 using EmailService.BL.BL.Models;
 using EmailService.BL.Dto.Commands;
 using MediatR;
@@ -17,7 +18,15 @@ internal class NotificationSubscriberCommandHandler : IRequestHandler<Notificati
     public async Task<Unit> Handle(NotificationSubscriberCommand request, CancellationToken cancellationToken)
     {
         var notificationSubscriber = new NotificationSubscriberEntity(request.Message);
-        await _notificationSubscribersBL.AddOrUpdateAsync(notificationSubscriber);
+        var exsist = await _notificationSubscribersBL.ExistsAsync(new NotificationSubscribersSearchParams()
+        {
+            Email = notificationSubscriber.Email
+        });
+
+        if (!exsist)
+        {
+            await _notificationSubscribersBL.AddOrUpdateAsync(notificationSubscriber);
+        }
 
         return Unit.Value;
     }

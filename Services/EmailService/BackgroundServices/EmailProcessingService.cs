@@ -11,18 +11,15 @@ internal class EmailProcessingService : BackgroundService
     private readonly ILogger<EmailProcessingService> _logger;
     private readonly IRabbitMQClient _rabbitMQClient;
     private readonly IServiceProvider _serviceProvider;
-    private readonly IMediator _mediator;
 
     public EmailProcessingService(
         ILogger<EmailProcessingService> logger,
         IRabbitMQClient rabbitMQClient,
-        IServiceProvider serviceProvider,
-        IMediator mediator)
+        IServiceProvider serviceProvider)
     {
         _rabbitMQClient = rabbitMQClient;
         _logger = logger;
         _serviceProvider = serviceProvider;
-        _mediator = mediator;
     }
 
     protected override Task ExecuteAsync(CancellationToken stoppingToken)

@@ -30,6 +30,11 @@ internal class NotificationSubscribersDAL : BaseDAL<DefaultDbContext, Notificati
     protected override IQueryable<NotificationSubscriberDbModel> BuildDbQuery(DefaultDbContext context,
         IQueryable<NotificationSubscriberDbModel> dbObjects, NotificationSubscribersSearchParams searchParams)
     {
+        if (string.IsNullOrEmpty(searchParams.Email))
+        {
+            dbObjects = dbObjects.Where(item => item.Email == searchParams.Email);
+        }
+
         return dbObjects;
     }
 
