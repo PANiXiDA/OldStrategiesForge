@@ -25,6 +25,21 @@ public class ExceptionMiddleware
             {
                 await _next(context);
             }
+            catch (OperationCanceledException canceledEx)
+            {
+                _logger.LogInformation(
+                    "WebSocket соединение прервано (OperationCanceledException): путь={Path}, причина={Message}",
+                    context.Request.Path,
+                    canceledEx.Message
+                );
+            }
+            catch (RpcException rpcEx) when (rpcEx.StatusCode == StatusCode.Cancelled)
+            {
+                _logger.LogInformation(
+                    "WebSocket соединение прервано (gRPC Cancelled): путь={Path}",
+                    context.Request.Path
+                );
+            }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Ошибка при установке WebSocket-соединения");

@@ -75,14 +75,7 @@ public static class WebSocketHelper
                 _ => throw new InvalidOperationException($"Unsupported message type: {typeof(TRequest).Name}")
             };
 
-            try
-            {
-                await grpcRequestStream.WriteAsync(grpcMessage);
-            }
-            catch (RpcException ex) when (ex.StatusCode == StatusCode.Cancelled)
-            {
-                return;
-            }
+            await grpcRequestStream.WriteAsync(grpcMessage);
         }
     }
 
@@ -92,29 +85,22 @@ public static class WebSocketHelper
         HttpContext context,
         Func<TResponse, object> responseConverter)
     {
-        try
+        while (await grpcResponseStream.MoveNext(context.RequestAborted))
         {
-            while (await grpcResponseStream.MoveNext(context.RequestAborted))
-            {
-                var responseDto = responseConverter(grpcResponseStream.Current);
-                var responseJson = JsonSerializer.Serialize(responseDto);
-                var messageBuffer = Encoding.UTF8.GetBytes(responseJson);
+            var responseDto = responseConverter(grpcResponseStream.Current);
+            var responseJson = JsonSerializer.Serialize(responseDto);
+            var messageBuffer = Encoding.UTF8.GetBytes(responseJson);
 
-                var sendTasks = new List<Task>();
-                lock (activeClients)
+            var sendTasks = new List<Task>();
+            lock (activeClients)
+            {
+                foreach (var client in activeClients.ToList())
                 {
-                    foreach (var client in activeClients.ToList())
-                    {
-                        if (client.State == WebSocketState.Open)
-                            sendTasks.Add(SendMessageToClient(client, messageBuffer));
-                    }
+                    if (client.State == WebSocketState.Open)
+                        sendTasks.Add(SendMessageToClient(client, messageBuffer));
                 }
-                await Task.WhenAll(sendTasks);
             }
-        }
-        catch (RpcException ex) when (ex.StatusCode == StatusCode.Cancelled)
-        {
-            return;
+            await Task.WhenAll(sendTasks);
         }
     }
 
@@ -124,22 +110,16 @@ public static class WebSocketHelper
         HttpContext context,
         Func<TResponse, object> responseConverter)
     {
-        try
+        while (await grpcResponseStream.MoveNext(context.RequestAborted))
         {
-            while (await grpcResponseStream.MoveNext(context.RequestAborted))
-            {
-                var responseDto = responseConverter(grpcResponseStream.Current);
-                var responseJson = JsonSerializer.Serialize(responseDto);
-                var messageBuffer = Encoding.UTF8.GetBytes(responseJson);
+            var responseDto = responseConverter(grpcResponseStream.Current);
+            var responseJson = JsonSerializer.Serialize(responseDto);
+            var messageBuffer = Encoding.UTF8.GetBytes(responseJson);
 
-                if (webSocket.State == WebSocketState.Open)
-                    await webSocket.SendAsync(
-                        messageBuffer, WebSocketMessageType.Text, true, CancellationToken.None);
+            if (webSocket.State == WebSocketState.Open)
+            {
+                await webSocket.SendAsync(messageBuffer, WebSocketMessageType.Text, true, CancellationToken.None);
             }
-        }
-        catch (RpcException ex) when (ex.StatusCode == StatusCode.Cancelled)
-        {
-            return;
         }
 
         if (webSocket.State == WebSocketState.Open)
