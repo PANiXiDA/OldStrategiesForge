@@ -134,10 +134,13 @@ public class MatchmakingServiceImpl : GameMatchmaking.GameMatchmakingBase
                         {
                             var opponent = _playersQueue[opponentIndex];
 
-                            _playersQueue.RemoveAt(opponentIndex);
-                            if (opponentIndex < i) i--;
-                            _playersQueue.RemoveAt(i);
-                            i--;
+                            int firstToRemove = Math.Max(i, opponentIndex);
+                            int secondToRemove = Math.Min(i, opponentIndex);
+
+                            _playersQueue.RemoveAt(firstToRemove);
+                            _playersQueue.RemoveAt(secondToRemove);
+
+                            i = secondToRemove - 1;
 
                             var gameId = await CreateGame();
                             var playerSessionId = await CreateSession(player.Id, gameId);
