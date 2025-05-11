@@ -34,7 +34,25 @@ public class ExceptionMiddleware
         }
         catch (RpcException rpcEx)
         {
-            _logger.LogError(rpcEx, "gRPC вызов завершился с ошибкой.");
+            if (rpcEx.StatusCode == StatusCode.AlreadyExists
+             || rpcEx.StatusCode == StatusCode.NotFound
+             || rpcEx.StatusCode == StatusCode.FailedPrecondition
+             || rpcEx.StatusCode == StatusCode.PermissionDenied)
+            {
+                _logger.LogInformation(
+                    "gRPC бизнес-ошибка ({StatusCode}): {Detail}",
+                    rpcEx.StatusCode,
+                    rpcEx.Status.Detail);
+            }
+            else
+            {
+                _logger.LogError(
+                    rpcEx,
+                    "gRPC вызов завершился с ошибкой ({StatusCode}): {Detail}",
+                    rpcEx.StatusCode,
+                    rpcEx.Status.Detail);
+            }
+
             await HandleGrpcExceptionAsync(context, rpcEx);
         }
         catch (InvalidOperationException ex)
@@ -69,10 +87,10 @@ public class ExceptionMiddleware
     {
         context.Response.StatusCode = ex.StatusCode switch
         {
-            Grpc.Core.StatusCode.NotFound => StatusCodes.Status404NotFound,
-            Grpc.Core.StatusCode.PermissionDenied => StatusCodes.Status403Forbidden,
-            Grpc.Core.StatusCode.AlreadyExists => StatusCodes.Status409Conflict,
-            Grpc.Core.StatusCode.FailedPrecondition => StatusCodes.Status412PreconditionFailed,
+            StatusCode.NotFound => StatusCodes.Status404NotFound,
+            StatusCode.PermissionDenied => StatusCodes.Status403Forbidden,
+            StatusCode.AlreadyExists => StatusCodes.Status409Conflict,
+            StatusCode.FailedPrecondition => StatusCodes.Status412PreconditionFailed,
             _ => StatusCodes.Status500InternalServerError
         };
 

@@ -21,9 +21,24 @@ public class ExceptionInterceptor : Interceptor
         {
             return await continuation(request, context);
         }
-        catch (RpcException ex)
+        catch (RpcException rpcEx) when (
+            rpcEx.StatusCode == StatusCode.AlreadyExists ||
+            rpcEx.StatusCode == StatusCode.NotFound ||
+            rpcEx.StatusCode == StatusCode.FailedPrecondition ||
+            rpcEx.StatusCode == StatusCode.PermissionDenied)
         {
-            _logger.LogError(ex, "gRPC вызов завершился с ошибкой: {Message}", ex.Status.Detail);
+            _logger.LogInformation(
+                "gRPC бизнес-ошибка ({StatusCode}): {Detail}",
+                rpcEx.StatusCode,
+                rpcEx.Status.Detail);
+            throw;
+        }
+        catch (RpcException rpcEx)
+        {
+            _logger.LogError(
+                rpcEx,
+                "gRPC вызов завершился с ошибкой: {Detail}",
+                rpcEx.Status.Detail);
             throw;
         }
         catch (Exception ex)
