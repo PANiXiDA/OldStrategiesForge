@@ -1,0 +1,26 @@
+name: CI
+
+on:
+  push:
+    branches: [ develop ]
+  pull_request:
+    branches: [ develop ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: '8.0.x'
+    - name: Restore
+      run: dotnet restore OldStrategiesForge.sln
+    - name: Build
+      run: dotnet build OldStrategiesForge.sln --no-restore
+    - name: Test
+      run: |
+        for proj in $(ls Tests/*/*.csproj); do
+          dotnet test $proj --no-build
+        done
